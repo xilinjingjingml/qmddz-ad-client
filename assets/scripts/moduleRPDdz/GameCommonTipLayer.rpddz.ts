@@ -1,7 +1,7 @@
 import BaseFunc = require("../base/BaseFunc")
 import GameLogic from "./GameLogic.rpddz"
 import BaseComponent from "../base/BaseComponent"
-import DataManager from "../base/baseData/DataManager";
+import AudioManager from "./AudioManager.rpddz";
 
 // let GameLogic.Instance() = GameLogic.Instance()
 
@@ -34,38 +34,29 @@ export default class GameCommonTipLayer extends BaseComponent {
     __bindButtonHandler() {
         cc.log("__bindButtonHandler")
 		BaseFunc.AddClickEvent(this.btn_close, this.node, this.thisComponentName, "onPressClose", 0);
-		BaseFunc.AddClickEvent(this.btn_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
-		BaseFunc.AddClickEvent(this.btn_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
+		BaseFunc.AddClickEvent(this.btn_exit_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
+		BaseFunc.AddClickEvent(this.btn_game_exit_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
+		BaseFunc.AddClickEvent(this.btn_private_apply_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
+		BaseFunc.AddClickEvent(this.btn_private_dismiss_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
+		BaseFunc.AddClickEvent(this.btn_private_agree_confirm, this.node, this.thisComponentName, "onPressContinue", 0);
+		BaseFunc.AddClickEvent(this.btn_exit_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
+		BaseFunc.AddClickEvent(this.btn_game_exit_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
+		BaseFunc.AddClickEvent(this.btn_private_apply_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
+		BaseFunc.AddClickEvent(this.btn_private_dismiss_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
+		BaseFunc.AddClickEvent(this.btn_private_agree_cancel, this.node, this.thisComponentName, "onPressCancel", 0);
     }
     
     refreshButton(style = 0) {
-
         this.btn_close.active = [1, 5].indexOf(style) == -1
-
-        switch (style) {
-            // 游戏中退出
-            case 1:
-                this.btn_confirm.$Sprite.spriteFrame = DataManager.Instance.getSpriteFrame("common", "btnConfirm")
-                this.btn_cancel.$Sprite.spriteFrame = DataManager.Instance.getSpriteFrame("common", "btnCancel")                
-                break;        
-            case 2:
-                // 暂时离桌 申请解散
-                BaseFunc.SetFrameTextureLocal(this.btn_confirm.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_apply")
-                BaseFunc.SetFrameTextureLocal(this.btn_cancel.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_leave")
-                break;
-            case 3:
-                // 暂时离桌 解散房间
-                BaseFunc.SetFrameTextureLocal(this.btn_confirm.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_dismiss")
-                BaseFunc.SetFrameTextureLocal(this.btn_cancel.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_leave")
-                break;
-            case 5:
-                // 不同意 同意(15)
-                BaseFunc.SetFrameTextureLocal(this.btn_confirm.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_agree")
-                BaseFunc.SetFrameTextureLocal(this.btn_cancel.$Sprite, "moduleRPDdzRes/images/PrivateGame/btn_disagree")
-                break;
-            default:
-                break;
-        }
+        this.node_exit.active = style == 0
+        // 游戏中退出
+        this.node_game_exit.active = style == 1
+        // 暂时离桌 申请解散
+        this.node_private_apply.active = style == 2
+        // 暂时离桌 解散房间
+        this.node_private_dismiss.active = style == 3
+        // 不同意 同意(15)
+        this.node_private_agree.active = style == 5
     }
 
     emulateData() {
@@ -134,6 +125,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
     
     onPressContinue() {
+        AudioManager.playButtonSound()
         this.close()
         if (this.initParam.confirmCback) {
             this.initParam.confirmCback()
@@ -141,6 +133,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
 
     onPressCancel() {
+        AudioManager.playButtonSound()
         this.close()
         if (this.initParam.cancelCback) {
             this.initParam.cancelCback()
@@ -148,6 +141,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
 
     onPressClose() {
+        AudioManager.playButtonSound()
         this.close()
     }
 
@@ -160,6 +154,4 @@ export default class GameCommonTipLayer extends BaseComponent {
         this.initParam = event.packet
         this.start()
     }
-
-    // update (dt) {}
 }

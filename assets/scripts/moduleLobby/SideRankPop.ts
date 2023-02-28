@@ -1,8 +1,8 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
-import { getHttpSpriteFrame, numberFormat } from "../base/BaseFuncTs";
+import { numberFormat } from "../base/BaseFuncTs";
 import { getRedpacketRank } from "./LobbyFunc";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -26,15 +26,7 @@ export default class SideRankPop extends BaseScene {
         if (strName.length > 6) 
             strName = strName.substr(0, 6) + "..."
         cc.find("nodePop/nodeList/nodeSelf/labelNickname", this.node).getComponent(cc.Label).string = strName
-        let nodeFace = cc.find("nodePop/nodeList/nodeSelf/nodeFace", this.node)
-        if (null != nodeFace && DataManager.UserData.face) {
-            getHttpSpriteFrame(DataManager.UserData.face, (sprite) => {
-                let face = cc.find("rank_face_icon", nodeFace).getComponent(cc.Sprite)
-                let size = face.node.getContentSize()
-                face.spriteFrame = sprite
-                face.node.setContentSize(size)
-            })
-        }
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeList/nodeSelf/nodeFace", this.node), url: DataManager.UserData.face, fixSize: true })
 
         for (let i = 1; i <= 4; i++){
             let list = cc.find("nodePop/nodeList/rankList" + i, this.node)
@@ -91,15 +83,7 @@ export default class SideRankPop extends BaseScene {
 
             let nodeFace = rank.getChildByName("nodeFace")
             if (null != nodeFace && this._rank4 && this._rank4[i] &&  this._rank4[i].face) {
-                getHttpSpriteFrame(this._rank4[i].face, (sprite) => {
-                    if (null == self.node)  
-                        return
-
-                    let face = cc.find("mark/icon", nodeFace).getComponent(cc.Sprite)
-                    let size = face.node.getContentSize()
-                    face.spriteFrame = sprite
-                    face.node.setContentSize(size)
-                })
+                NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/mark/icon", rank), url: this._rank4[i].face, fixSize: true })
             }
         }
 
@@ -226,18 +210,7 @@ export default class SideRankPop extends BaseScene {
                 item.getChildByName("labelRedpacket").getComponent(cc.Label).string = numberFormat(iter.redNum)
             }
 
-            let nodeFace = item.getChildByName("nodeFace")
-            if (null != nodeFace && iter.face) {
-                getHttpSpriteFrame(iter.face, (sprite) => {
-                    if (null == self.node)  
-                        return
-
-                    let face = cc.find("rank_face_icon", nodeFace).getComponent(cc.Sprite)
-                    let size = face.node.getContentSize()
-                    face.spriteFrame = sprite
-                    face.node.setContentSize(size)
-                })
-            }
+            NodeExtends.setNodeSpriteNet({ node: item.getChildByName("nodeFace"), url: iter.face, fixSize: true })
      
             item.getChildByName("rank_item_self_bg").active = iter.plyGuid == DataManager.UserData.guid            
                     
@@ -335,8 +308,6 @@ export default class SideRankPop extends BaseScene {
     }
 
     onScrollViewEnd(event) {
-        // if(event.scrollEvents[0].name = )
-        // console.log(event)
         this.updateRankType(this._curType)
     }
 }

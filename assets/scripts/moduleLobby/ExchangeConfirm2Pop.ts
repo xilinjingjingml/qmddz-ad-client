@@ -1,8 +1,6 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { iMessageBox, MsgBox, czcEvent } from "../base/BaseFuncTs";
-import SceneManager from "../base/baseScene/SceneManager";
-import BaseFunc = require("../base/BaseFunc")
 import { getVipConfig, exchangeAward } from "./LobbyFunc";
 
 const {ccclass, property} = cc._decorator;
@@ -44,21 +42,6 @@ export default class ExchangeConfirm2Pop extends BaseScene {
         }else {
             cc.find("nodePop/vipRaise", this.node).getComponent(cc.Label).string = ""
         }
-        
-
-        // if (this.initParam["gainItemList"][0]["gainItem"] != 0){
-        //     let self = this
-        //     this.initParam["goodsImg"] = this.initParam["goodsImg"].replace("http://", "https://")
-        //     cc.loader.load({url: this.initParam["goodsImg"], type: "png"}, (err, texture) => {
-        //         if (err) {
-        //             console.log(err)
-        //         }
-        //         else{
-        //             cc.find("nodePop/exchange_item_frame/goldbean", self.node).getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)  
-        //         }
-        //     })
-        //     cc.find("nodePop/labelTip", this.node).active = false            
-        // }
 
         let buy = cc.find("nodePop/btnExchange", this.node).getComponent(cc.Button)
         let clickEventHandler = new cc.Component.EventHandler();
@@ -68,10 +51,9 @@ export default class ExchangeConfirm2Pop extends BaseScene {
 
         let self = this
         this["onExchange"] = () => {
-            czcEvent("大厅", "兑换红包", "请求兑换金豆 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+            czcEvent("大厅", "兑换红包", "请求兑换金豆 " + DataManager.Instance.userTag)
             exchangeAward(this.initParam["goodsId"], () => {
-                czcEvent("大厅", "兑换红包", "兑换金豆成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                // SceneManager.Instance.popScene("moduleLobby", "ExchangeSuccPop")
+                czcEvent("大厅", "兑换红包", "兑换金豆成功 " + DataManager.Instance.userTag)
                 self.closeSelf()
             })
         }         

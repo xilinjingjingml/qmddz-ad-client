@@ -1,8 +1,8 @@
 import BaseScene from "../base/baseScene/BaseScene";
-import { getHttpSpriteFrame, czcEvent } from "../base/BaseFuncTs";
+import { czcEvent } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import { exchangeAward, sendReloadUserData } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -10,13 +10,7 @@ const {ccclass, property} = cc._decorator;
 export default class AwardInfoPop extends BaseScene {
 
    onOpenScene() {
-        let icon = cc.find("nodePop/nodeItem/itemIcon", this.node)
-        getHttpSpriteFrame(this.initParam["goodsImg"], (spriteFrame) => {
-            let s1 = icon.getContentSize()
-            let s2 = spriteFrame.getOriginalSize()
-            icon.getComponent(cc.Sprite).spriteFrame = spriteFrame
-            icon.scale = Math.min(s1.width / s2.width, s1.height / s2.height)
-        })
+       NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeItem/itemIcon", this.node), url: this.initParam["goodsImg"], fixSize: true })
 
         cc.find("nodePop/nodeItem/num", this.node).getComponent(cc.Label).string = "拥有数量:" + this.initParam["goodsNum"]
 
@@ -42,7 +36,7 @@ export default class AwardInfoPop extends BaseScene {
 
         let self = this
         exchangeAward(this.initParam["goodsId"], () => {
-            czcEvent("大厅", "兑换实物", "兑换实物成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+            czcEvent("大厅", "兑换实物", "兑换实物成功 " + DataManager.Instance.userTag)
             sendReloadUserData()
             self.closeSelf()
             if (self.initParam["confirmFunc"])

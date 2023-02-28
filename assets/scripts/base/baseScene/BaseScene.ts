@@ -1,19 +1,13 @@
-﻿import BaseMessage from "../baseNet/BaseMessage";
-import SceneManager from "./SceneManager";
-import TabControl from "../extensions/Extpands/TabControl";
+﻿import BaseMessage from "../baseNet/BaseMessage"
+import SceneManager from "./SceneManager"
+import TabControl from "../extensions/Extpands/TabControl"
 
-const {ccclass, property} = cc._decorator;
+const {ccclass, property} = cc._decorator
 
 export class ScenePath {
-    @property()
     moduleName: String = ""
-
-    @property()
     sceneName: String = ""
 
-    /**
-     *
-     */
     constructor(moduleName = null, prefab = null) {
         this.moduleName = moduleName        
         if (prefab instanceof cc.Prefab)
@@ -26,31 +20,22 @@ export class ScenePath {
 @ccclass
 export default class BaseScene extends BaseMessage {
 
-    @property()
     sceneName: string = null
 
-    @property()
     curScene: ScenePath = null;
 
-    @property()
     lastScene: ScenePath = null;
 
-    @property() 
     isPop: boolean = false;
 
     @property() 
     isProtrait: boolean = false
 
-    @property() 
     socketName = ""
 
-    @property()
     initParam: any = {}
     
-    @property({
-        type: [String, [TabControl]]
-    })
-    _tabRegister = [];
+    _tabRegister = []
 
     callScene: BaseScene = null
 
@@ -62,8 +47,22 @@ export default class BaseScene extends BaseMessage {
 
     }
 
+    openScene() {
+        this.onBeforeOpen()
+        this.onOpenScene()
+        this.onAfterOpen()
+    }
+
+    onBeforeOpen() {
+
+    }
+
     onOpenScene() {
 
+    }
+
+    onAfterOpen() {
+        
     }
 
     closeCallBack() {
@@ -110,7 +109,6 @@ export default class BaseScene extends BaseMessage {
     }
 
     sendMessage(message, socketName = this.socketName) {
-        // NetManager.Instance.send(socketName, message)
         SceneManager.Instance.node.emit("sendMessage", {socketName: this.socketName, message: message})
     }
 

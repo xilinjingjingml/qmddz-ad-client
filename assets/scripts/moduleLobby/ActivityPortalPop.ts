@@ -3,7 +3,7 @@ import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
 import { getNowTimeUnix, checkOneYuanBox, numberFormat } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
-import { GAME_TYPE } from "../gameConfig";
+import { time } from "../base/utils/time";
 
 const { ccclass, property } = cc._decorator;
 
@@ -42,18 +42,21 @@ class ActivePortalItem {
 }
 
 const ActiveList: ActivePortalItem[] = [
+    /*
     ActivePortalItem.create({buttonName: "充值大优惠", noticePrefabName: "DiscountCodeUsePop"}),    
     ActivePortalItem.create({buttonName: "VIP大礼", noticePrefabName: "DiscountCodeGetPop"}),    
     ActivePortalItem.create({buttonName: "充值返利", noticePrefabName: "CashbackPop"}),
     ActivePortalItem.create({buttonName: "充值翻倍", noticePrefabName: "PayDoublePop"}),
-    ActivePortalItem.create({buttonName: "拜 财 神", noticePrefabName: "GodOfWealthActivePop"}),
-    ActivePortalItem.create({buttonName: "VIP新春大礼", noticePrefabName: "VipNewYearPop"}),
     ActivePortalItem.create({buttonName: "红包任务", noticePrefabName: "NewYearPop"}),
-    ActivePortalItem.create({buttonName: "激战排行榜", noticePrefabName: "GameRankPop"}),
     ActivePortalItem.create({buttonName: "欢乐嘉年华", noticePrefabName: "GashaponActivePop"}),
     ActivePortalItem.create({buttonName: "周末嘉年华", noticePrefabName: "Double11ActiveNewPop"}),
     ActivePortalItem.create({buttonName: "幸运刮刮乐", noticePrefabName: "ScratchLotteryPop"}),
-    ActivePortalItem.create({buttonName: "VIP 5折", noticePrefabName: "VipActivePop"}),    
+   */
+    ActivePortalItem.create({ buttonName: "幸运祈福", noticePrefabName: "LuckyBlessPop" }),
+    ActivePortalItem.create({ buttonName: "拜 财 神", noticePrefabName: "GodOfWealthActivePop" }),
+    ActivePortalItem.create({ buttonName: "激战排行榜", noticePrefabName: "GameRankPop" }),
+    ActivePortalItem.create({ buttonName: "登录有礼", noticePrefabName: "GameEntryPop" }),
+    ActivePortalItem.create({ buttonName: "APP福利", noticePrefabName: "ShareMoneyActivePop" }),
 ]
 
 // 幸运刮刮乐
@@ -92,6 +95,10 @@ export default class ActivityPortalPop extends BaseComponent {
         if (this.initParam && this.initParam["selectName"])
             this._selectName = this.initParam["selectName"]
 
+        cc.find("nodeMain/nodeBg", this.node).runAction(cc.repeatForever(cc.sequence([cc.callFunc(() => {
+            this["active_light1"].active = !this["active_light1"].active
+            this["active_light2"].active = !this["active_light2"].active
+        }), cc.delayTime(0.5)])))
         this.initMenu()
         this.refreshUserData()
     }
@@ -134,13 +141,6 @@ export default class ActivityPortalPop extends BaseComponent {
                 continue
             }
 
-            if (DataManager.Instance.GameType === GAME_TYPE.QMDDZMD) {
-                if (element.buttonName === "每日瓜分趣金币" || 
-                    element.buttonName === "游戏入口" || 
-                    element.buttonName === "88元赏金")
-                    continue;   
-            }
-            
             if (nDay.getDay() == 0 || nDay.getDay() == 6) {
                 if(element.buttonName === "欢乐嘉年华") {
                     continue
@@ -186,7 +186,7 @@ export default class ActivityPortalPop extends BaseComponent {
             let menuItem = cc.instantiate(item)
             // let tabStr = element.buttonName === "双旦嘉年华" ? "新春嘉年华" : element.buttonName
             let tabStr = element.buttonName
-            
+            menuItem.getChildByName("mark_hot").active = tabStr == "幸运祈福"
             menuItem.getChildByName("Background").getChildByName("tabname").getComponent(cc.Label).string = tabStr
             menuItem.getChildByName("checkmark").getChildByName("tabname").getComponent(cc.Label).string = tabStr     
             // menuItem.getChildByName("Background").getChildByName("buttonName").getComponent(cc.Sprite).spriteFrame = 
@@ -194,7 +194,7 @@ export default class ActivityPortalPop extends BaseComponent {
             // menuItem.getChildByName("checkmark").getChildByName("buttonName").getComponent(cc.Sprite).spriteFrame = 
             //         DataManager.Instance.getSpriteFrame("active", element.tabName + "1")
             menuItem.active = true
-            menuItem.position = cc.v2(-13, 0)
+            menuItem.position = cc.v2(0, 0)
             content.addChild(menuItem)
             menuItem.name = "menuItem" + key
             BaseFunc.AddToggleCheckEvent(menuItem, this.node, this.thisComponentName, "onPressMenu", key)
@@ -209,61 +209,12 @@ export default class ActivityPortalPop extends BaseComponent {
             }
             
             this.pushLoadStack(element, this._selectId == parseInt(key))
-            
 
-
-            // prefabs.push("moduleLobby/prefab/" + element.noticePrefabName)
-
-            // if (element.noticePrefabName == "GodOfWealthActivePop") {
-            // cc.log(element.noticePrefabName + " start load:" + new Date().getTime())
-            // cc.loader.loadRes("moduleLobby/prefab/" + element.noticePrefabName, 
-            //     (err, res) => {
-            //         if (err) console.log(err)
-
-            //         let activityItem = cc.instantiate(res)
-            //         activityItem.active = parseInt(key) == self._selectId
-            //         activityItem.parentView = self
-            //         activityItem.setPosition(0, 0)
-            //         self["nodeContentRight"].addChild(activityItem)
-            //         self.prefabInstance[activityItem.name] = activityItem
-            //         cc.log(element.noticePrefabName + " end load:" + new Date().getTime())
-            //     }
-            // )
-            // }
-            
             idx++
         }
 
         this._stack[0].isActive = true
         this.loadPage()
-        // let self = this
-        // cc.loader.loadResArray(prefabs, cc.Prefab,
-        //     // (completedCount: number, totalCount: number, item: any) => {
-        //     //     let activityItem = cc.instantiate(item)
-        //     //     activityItem.active = completedCount == idx
-        //     //     activityItem.parentView = self
-        //     //     activityItem.setPosition(0, 0)
-        //     //     self["nodeContentRight"].addChild(activityItem)
-        //     //     self.prefabInstance[item.name] = activityItem
-        //     // },
-        //     (err, res) => {
-        //         if (err) {
-        //             console.log(err)
-        //         }
-
-        //         let key = 0
-        //         for (let val of res) {
-        //             let activityItem = cc.instantiate(val)
-        //             activityItem.active = key == idx
-        //             activityItem.parentView = self
-        //             activityItem.setPosition(0, 0)
-        //             self["nodeContentRight"].addChild(activityItem)
-        //             self.prefabInstance[val.name] = activityItem
-        //             key ++
-        //         }
-        //     }
-        // ) 
-        
     }
 
     __bindButtonHandler() {
@@ -333,6 +284,7 @@ export default class ActivityPortalPop extends BaseComponent {
 
     onPressMenu(EventTouch, data) {
         cc.log("onPressMenu", data)
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this._selectId = data
         // let menuItem = this["nodeMenu"].getChildByName("menuItem" + data)
         // if (null == menuItem)
@@ -351,6 +303,7 @@ export default class ActivityPortalPop extends BaseComponent {
                 element.active = false
             }
         }
+        ActiveList.forEach(item => item.isActive = false)
         
         // let item = this.actives[this._selectId]
         let item = ActiveList[this._selectId]
@@ -403,32 +356,12 @@ export default class ActivityPortalPop extends BaseComponent {
     }
 
     showPrefabByName(item) {
-        // let item = this.actives[this._selectId]
-        // let curPrefab = item.noticePrefabName
-
+        item.isActive = true
         if (!!this.prefabInstance[item.noticePrefabName]) {
             this.prefabInstance[item.noticePrefabName].active = true
             if(this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive) {
                 this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive()
             }
-        } else {
-            let self = this
-            // cc.loader.loadRes("moduleLobby/prefab/" + item.noticePrefabName, 
-            //     (err, res) => {
-            //         if (err) {
-            //             console.log(err)
-            //         }
-            //         else if (res instanceof cc.Prefab) {
-            //             let activityItem = cc.instantiate(res)
-            //             activityItem.active = true
-            //             activityItem.parentView = self
-            //             activityItem.setPosition(0, 0)
-            //             self["nodeContentRight"].addChild(activityItem)
-
-            //             self.prefabInstance[item.noticePrefabName] = activityItem
-            //         }
-            //     }
-            // )    
         }
     }
 
@@ -445,7 +378,6 @@ export default class ActivityPortalPop extends BaseComponent {
     onCloseScene() {
 
     }
-    // update (dt) {}
 
     _stack = []
     _loading = false
@@ -459,8 +391,8 @@ export default class ActivityPortalPop extends BaseComponent {
         let self = this
         cc.loader.loadRes("moduleLobby/prefab/" + prefab.noticePrefabName, 
             (err, res) => {
-                if (err) console.log(err)
-                if (null == self.node)
+                if (err) cc.log(err)
+                if (null == self.node || !self.node.isValid)
                     return
                 let activityItem = cc.instantiate(res)
                 activityItem.active = prefab.isActive || false //ActiveList[this._selectId].noticePrefabName == prefab.noticePrefabName
@@ -485,5 +417,37 @@ export default class ActivityPortalPop extends BaseComponent {
             this._stack.push(prefab)
         }
         // this.loadPage()
+    }
+
+    onBeforeOpen() {
+        if (cc.sys.isNative) {
+            this.deleteActive("登录有礼")
+        }
+
+        let timeZone: { startTime: string, endTime: string } = DataManager.Instance.onlineParam.LuckyBlessTimeZone || { startTime: "20201001", endTime: "20201008" }
+        const t = Math.floor(new Date().getTime() / 1000)
+        if (t < time.toTimeStamp(timeZone.startTime) || t > time.toTimeStamp(timeZone.endTime)) {
+            timeZone = DataManager.Instance.onlineParam.LuckyBlessShowTimeZone || { startTime: "20201001", endTime: "20201011" }
+            if (t < time.toTimeStamp(timeZone.startTime) || t > time.toTimeStamp(timeZone.endTime)) {
+                this.deleteActive("幸运祈福")
+            }
+        }
+
+        if (cc.sys.isNative || DataManager.CommonData["stayDay"] < 7 || DataManager.CommonData["roleCfg"]["roundSum"] < 5000) {
+            this.deleteActive("APP福利")
+        }
+        if (DataManager.CommonData.IPLocation == null || ["北京市", "上海市", "广东省"].indexOf(DataManager.CommonData.IPLocation.province) != -1) {
+            this.deleteActive("APP福利")
+        }
+    }
+
+
+    deleteActive(name: string) {
+        for (let i = 0; i < ActiveList.length; i++) {
+            if (ActiveList[i].buttonName == name) {
+                ActiveList.splice(i, 1)
+                break
+            }
+        }
     }
 }

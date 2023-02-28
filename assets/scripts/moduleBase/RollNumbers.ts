@@ -1,4 +1,3 @@
-import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 
 const {ccclass, property} = cc._decorator;
@@ -17,6 +16,7 @@ export default class RollNumbers extends BaseComponent {
     myvalue:number = 0
     numberSize:number = 11
     distenceY:number = 24
+    offset: number = 3.12
     numberArr = []
     // onLoad () {}
     __bindButtonHandler() {
@@ -31,7 +31,7 @@ export default class RollNumbers extends BaseComponent {
 
         for (let i = 0; i < this.numberSize; i++) {
             this["sptRedPacketNum" + (i + 1)].active = false       
-            this["sptRedPacketNum" + (i + 1)].getChildByName("labelRedPacketNum").y = -1 * this.distenceY
+            this["sptRedPacketNum" + (i + 1)].getChildByName("labelRedPacketNum").y = -(this.distenceY + this.offset)
         }
         this.numberArr = []
         this.myvalue = 0
@@ -47,7 +47,7 @@ export default class RollNumbers extends BaseComponent {
 
         this.numberArr.forEach((v, k) => {
             this["sptRedPacketNum" + (k+1)].active = true
-            this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y = this.distenceY * v
+            this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y = this.distenceY * v + this.offset
         })
 
     }
@@ -75,8 +75,8 @@ export default class RollNumbers extends BaseComponent {
         
         numbeArrDst.forEach((v, k) => {
             this["sptRedPacketNum" + (k+1)].active = true
-            let dstY = this.distenceY * v
-            let curY = this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y
+            let dstY = this.distenceY * v + this.offset
+            let curY = this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y - this.offset
 
             let actionList = []
             actionList[actionList.length] = cc.delayTime((numbeArrDst.length - k)*0.3);
@@ -94,9 +94,9 @@ export default class RollNumbers extends BaseComponent {
             }
             
             for (let i = 0; i < loopTime; i++) {
-                actionList[actionList.length] = cc.moveTo(0.3/loopTime + k * 0.03, cc.v2(0, (this.numberSize-1) * this.distenceY )).easing(cc.easeOut(2.0));
+                actionList[actionList.length] = cc.moveTo(0.3 / loopTime + k * 0.03, cc.v2(0, (this.numberSize - 1) * this.distenceY + this.offset)).easing(cc.easeOut(2.0));
                 actionList[actionList.length] = cc.callFunc(() => {
-                    this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y = 0
+                    this["sptRedPacketNum" + (k+1)].getChildByName("labelRedPacketNum").y = this.offset
                 })
             }
             
@@ -111,5 +111,4 @@ export default class RollNumbers extends BaseComponent {
     setRollSpeed(value=1) {
         this.speed = value
     }
-    // update (dt) {}
 }

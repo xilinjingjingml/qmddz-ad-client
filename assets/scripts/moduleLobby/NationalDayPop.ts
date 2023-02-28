@@ -1,12 +1,11 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
-import { iMessageBox, showAwardResultPop, playAD, czcEvent, payOrder, getShopBox, getNowTimeUnix } from "../base/BaseFuncTs";
-import { getADAward, sendReloadUserData, exchangeQttCoin } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
-import { AdsConfig } from "../base/baseData/AdsConfig";
+import { AdsConfig } from "../base/baseData/AdsConfig"
+import DataManager from "../base/baseData/DataManager"
+import { czcEvent, getNowTimeUnix, getShopBox, iMessageBox, payOrder, showAwardResultPop } from "../base/BaseFuncTs"
+import BaseScene from "../base/baseScene/BaseScene"
+import { receiveAdAward, sendReloadUserData } from "./LobbyFunc"
+import { http } from "../base/utils/http"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass } = cc._decorator
 
 @ccclass
 export default class NationalDayPop extends BaseScene {
@@ -20,11 +19,11 @@ export default class NationalDayPop extends BaseScene {
         dValue = 1571760000 + 86400 * 7 * dValue
         let dStart = new Date(dValue * 1000)
         let dEnd = new Date((dValue + 86400 * 7) * 1000 - 86400)
-        cc.find("nodePop/national_day_bg/national_day_title/date", this.node).getComponent(cc.Label).string = 
+        cc.find("nodePop/national_day_bg/national_day_title/date", this.node).getComponent(cc.Label).string =
             (dStart.getMonth() + 1) + "月" + (dStart.getDate()) + "日" + "-" + (dEnd.getMonth() + 1) + "月" + (dEnd.getDate()) + "日"
 
-        this.getSignConfig()     
-        this.initBox()   
+        this.getSignConfig()
+        this.initBox()
     }
 
     onCloseScene() {
@@ -35,7 +34,7 @@ export default class NationalDayPop extends BaseScene {
         let nodeSign = cc.find("nodePop/nodeSign/view/content", this.node)
         // let date = new Date().getDate() 
         let lastSignTime = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signTime : 0
-        let lastSignDay = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signDay : 0       
+        let lastSignDay = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signDay : 0
         let now = getNowTimeUnix()
         let todaySign = now - now % 86400 - 28800
         let alreadySign = todaySign < lastSignTime
@@ -52,18 +51,18 @@ export default class NationalDayPop extends BaseScene {
             }
 
             nodeDay.getChildByName("btn_award_enable").active = item.signDay <= lastSignDay
-            nodeDay.getChildByName("btn_get_awrd").active = item.signDay > lastSignDay   
-            if (alreadySign){
+            nodeDay.getChildByName("btn_get_awrd").active = item.signDay > lastSignDay
+            if (alreadySign) {
                 nodeDay.getChildByName("btn_get_awrd").getComponent(cc.Button).interactable = false
             }
-            else if (item.signDay == lastSignDay + 1){
+            else if (item.signDay == lastSignDay + 1) {
                 nodeDay.getChildByName("btn_get_awrd").getComponent(cc.Button).interactable = true
                 this._curAward = itemConfig
             }
-            else{
+            else {
                 nodeDay.getChildByName("btn_get_awrd").getComponent(cc.Button).interactable = false
             }
-            
+
             if (item.signDay <= lastSignDay)
                 nodeDay.setSiblingIndex(7)
         }
@@ -82,18 +81,15 @@ export default class NationalDayPop extends BaseScene {
             threeAward: true,
             confirmButton: cc.find("nodePop/btn_get_three", self.node),
             confirmFunc: () => {
-                czcEvent("大厅", "国庆活动三倍签到1", "看广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                playAD(AdsConfig.video.NationalDayPop, () => {
-                    czcEvent("大厅", "国庆活动三倍签到2", "看完广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                    getADAward(7, () => {  
-                        czcEvent("大厅", "国庆活动三倍签到3", "获取奖励 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                        self.getSignAward()
-                        sendReloadUserData()
-                    })        
-                })            
+                czcEvent("大厅", "国庆活动三倍签到1", "看广告 " + DataManager.Instance.userTag)
+                receiveAdAward(AdsConfig.taskAdsMap.NationalDayPop, () => {
+                    czcEvent("大厅", "国庆活动三倍签到3", "获取奖励 " + DataManager.Instance.userTag)
+                    this.getSignAward()
+                    sendReloadUserData()
+                })
             },
             cancelButton: cc.find("nodePop/btn_normal", self.node),
-            callback: () =>{
+            callback: () => {
                 self.getSignAward()
             }
         }
@@ -102,7 +98,7 @@ export default class NationalDayPop extends BaseScene {
 
     onPressBuy() {
         payOrder(this._box)
-        this.closeSelf()        
+        this.closeSelf()
     }
 
     getSignConfig() {
@@ -110,11 +106,10 @@ export default class NationalDayPop extends BaseScene {
         let param = {
             gameid: DataManager.Instance.gameId
         }
-    
+
         let self = this
-        BaseFunc.HTTPGetRequest(url, param, function(msg){
-            if (DataManager.Instance.isTesting)
-                console.log(url)
+        http.open(url, param, function (msg) {
+            cc.log(url)
 
             if (msg && msg.ret == 0) {
                 DataManager.CommonData["nationalSign"] = msg.list
@@ -130,17 +125,15 @@ export default class NationalDayPop extends BaseScene {
             gameid: DataManager.Instance.gameId,
             ticket: DataManager.UserData.ticket
         }
-    
+
         let self = this;
-        BaseFunc.HTTPGetRequest(url, param, function(msg){
-            if (DataManager.Instance.isTesting)
-                console.log(url)
+        http.open(url, param, function (msg) {
+            cc.log(url)
 
             if (msg && msg.ret == 0) {
-                DataManager.CommonData["nationalSignData"] = msg.list                
+                DataManager.CommonData["nationalSignData"] = msg.list
             }
             self.initSignInfo()
-            SceneManager.Instance.sendMessageToScene("updateBottonState")
         })
     }
 
@@ -151,14 +144,12 @@ export default class NationalDayPop extends BaseScene {
             gameid: DataManager.Instance.gameId,
             ticket: DataManager.UserData.ticket
         }
-    
+
         let self = this
-        BaseFunc.HTTPGetRequest(url, param, function(msg){
-            if (DataManager.Instance.isTesting)
-                console.log(url)
+        http.open(url, param, function (msg) {
+            cc.log(url)
             if (msg) {
                 if (msg.ret == 0) {
-                    exchangeQttCoin(true)
                     sendReloadUserData()
                 }
                 iMessageBox(msg.msg)
@@ -175,9 +166,9 @@ export default class NationalDayPop extends BaseScene {
         let level = DataManager.CommonData["VipData"].vipLevel
 
         for (let box of DataManager.Instance.OneYuanBoxs) {
-            if ((level == 0 && box.price == 20) || 
+            if ((level == 0 && box.price == 20) ||
                 (level == 1 && box.price == 20) ||
-                (level >= 2 && box.price == 58)){
+                (level >= 2 && box.price == 58)) {
                 this._box = Object.assign(box)
                 break;
             }

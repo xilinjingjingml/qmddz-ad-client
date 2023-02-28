@@ -19,7 +19,7 @@ export default class TabControl extends BaseControl {
     IsHide: boolean = false
 
     start() {  
-        // console.log("TabControl start")
+        // cc.log("TabControl start")
         this.getBaseScene()
         let button = this.node.getComponent(cc.Button);
         if (null == button)
@@ -60,7 +60,7 @@ export default class TabControl extends BaseControl {
     }
 
     onGroup() {
-        // console.log("onGroup")
+        // cc.log("onGroup")
         if (null != this.GroupName && this._baseScene)
             this._baseScene.onGroupSelect(this.GroupName, this)
     }

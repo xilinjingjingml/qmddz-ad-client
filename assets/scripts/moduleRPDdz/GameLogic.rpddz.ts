@@ -1,19 +1,17 @@
+import { AdsConfig } from "../base/baseData/AdsConfig";
+import DataManager from "../base/baseData/DataManager";
+import { ITEM } from "../base/baseData/ItemConfig";
+import { czcEvent, enterGame, getLowMoneyRoom, gobackToMain, MsgBox, showShopPop, unenoughGold } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
-import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
-import BaseScene from "../base/baseScene/BaseScene";
+import { checkAdCanReceive, getReliefState } from "../moduleLobby/LobbyFunc";
+import { WizardConfig } from "../moduleLobby/WizardConfig";
+import AudioConfig from "./AudioConfig.rpddz";
 import AudioManager from "./AudioManager.rpddz";
 import GameScene from "./GameScene.rpddz";
 
-import {MsgBox, gobackToMain, unenoughGold, showShopPop, czcEvent, getLowMoneyRoom, enterGame, getGameAward} from "../base/BaseFuncTs";
-import { WizardConfig } from "../moduleLobby/WizardConfig";
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
-import { getReliefState } from "../moduleLobby/LobbyFunc";
-
-export default class GameLogic extends BaseScene {
+export default class GameLogic {
     private static instance: GameLogic;
-
-    henry_debug:boolean = false
 
     socketName: string = 'rpddz'
 
@@ -25,22 +23,13 @@ export default class GameLogic extends BaseScene {
 
     dizhu:number = 0
 
-    audioManager = new AudioManager()
-    
-    HONGBAO_GOLD_MONEY:number = 0
-    ITEM_CARD_RECORD:number = 2
-    HONGBAO_GOLD_LEAF:number = 364
-    HONGBAO_GOLD_TICKET:number = 365
-    SUPER_JIABEI_CARD:number = 373
-
     gamescene: GameScene = null
 
     playerData = []
     redpacketTrumpetMsgs = []
     redpacket_info = []
-    redpacket_88Yuan_info = []
     redpacket_award_info = []
-    emojiConfigs = []
+    emojiConfigs: Iproto_emojiConfig[] = []
 
 	gameStorageKey = {
 		magic_emoji:"magic_emoji"
@@ -124,8 +113,6 @@ export default class GameLogic extends BaseScene {
     
     bEnterInGame = false;
 
-    needReConnectFlag = false;
-
     COMMON_OPCODE = {
         CO_NEW	 	 	: 0,	// //开始新的一圈牌
         CO_CALL0	 	: 1,	// //不叫
@@ -160,14 +147,15 @@ export default class GameLogic extends BaseScene {
     illegalReportList = {}
     curMatchInfo: IMatchInfo;
     checkServerMoneyLimitLevel: number = 0
+    isGoToNormalChangCi: boolean = false
 
     private constructor() {
-        super()
-
         this.userProperties[0] = 0
-        this.userProperties[this.HONGBAO_GOLD_LEAF] = 0
-        this.userProperties[this.HONGBAO_GOLD_TICKET] = 0
+        this.userProperties[ITEM.REDPACKET_TICKET] = 0
+        this.userProperties[ITEM.CHIP_ADVANCE] = DataManager.UserData.getItemNum(ITEM.CHIP_ADVANCE)
+        this.userProperties[ITEM.CHIP_LEGEND] = DataManager.UserData.getItemNum(ITEM.CHIP_LEGEND)
 
+        AudioManager.setAudioConfig(this.moduleRes, AudioConfig)
     }
 
     protected onDestroy()
@@ -177,10 +165,6 @@ export default class GameLogic extends BaseScene {
 
     getIfPreLoadSound() {
         return false
-    }
-
-    setAudioManage(Am) {
-        this.audioManager = Am
     }
 
     destory() {
@@ -194,10 +178,6 @@ export default class GameLogic extends BaseScene {
         }
         return GameLogic.instance;
     }      
-
-    getAudioConfig() {
-        return this.audioManager.getAudioConfig()
-    }
 
     addPlayerData(data) {
         let findFLag = false
@@ -280,7 +260,7 @@ export default class GameLogic extends BaseScene {
         }
     }
 
-    sendMessage<T>(message: T) {
+    sendMessage<T extends IMessage>(message: T) {
         NetManager.Instance.send(this.socketName, message)
     }
 
@@ -317,7 +297,6 @@ export default class GameLogic extends BaseScene {
         SceneManager.Instance.popScene("moduleLobby", "TaskPop")
     }
 
-        
     GetMoneyShortString(money: number): string {
         if (money < 10000) {
             return money + ''
@@ -332,31 +311,6 @@ export default class GameLogic extends BaseScene {
         this.gamescene = game
     }
 
-	addModulePath(path) {
-		return this.moduleRes + path
-    }
-    
-    playSoundByCardType(cardtype, sex) {
-        cc.log("TODO playSoundByCardType", cardtype, sex)
-        if(this.audioManager){
-            this.audioManager.playSoundByCardType(cardtype, sex)
-        }
-    }
-    
-    playSound(audioname, sex = 0) {
-        cc.log("TODO playSound", audioname)
-        if(this.audioManager){
-            this.audioManager.playSound(audioname, sex)
-        }
-    }
-
-    playBtnSoundEffect() {
-        cc.log("TODO playBtnSoundEffect")
-        if(this.audioManager){
-            this.audioManager.playSound("audio_menu")
-        }
-    }
-    
     isTwoTable() {
         return this.MAX_PLAYER_NUM == 2
     }
@@ -413,12 +367,11 @@ export default class GameLogic extends BaseScene {
         SceneManager.Instance.popScene<String>("moduleRPDdzRes", "GameCardNoteBuyLayer", initParam)
     }
 
-    showGameRedPacketAwardLayer(initParam = []) {             
+    showGameRedPacketAwardLayer(initParam) {             
         if (!this.gamescene) {    
             return
         }
         if(!this.isSceneExist("GameRedPacketAwardLayer")){
-            initParam["zorder"] = this.zOrder.nodeRedPacket
             initParam["logic"] = this
             
             if (!!this.gamescene) {    
@@ -427,30 +380,14 @@ export default class GameLogic extends BaseScene {
         }
     }
 
-    showGame88YuanTask(initParam = []) {           
-        if (!this.gamescene) {    
-            return
-        }  
-        if(!this.isSceneExist("Game88YuanTask")){
-            initParam["zorder"] = this.zOrder.nodeRedPacket
-            initParam["logic"] = this
-            
-            if (!!this.gamescene) {    
-                SceneManager.Instance.popScene<String>("moduleBaseRes", "Game88YuanTask", initParam)
-            }
-        }
-    }
-
-    
     showGameWizardLayer(initParam = []) {       
         // if (DataManager.load(WizardConfig.wizard_storage_key + "" + initParam.wizardIndex) == 1) {
-        if (DataManager.CommonData["morrow"] != 0 || DataManager.load(WizardConfig.wizard_storage_key + "" + initParam.wizardIndex) == 1) {
+        if (DataManager.CommonData.morrow != 0 || DataManager.load(WizardConfig.wizard_storage_key + "" + initParam.wizardIndex) == 1) {
             if (initParam.forceCallBack && initParam.callBack) {
                 initParam.callBack()
             }
             return
         }
-        initParam["zorder"] = this.zOrder.nodeRedPacket
         initParam["noSing"] = true
         
         if(this.isSceneExist("WizardLayer")){
@@ -458,6 +395,16 @@ export default class GameLogic extends BaseScene {
         }
         if (!!this.gamescene) {    
             SceneManager.Instance.popScene<String>("moduleLobby", "WizardLayer", initParam)
+        }
+    }
+
+    showGuideLayer(initParam = []) {
+        if (DataManager.CommonData.morrow != 0 || DataManager.load("showGuideLayer") == 1) {
+            return
+        }
+        DataManager.save("showGuideLayer", 1)
+        if (!!this.gamescene) {
+            SceneManager.Instance.popScene<String>("moduleRPDdzRes", "GuideLayer", initParam)
         }
     }
 
@@ -480,7 +427,7 @@ export default class GameLogic extends BaseScene {
         }
     }
 
-    showGameMagicEmojiPanel(initParam = []) {
+    showGameMagicEmojiPanel(initParam = {}) {
         if (!!this.gamescene) {       
             let callbackFun = () => {
                 DataManager.save(this.socketName + this.gameStorageKey.magic_emoji, 1)
@@ -555,95 +502,32 @@ export default class GameLogic extends BaseScene {
                 style: 1,
                 confirmCback: () => { this.LeaveGameScene() }
             })
-        }else if(this.getRedPacketTableType() == 21 ||
-                this.getRedPacketTableType() == 22){
-            let restround = this.redpacket_info.limitRounds - this.redpacket_info.curRounds
-
-            let moneyAward = 3000
-            if (this.getRedPacketTableType() == 22) {
-                moneyAward = 10000
-            }
-			this.showGameCommonTipLayer({
-                msg : "您当前的福卡进度将被清空，\n确定继续退出吗？",
-                // msg : [
-                //     {size: 26, color: "874612", text: "再玩"},
-                //     {size: 26, color: "E41D14", text: restround},
-                //     {size: 26, color: "874612", text: "局就可以开启红包了，"},
-                //     {size: 26, color: "874612", text: "\n"},
-                //     {size: 26, color: "874612", text: "开启红包后有机会可得"},
-                //     {size: 26, color: "E41D14", text: moneyAward},
-                //     {size: 26, color: "874612", text: "红包券哦！"}
-                // ],
-                cancelCback: () => { this.LeaveGameScene() }
+        } else if (checkAdCanReceive(AdsConfig.taskAdsMap.DrawRedpacket) && [21, 22, 23].indexOf(this.getRedPacketTableType()) != -1) {
+            const restround = this.redpacket_info.limitRounds - this.redpacket_info.curRounds
+            this.showGameCommonTipLayer({
+                msg: restround > 0 ? "您当前的福卡进度将被清空，\n确定继续退出吗？" : "确定要退出游戏吗？",
+                cancelCback: this.LeaveGameScene.bind(this)
             })
-		}else if(this.getRedPacketTableType() == 23){
-            let restround = this.redpacket_info.limitRounds - this.redpacket_info.curRounds
-			this.showGameCommonTipLayer({
-                msg : "确定要退出游戏吗？",
-                // msg : [
-                //     {size: 26, color: "874612", text: "打完本局就可以领取红包，最高可得"},
-                //     {size: 26, color: "E41D14", text: "10万"},
-                //     {size: 26, color: "874612", text: "红包券哦！"}
-                // ],
-                cancelCback: () => { this.LeaveGameScene() }
-            })
-    	}else{
-			this.LeaveGameScene()
-		}
+        } else {
+            this.LeaveGameScene()
+        }
     }
     
-	LeaveGameScene(param?) {
-        czcEvent("斗地主", "离桌1", "游戏返回大厅"+ (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        if(this.henry_debug){
-            return
-        }
+    LeaveGameScene(isOnGameExit?: number) {
+        czcEvent("斗地主", "离桌1", "游戏返回大厅"+ DataManager.Instance.userTag)
         cc.log("TODO LeaveGameScene")
-        let param = {
-            isOnGameExit: 0
-        }
-    	if(this.gamescene.state == 'startGame'){
+        const param = { isOnGameExit: 0 }
+        if (isOnGameExit != null) {
+            param.isOnGameExit = isOnGameExit
+        } else if (this.gamescene['state'] == 'startGame') {
             param.isOnGameExit = 1
         }
         gobackToMain(param)
 	}
-    
-	setAvatarIconByUrl(avatarSprite, url) {
-        BaseFunc.SetFrameTextureNet(avatarSprite.getComponent(cc.Sprite), url, () => {
-            
-        })
-    }
-
-	setAvatarIconByUid(avatarSprite, uid) {
-        
-        let url = null //DataManager.Instance.getURL("USERBATCH")
-        if (null == url) {
-            url = "http://t.statics.hiigame.com/get/loading/user/batchs?uids={uids}"
-        }
-
-        if(this.gamePlayerAvatarUrl[uid]){
-            BaseFunc.SetFrameTextureNet(avatarSprite.getComponent(cc.Sprite), this.gamePlayerAvatarUrl[uid], () => {
-                
-            })
-        }else{
-            BaseFunc.HTTPGetRequest(url, {
-                uids: uid
-            }, (event) => {
-                if (event && event.list && event.list.length > 0) {
-                    this.gamePlayerAvatarUrl[uid] = event.list[0].face
-                    if (!avatarSprite.isValid) {
-                        return
-                    }
-                    BaseFunc.SetFrameTextureNet(avatarSprite.getComponent(cc.Sprite), event.list[0].face, () => {
-                        
-                    })
-                }
-            })
-        }
-	}
 
 	checkMoneyOutOfRange(showNeedMoneyPop = true, callback = null) {
 
-        if (showNeedMoneyPop) {
+        if (true || showNeedMoneyPop) {
             // cc.log("checkMoneyOutOfRange", this.serverInfo.minMoney, DataManager.UserData.money, DataManager.UserData)
             if(!this.checkServerMoneyLimit(this.serverInfo)) {
                 //通过检测在范围内            
@@ -668,34 +552,25 @@ export default class GameLogic extends BaseScene {
         
     }
     
-    getNeedReConnect() {
-        return this.needReConnectFlag
-    }
-
-    setNeedReConnect(flag) {
-        this.needReConnectFlag = flag
-    }
-
     goToNormalChangCi() {
         if (GameLogic.Instance().serverInfo.newbieMode != 1) {
             return false
         }
 
-        let servers = getLowMoneyRoom(this.serverInfo.gameId)
-        if (servers.length > 0) {
+        let gameId = this.serverInfo.gameId
+        if (gameId === 389) {
+            gameId = 3892
+        }
+        let servers = getLowMoneyRoom(gameId, this.serverInfo.level)
+        if (servers && servers.length > 0) {
+            this.isGoToNormalChangCi = true
             this.serverInfo = servers[0]
             this.analyzeSocketInfo(this.serverInfo)
             let url = this.serverInfo.serverAddr + ":" + (this.serverInfo.serverPort + 1)
             NetManager.Instance.close(this.socketName, false)
             NetManager.Instance.setUrl(this.socketName, url)
-            this.setNeedReConnect(true)
                 
-            setTimeout(() => {                
-                if (GameLogic.Instance().getNeedReConnect()) {			
-                    NetManager.Instance.reconnect(GameLogic.Instance().socketName)	
-                    return
-                }
-            }, 2000);
+            NetManager.Instance.reconnect(GameLogic.Instance().socketName)	
         
             return true
         }
@@ -804,8 +679,8 @@ export default class GameLogic extends BaseScene {
 
     getCurMatchInfo(): IMatchInfo {
         if (this.curMatchInfo == null) {
-            if (DataManager.CommonData["gameServer"]["matchType"] != null) {
-                this.curMatchInfo = DataManager.Instance.matchMap[DataManager.CommonData["gameServer"]["matchType"]]
+            if (DataManager.CommonData.gameServer["matchType"] != null) {
+                this.curMatchInfo = DataManager.Instance.matchMap[DataManager.CommonData.gameServer["matchType"]]
             }
         }
 
@@ -859,14 +734,14 @@ export default class GameLogic extends BaseScene {
                 // if (DataManager.UserData.money < 1000) {
                 if (server.level == 1 && DataManager.Instance.getReliefLine() >= server.minMoney) {
                     const pop = () => {
-                        if (DataManager.CommonData["reliefStatus"]["reliefTimes"] > 0) {
+                        if (DataManager.CommonData.reliefStatus["reliefTimes"] > 0) {
                             SceneManager.Instance.popScene("moduleLobby", "BankruptDefend")
                         } else {
                             this.checkServerMoneyLimit(server)
                         }
                     }
     
-                    if (DataManager.CommonData["reliefStatus"]) {
+                    if (DataManager.CommonData.reliefStatus) {
                         pop()
                     } else {
                         getReliefState()
@@ -881,11 +756,13 @@ export default class GameLogic extends BaseScene {
     
             if (this.checkServerMoneyLimitLevel == 1) {
                 this.checkServerMoneyLimitLevel++
-                let ExchangeInfos = DataManager.CommonData["ExchangeInfo"] || []
+                let ExchangeInfos = DataManager.CommonData.ExchangeInfo || []
                 const value = server.minMoney - DataManager.UserData.money
                 ExchangeInfos = ExchangeInfos.filter(item => {
-                    if (item["gainItemList"] && item["gainItemList"][0] && item["gainItemList"][0]["gainItem"] === 0 && item["gainItemList"][0]["gainNum"] >= value) {
-                        return true
+                    if (item["exchangeItemList"] && item["exchangeItemList"][0] && item["exchangeItemList"][0]["exchangeItem"] === ITEM.REDPACKET_TICKET && DataManager.UserData.getItemNum(ITEM.REDPACKET_TICKET) >= item["exchangeItemList"][0]["exchangeItem"]) {
+                        if (item["gainItemList"] && item["gainItemList"][0] && item["gainItemList"][0]["gainItem"] === 0 && item["gainItemList"][0]["gainNum"] >= value) {
+                            return true
+                        }
                     }
                     return false
                 })
@@ -895,7 +772,7 @@ export default class GameLogic extends BaseScene {
                     goods.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆不够在本场次玩耍，去换<br/><color=#d4312f><size=26>" + 
                     this.GetMoneyShortString(goods["gainItemList"][0]["gainNum"]) + 
                     "</size></color>金豆继续挑战吧!!</size></color><br/>"
-                    SceneManager.Instance.popScene("moduleLobby", "ExchangeConfirm3Pop", goods)
+                    SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", goods)
                     return false
                 }
             }
@@ -907,7 +784,7 @@ export default class GameLogic extends BaseScene {
             if (gameId === 389)
                 gameId = gameId * 10 + parseInt(server.ddz_game_type)
             let servers = getLowMoneyRoom(gameId)
-            if (servers.length > 0) {
+            if (servers && servers.length > 0) {
                 let initParam = {
                     title: "提示",
                     content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
@@ -950,6 +827,32 @@ export default class GameLogic extends BaseScene {
         }
     
         return true
+    }
+
+    showNewbieRedpacketPop(initParam: any) {
+        SceneManager.Instance.popScene<String>("moduleRPDdzRes", "NewbieRedpacketPop", initParam)
+    }
+
+    showItemAdd(initParam: any) {
+        SceneManager.Instance.popScene<String>("moduleRPDdzRes", "ItemAdd", initParam)
+    }
+
+    getWinMaxMoney() {
+		let winMaxMoney = 1
+		if (this.serverInfo.winMaxMoney > 0) {
+			winMaxMoney = this.serverInfo.winMaxMoney
+		} else {
+			winMaxMoney = this.serverInfo.winMaxBet * this.serverInfo.baseBet
+		}
+		return winMaxMoney
+	}
+    
+    showHighlightPopup(initParam: any) {
+        SceneManager.Instance.popScene<String>("moduleRPDdzRes", "HighlightPopup", initParam)
+    }
+
+    showWinDoublePop(message: Iproto_gc_win_doubel_req) {
+        SceneManager.Instance.popScene<String>("moduleRPDdzRes", "WinDoublePop", message)
     }
 }
 

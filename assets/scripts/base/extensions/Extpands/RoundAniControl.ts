@@ -27,15 +27,4 @@ export default class RoundAniControl extends BaseControl {
         else
             this.node.runAction(cc.rotateBy(this.roundSpeed, -this.roundAngle)        
     }
-
-    update(dt) {
-        // if (!this.isStart)
-        //     return
-
-        // this.nDelay += dt
-        // if (this.nDelay >= this.roundSpeed) {
-        //     this.node.angle += this.roundAngle
-        //     this.nDelay = 0
-        // }
-    }
 }

@@ -1,4 +1,4 @@
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager"
+import DataManager from "../base/baseData/DataManager"
 import { numberFormat } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import BaseFunc = require("../base/BaseFunc")

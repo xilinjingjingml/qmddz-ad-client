@@ -1,6 +1,6 @@
 ﻿import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import { GAME_TYPE, getGameConfig, getGameName, getChangCiName } from "../gameConfig";
+import { getChangCiName } from "../gameConfig";
 import { numberFormat, czcEvent, getNewBieServer, checkServerMoneyLimit, enterGame, getLowMoneyRoom, unenoughGold, getGameServers } from "../base/BaseFuncTs";
 import { getServerList } from "./LobbyFunc";
 
@@ -27,7 +27,7 @@ export default class RoomScene extends BaseScene {
     }
 
     refreshGameTitle() {
-        let nodeRoomTitle = cc.find("nodePlayer/node_title_type_1", this.node);
+        let nodeRoomTitle = cc.find("nodePlayer/node_title_type", this.node);
         
         nodeRoomTitle.getChildByName("ri_title_qdz_2").active = this._gameType === 0
         nodeRoomTitle.getChildByName("ri_title_jsf_2").active = this._gameType === 1
@@ -36,14 +36,10 @@ export default class RoomScene extends BaseScene {
 
     onInitRoom() {
 
-        this.initFastGameName()
+        this.initFastGame()
         this.refreshGameTitle()
         let newUser = DataManager.CommonData["regtime"] >= 1572451200
-        let nodeRoom = cc.find("nodeContent/nodeServers/view/content", this.node);
-        // cc.find("btnServer2/2yuanflag", nodeRoom).active = gameId == 372 || DataManager.Instance.GameType !== GAME_TYPE.QMDDZ || newUser
-        // cc.find("btnServer2/8yuanflag", nodeRoom).active = gameId != 372 && DataManager.Instance.GameType === GAME_TYPE.QMDDZ && !newUser
-        // cc.find("btnServer2.5/10yuanflag", nodeRoom).active = gameId == 372 || DataManager.Instance.GameType !== GAME_TYPE.QMDDZ || newUser
-        // cc.find("btnServer2.5/28yuanflag", nodeRoom).active = gameId != 372 && DataManager.Instance.GameType === GAME_TYPE.QMDDZ && !newUser
+        let nodeRoom = cc.find("nodeContent/nodeServers/content", this.node);
 
         let levels = []
         let roomlen = 0
@@ -73,7 +69,7 @@ export default class RoomScene extends BaseScene {
         // size.width = roomlen % 2 ? size.width + 100 : size.width - 80
         let idx = 1
 
-        let content = cc.find("view/content", nodeServers)
+        let content = cc.find("content", nodeServers)
         let layout = content.getComponent(cc.Layout)
         let csize = content.getContentSize()
         // let left = 30
@@ -119,22 +115,8 @@ export default class RoomScene extends BaseScene {
                 room.getChildByName("type1").active = this._gameType === 1
                 room.getChildByName("type2").active = this._gameType === 2
 
-                room.getChildByName("0.1yuan").active = false
-                room.getChildByName("0.5yuan").active = false
-                room.getChildByName("2yuan").active = false
-                
-                switch (level) {               
-                    case 2:         
-                        room.getChildByName("0.5yuan").active = true              
-                        break;                
-                    case 3:                   
-                    case 4:                   
-                    case 5:                        
-                        room.getChildByName("2yuan").active = true              
-                        break;                
-                    default:
-                        room.getChildByName("0.1yuan").active = true   
-                        break;
+                for (let i = 1; i <= 5; i++) {
+                    room.getChildByName("desc_round" + i).active = i == level
                 }
 
                 room.getChildByName("selectFrame").active = this._fastLevel === 0 ? idx === 1 : this._fastLevel === server[0].level
@@ -144,7 +126,7 @@ export default class RoomScene extends BaseScene {
                 else
                     room.getChildByName("labelGold").getComponent(cc.Label).string = numberFormat(server[0].minMoney, 0) + "以上"
                 
-                room.getChildByName("labelScore").getComponent(cc.Label).string = numberFormat(server[0].base_bet)
+                room.getChildByName("labelScore").getComponent(cc.Label).string = numberFormat(server[0].baseBet || server[0].base_bet)
                 
                 let btn = room.getComponent(cc.Button)
                 btn.clickEvents = []
@@ -155,18 +137,8 @@ export default class RoomScene extends BaseScene {
                 clickEventHandler.handler = "onRoom" + idx; 
 
                 this["onRoom" + idx] = (sender) => {       
-                    czcEvent("大厅", "点击游戏", levels[key][0].gameId + " " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))  
-                    if (DataManager.CommonData["morrow"] <= 1) {
-                        let msg = [
-                            {
-                                action: "点击游戏",
-                                gameId: levels[key][0].gameId,
-                                guid: DataManager.UserData.guid,
-                                morrow: DataManager.CommonData["morrow"]
-                            }
-                        ]
-                        // PostInfomation(msg)
-                    }
+                    czcEvent("大厅", "点击游戏", levels[key][0].gameId + " " + DataManager.Instance.userTag)  
+                    cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
                     let curServers = getNewBieServer(levels[key][0].gameId);
                     if (null == curServers || 0 == curServers.length || level != 1) {
                         // curServers = server.filter(item => item.newbieMode != 1)
@@ -195,32 +167,22 @@ export default class RoomScene extends BaseScene {
     }
 
     onPressDDZTypeChange(sender, data) {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this._gameType = parseInt(data)
         this.onInitRoom()
     }
 
-    onPressFastStart(newUser: boolean = false) {
-        // let gameId = this._gameId//DataManager.load(DataManager.UserData.guid + "lastGameId")
-        let gameId = this._gameId * 10 + this._gameType//this._gameId
-        czcEvent("大厅", "快速开始", gameId + " " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        if (DataManager.CommonData["morrow"] <= 1) {
-            let msg = [
-                {
-                    action: "快速开始",
-                    gameId: gameId,
-                    guid: DataManager.UserData.guid,
-                    morrow: DataManager.CommonData["morrow"]
-                }
-            ]
-            // PostInfomation(msg)
-        }
+    onPressFastStart() {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        let gameId = this._gameId * 10 + this._gameType
+        czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
         let servers = getLowMoneyRoom(gameId)
-        if (servers.length > 0){
+        if (servers && servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)
-            enterGame(servers[i], null, newUser)
+            enterGame(servers[i])
         }
         else if(DataManager.UserData.money < DataManager.Instance.getReliefLine()){
             // 没服务器就是初级场
@@ -228,7 +190,7 @@ export default class RoomScene extends BaseScene {
         }
     }
 
-    initFastGameName() {
+    initFastGame() {
         let gameId = this._gameId * 10 + this._gameType//this._gameId
         let name = {}
         let nameFormat = ""
@@ -237,16 +199,21 @@ export default class RoomScene extends BaseScene {
         let servers = getLowMoneyRoom(gameId)
         if (servers && servers.length) {
             // 处理斗地主三种类型
-            if (gameId >= 3890) 
-                gameId = Math.floor(gameId / 10) 
+            if (gameId >= 3890)
+                gameId = Math.floor(gameId / 10)
 
             name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
-            
+
             nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
 
             this._fastLevel = servers[0].level
         }
 
-        qr.string = nameFormat;
+        qr.string = nameFormat
+    }
+
+    onPressClose() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this.closeSelf()
     }
 }

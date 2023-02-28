@@ -1,8 +1,8 @@
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
 import { showAwardResultPop, czcEvent, getLowMoneyRoom, enterGame, unenoughGold } from "../base/BaseFuncTs";
 import { getRedpacketRank, sendReloadUserData } from "./LobbyFunc";
 import { isSmallGame } from "../gameConfig";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -89,7 +89,7 @@ export default class NewYearPop extends cc.Component {
 
             this._records[iter.pa_date].push(iter.pa_award)
             let item = cc.instantiate(model)
-            item.getComponent(cc.RichText).string = "<color=#835c38>开启</c><color=#179124> \"红包\" </c><color=#835c38>获得</c><color=#bb2600> " + iter.pa_award + "金豆</c>" 
+            item.getComponent(cc.RichText).string = "<color=#835c38>开启</c><color=#179124> \"福卡\" </c><color=#835c38>获得</c><color=#bb2600> " + iter.pa_award + "金豆</c>" 
             item.position = cc.v2(-200, 0)
             content.addChild(item)
         }        
@@ -107,9 +107,9 @@ export default class NewYearPop extends cc.Component {
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
-        czcEvent("新春活动", "快速开始", gameId + " " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("新春活动", "快速开始", gameId + " " + DataManager.Instance.userTag)
         let servers = getLowMoneyRoom(gameId)
-        if (servers.length > 0){
+        if (servers && servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)
             enterGame(servers[i], null)
         }
@@ -138,7 +138,7 @@ export default class NewYearPop extends cc.Component {
         this._finishAwards = []
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             if (null == msg)
                 return
 
@@ -176,7 +176,7 @@ export default class NewYearPop extends cc.Component {
         };
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             if (null == msg)
                 return
 

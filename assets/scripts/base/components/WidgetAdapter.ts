@@ -2,11 +2,11 @@ const { ccclass, disallowMultiple,menu, requireComponent } = cc._decorator;
 
 @ccclass
 @disallowMultiple
-@menu("自定义组件/WidgetAdapter")
+@menu("component/WidgetAdapter")
 @requireComponent(cc.Widget)
 export default class WidgetAdapter extends cc.Component {
     onLoad() {
-        const size: cc.Size = window['winSize']
+        const size: cc.Size = window['_fullWinSize']
         if (size == null) {
             return
         }

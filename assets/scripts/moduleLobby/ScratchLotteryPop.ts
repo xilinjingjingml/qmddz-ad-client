@@ -4,6 +4,8 @@ import SceneManager from "../base/baseScene/SceneManager";
 import { iMessageBox, shuffle, getMD5, MsgBox, numberFormat } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import NetManager from "../base/baseNet/NetManager";
+import { http } from "../base/utils/http";
+import { math } from "../base/utils/math";
 
 const { ccclass, property } = cc._decorator;
 
@@ -254,7 +256,7 @@ export default class ScratchLotteryPop extends BaseComponent {
     }
 
     onPressShop() {
-        SceneManager.Instance.popScene("moduleLobby", "ShopPop");
+        // SceneManager.Instance.popScene("moduleLobby", "ShopPop");
     }
 
     onPressSelectLevel(EventTouch, data) {
@@ -467,7 +469,7 @@ export default class ScratchLotteryPop extends BaseComponent {
             const element = curConfig[num][key];
             totalRate += this.betProConfig[element]
         }
-        let rndRate = BaseFunc.Random(totalRate)
+        let rndRate = math.random(totalRate)
         for (const key in curConfig[num]) {
             const element = curConfig[num][key];
             if (rndRate < this.betProConfig[element]) {
@@ -480,9 +482,9 @@ export default class ScratchLotteryPop extends BaseComponent {
         let baseNum = Math.floor(num / this.curAwardList.bet)
 
         let baseRange = Math.round(baseNum / 100)
-        let howmanyitem = BaseFunc.Random(2, 4)
+        let howmanyitem = math.random(2, 4)
         for (let i = 0; i < howmanyitem; i++) {
-            let num = BaseFunc.Random(1, Math.floor(baseRange * 0.8))
+            let num = math.random(1, Math.floor(baseRange * 0.8))
             baseRange -= num
             this.curAwardList.num.push(num * 100)
         }
@@ -617,13 +619,11 @@ export default class ScratchLotteryPop extends BaseComponent {
 
         this.updateUserMoney(this.curSceneUserMoney - this.drawActivityCostConfig[this.drawActivtyID])
         this.node["parentView"].refreshUserData(this.curSceneUserMoney - this.drawActivityCostConfig[this.drawActivtyID])
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
-                    console.log(msg)
+                    cc.log(msg)
                     // DataManager.UserData.money = msg.money
                     let totalNum = 0
                     let awards = []
@@ -734,5 +734,4 @@ export default class ScratchLotteryPop extends BaseComponent {
         this.initMask()
         this.enableDraw = false
     }
-    // update (dt) {}
 }

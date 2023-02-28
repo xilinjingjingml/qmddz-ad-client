@@ -1,28 +1,36 @@
-import DataManager from "./baseData/DataManager";
-import SceneManager from "./baseScene/SceneManager";
-import NetManager from "./baseNet/NetManager";
-import { czcEvent, ParseSearch, PostInfomation, loadModule, isIPhoneX, QttReportData } from "./BaseFuncTs";
-import BaseFunc = require("../base/BaseFunc")
+import LogLayer from "../moduleLobby/LogLayer"
+import DataManager from "./baseData/DataManager"
+import InitBaseData from "./baseData/InitBaseData"
+import { callStaticMethod, checkNetwork, czcEvent, getIPLocation, ParseSearch } from "./BaseFuncTs"
+import NetManager from "./baseNet/NetManager"
+import SceneManager from "./baseScene/SceneManager"
+import PluginManager from "./PluginManager"
+import WxWrapper from "./WxWrapper"
+import { NodeExtends } from "./extends/NodeExtends"
 
-// import qtt_help = require("https://newidea4-gamecenter-frontend.1sapp.com/game/gamesdk/beta/qtt_help.js")
-const {ccclass, property, executeInEditMode} = cc._decorator;
+const { ccclass } = cc._decorator
 
 @ccclass
-// @executeInEditMode
 export default class GameManager extends cc.Component {
 
     private static _instance: GameManager
+    private _bStart: boolean
 
-    @property()
-    _bStart = false
+    static get Instance() {
+        return GameManager._instance
+    }
+
+    _logLayer: LogLayer = null
+    _startScene: cc.Node = null
 
     onLoad() {
         czcEvent("大厅", "登录1", "游戏初始化")
-        this.adaptScreen()
-
         GameManager._instance = this
-        cc.game.addPersistRootNode(this.node);
-        
+        cc.game.addPersistRootNode(this.node)
+
+        NodeExtends.setNodeSpriteLocal({ node: cc.find("StartScene/LOGO", this.node), url: "thirdparty/LOGO.png" })
+        NodeExtends.setNodeSpriteLocal({ node: cc.find("StartScene/bottom_bg/wenzi", this.node), url: "thirdparty/wenzi.png" })
+
         if (null == this.node.getComponent(SceneManager))
             this.node.addComponent(SceneManager)
         if (null == this.node.getComponent(DataManager))
@@ -30,210 +38,132 @@ export default class GameManager extends cc.Component {
         if (null == this.node.getComponent(NetManager))
             this.node.addComponent(NetManager)
 
-        if (this.node.childrenCount == 0)        
+        if (this.node.childrenCount == 0)
             return
 
         this.node.children[0].active = true
-        let btn = cc.find("StartScene/btn_login",this.node)
-        if (btn) {
-            BaseFunc.AddClickEvent(btn,this.node,"GameManager","_doLogin")
-        }
+
+        cc.director.once(cc.Director.EVENT_AFTER_DRAW, this.onAfterDraw, this)
 
         this.audioEvent()
     }
 
-    _doLogin() {
-        DataManager.Instance._InitBaseData.login()
-    }
-
-    static get Instance() {
-        return GameManager._instance
-    }
-    
     start () {
-        if (CC_EDITOR)
-            return
-
-
-        // const canvas = cc.Canvas.instance
-        // const fitHeight = cc.view.getFrameSize().width / cc.view.getFrameSize().height >= canvas.designResolution.width / canvas.designResolution.height
-        // canvas.fitHeight = fitHeight
-        // canvas.fitWidth = !fitHeight
-
-        this._bStart = false
-
-        if (cc.sys.isBrowser) {
-        var args = ParseSearch(window.location.search)
-        if (args.isTesting) {
-            DataManager.Instance.isTesting = true
-        }
-        }
-            
         console.log("Game Start")
-        if (DataManager.Instance.CurENV == 2 && false == DataManager.Instance.isTesting && true != DataManager.load("versetting")) {
-           console.log = function() {}
+        if (DataManager.load("ENABLE_DEBUG") || (cc.sys.isBrowser && ParseSearch(window.location.search).isTesting)) {
+            cc.log = console.log.bind(console)
         }
 
-        if (cc.sys.isBrowser) {
-        if (null != window.document.getElementById("__vconsole")) {
-                for (let val of window.document.getElementById("__vconsole").children) {
-                if (val.className == "vc-switch") {
-                    DataManager.CommonData["vconsole"] = val
-                    break;
-                }
-            }
+        if (DataManager.load("showconsolelog")) {
+            this.setConsoleLog()
         }
-
-
-            if (null != DataManager.CommonData["vconsole"]) {
-            if (true == DataManager.load("versetting") || true == DataManager.Instance.isTesting) {
-                DataManager.CommonData["vconsole"].style.display = ""
-            }
-        }
-        }
-        
-
-        // console.log("console.log reDefine")
-
-        // // let self = this
-        // czcEvent("大厅", "登录4", "加载大厅模块")
-        // cc.director.loadScene(DataManager.Instance.StartModule, function() {
-        //     self.node.children[0].runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(() => self.node.children[0].active = false)))
-        // })
-        
         this.node.children[0].active = true
+        this._startScene = this.node.children[0]
+        checkNetwork(this.onInit.bind(this), false, true)
+    }
 
-        // let data = [{
-        //     "GameStart": true
-        // }]
-
-        // PostInfomation(data)
-
-        if (cc.sys.isBrowser) {
-            cc.game.canvas.addEventListener('webglcontextlost', function (e) {
-            window.location.reload();
-        }, false);
-        }
-
-        QttReportData("load_start")
+    onInit(): void {
+        cc.log("[GameManager.onInit]")
+        PluginManager.onInit()
+        WxWrapper.init()
+        DataManager.Instance.onInit()
+        NetManager.Instance.onInit()
+        SceneManager.Instance.onInit()
+        new InitBaseData()
+        getIPLocation()
     }
 
     update(dt) {
         if (CC_EDITOR) return
         if (this._bStart) return 
+        if (DataManager.CommonData["pluginFinish"] != true) return 
+        if (DataManager.CommonData["configFinish"] != true) return 
 
-        // let node = new cc.Node()
-        // cc.Canvas.instance.node.addChild(node)
-        // let module = node.addComponent(MoudleLobby)
+        SceneManager.Instance.addScene<String>("moduleLobby", "UpdateScene")
 
-        DataManager.Instance.onInit()
-        NetManager.Instance.onInit()
-        SceneManager.Instance.onInit()
-
-        loadModule(DataManager.Instance.StartModule);
 
         this._bStart = true
     }
 
     static onChangeFire() {
-        GameManager._instance.node.children[0].active = true
-        let btnLogin = cc.find("StartScene/btn_login", GameManager._instance.node)
-        if (btnLogin)
-            btnLogin.active = false
-        GameManager._instance.node.children[0].runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => GameManager._instance.node.children[0].active = false)))
+        GameManager._instance._startScene.stopAllActions()
+        GameManager._instance._startScene.active = true
+        GameManager._instance._startScene.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => GameManager._instance._startScene.active = false)))
+    }
+
+    static showFire() {
+        GameManager._instance._startScene.stopAllActions()
+        GameManager._instance._startScene.active = true    
     }
 
     static hideFace() {
-        GameManager._instance.node.children[0].runAction(cc.sequence(cc.delayTime(.5), cc.callFunc(() => GameManager._instance.node.children[0].active = false)))
+        GameManager._instance._startScene.stopAllActions()
+        GameManager._instance._startScene.active = false
+    }
+
+    changeFire(parent?: cc.Node) {
+        this._startScene.active = true
+        this._startScene.parent = parent || this.node
+    }
+
+    onAfterDraw() {
+        if (cc.sys.os == cc.sys.OS_ANDROID) {
+            callStaticMethod("com/izhangxin/utils/luaj", "hideSplash", "()V")
+        } else if (cc.sys.os == cc.sys.OS_IOS) {
+            callStaticMethod("LuaObjc", "hideSplash")
+        }
     }
 
     static getFlushScreen() {
-        return GameManager._instance.node.children[0]
+        return GameManager._instance._startScene
     }
 
-    // 动态适配
-    adaptScreen() {
-        if (CC_EDITOR) {
-            return
-        }
-
-        const canvas = cc.Canvas.instance
-        const frameSize = cc.view.getFrameSize()
-        const designSize = canvas.designResolution
-        if (isIPhoneX()) {
-            // IPhone X
-            canvas.fitHeight = true
-            canvas.fitWidth = true
-            canvas.designResolution = cc.size(designSize.height * ((812 - 60) / 375), designSize.height)
-            window['winSize'] = cc.size(designSize.height * (frameSize.width / frameSize.height), designSize.height)
-        } else if ((frameSize.width / frameSize.height) >= (designSize.width / designSize.height)) {
-            // 全面屏
-            canvas.fitHeight = true
-            canvas.fitWidth = false
+    setConsoleLog(show: boolean = true) {
+        DataManager.save("showconsolelog", show)
+        if (show) {
+            cc.loader.loadRes("moduleLobby/prefab/LogLayer", function (err, prefab) {
+                if (err) {
+                    return
+                }
+                const node = cc.instantiate(prefab)
+                node.parent = this.node
+                this._logLayer = node.getComponent(LogLayer)
+            })
         } else {
-            canvas.fitHeight = false
-            canvas.fitWidth = true
+            this._logLayer.node.parent = null
+            this._logLayer.node.destroy()
+            this._logLayer = null
         }
-    }
-
-    onDisable() {
-        cc.audioEngine.pauseAllEffects()
-    }
-
-    onEnable() {
-        cc.audioEngine.resumeAllEffects()
     }
 
     audioEvent() {
-        if (null == cc.audioEngine.playMusisExpand) {
-            cc.audioEngine.playMusisExpand = cc.audioEngine.playMusic
 
-            cc.audioEngine.playMusic = function(clip:cc.AudioClip, loop: boolean) {
-                if (true === window.document.isAudioPause) 
-                    return
-                
-                if (0 == DataManager.SoundVolume)
-                    return
+        const playMusic = cc.audioEngine.playMusic
+        cc.audioEngine.playMusic = function() {
+            if (0 == DataManager.SoundVolume)
+                return
 
-                return cc.audioEngine.playMusisExpand(clip, loop);
-            }
+            return playMusic.apply(cc.audioEngine, arguments)
         }
 
-        if (null == cc.audioEngine.playEffectExpand) {
-            cc.audioEngine.playEffectExpand = cc.audioEngine.playEffect
+        const playEffect = cc.audioEngine.playEffect
+        cc.audioEngine.playEffect = function() {
+            if (0 == DataManager.EffectVolume)
+                return
 
-            cc.audioEngine.playEffect = function(clip: cc.AudioClip, loop: boolean) {
-                if (true === window.document.isAudioPause)
-                    return
-
-                return cc.audioEngine.playEffectExpand(clip, loop)
-            }
+            return playEffect.apply(cc.audioEngine, arguments)
         }
 
-        cc.game.on(cc.game.EVENT_HIDE, function(){cc.audioEngine.pauseAllEffects(); cc.audioEngine.pauseMusic()},this);
-        cc.game.on(cc.game.EVENT_SHOW, function(){cc.audioEngine.resumeAllEffects(); cc.audioEngine.resumeMusic()},this);
+        cc.game.on(cc.game.EVENT_HIDE, () => {
+            SceneManager.Instance.sendMessageToScene("game_hide")
+            cc.audioEngine.pauseAllEffects()
+            cc.audioEngine.pauseMusic()
+        }, this)
 
-        if (cc.sys.isBrowser) {
-        window.document.addEventListener("visibilitychange", (e) => {
-                if (e.target.hidden) {
-                    cc.audioEngine.pauseAllEffects();
-                // cc.audioEngine.pauseMusic()
-                cc.audioEngine.stopMusic()
-                window.document.isAudioPause = true
-            }
-            else {
-                    cc.audioEngine.resumeAllEffects();
-                // cc.audioEngine.resumeMusic()
-                window.document.isAudioPause = false
-                    SceneManager.Instance.sendMessageToScene("audio_play")
-                }
-        })
-    }
-    }
-
-    onError(error) {
-        cc.find("StartScene/errorcode", this.node).getComponent(cc.Label).string = "errcode:" + error
+        cc.game.on(cc.game.EVENT_SHOW, () => {
+            SceneManager.Instance.sendMessageToScene("game_show")
+            cc.audioEngine.resumeAllEffects()
+            cc.audioEngine.resumeMusic()
+        }, this)
     }
 }
-
-

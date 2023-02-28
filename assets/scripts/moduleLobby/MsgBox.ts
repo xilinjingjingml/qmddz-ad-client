@@ -1,20 +1,17 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import SceneManager from "../base/baseScene/SceneManager";
+import { AdsConfig } from "../base/baseData/AdsConfig"
+import { playADBanner } from "../base/BaseFuncTs"
+import BaseScene from "../base/baseScene/BaseScene"
+import SceneManager from "../base/baseScene/SceneManager"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass } = cc._decorator
 
 const CONTENT_COLOR = "#A07f61"
 
 @ccclass
 export default class MsgBox extends BaseScene {
 
-    @property()
     confirmFun: Function = null
-
-    @property()
     cancelFun: Function = null
-
-    @property()
     confirmClose: boolean = false
 
     onOpenScene() {
@@ -30,7 +27,7 @@ export default class MsgBox extends BaseScene {
 
             let nodePop = this.node.getChildByName("nodePop")
             let size = nodePop.getContentSize()
-            
+
             if (this.initParam["frameWidth"]) {
                 size.width = this.initParam["frameWidth"]
             }
@@ -48,8 +45,8 @@ export default class MsgBox extends BaseScene {
                 if (content.indexOf("<color=") == -1) {
                     content = "<color=" + CONTENT_COLOR + ">" + content + "</color>"
                 }
-                let label = cc.find("nodePop/labelContent",  this.node)
-                if (label) 
+                let label = cc.find("nodePop/labelContent", this.node)
+                if (label)
                     label.getComponent(cc.RichText).string = content
 
                 if (null != this.initParam["horizontal"]) {
@@ -59,15 +56,15 @@ export default class MsgBox extends BaseScene {
                 label.getComponent(cc.RichText).maxWidth = size.width - 130
             }
             else {
-                cc.find("nodePop/labelContent",  this.node).getComponent(cc.RichText).string = ""
+                cc.find("nodePop/labelContent", this.node).getComponent(cc.RichText).string = ""
             }
 
             if (this.initParam["fontSize"]) {
-                cc.find("nodePop/labelContent",  this.node).getComponent(cc.RichText).fontSize = this.initParam["fontSize"]
+                cc.find("nodePop/labelContent", this.node).getComponent(cc.RichText).fontSize = this.initParam["fontSize"]
             }
 
             if (this.initParam["buttonNum"]) {
-                let onlyConfirm = this.initParam["buttonNum"] == 1 || this.initParam["buttonNum"]  == 1
+                let onlyConfirm = this.initParam["buttonNum"] == 1 || this.initParam["buttonNum"] == 1
                 if (onlyConfirm) {
                     let btnConfirm = cc.find("nodePop/btnConfirm", this.node)
                     let btnCancel = cc.find("nodePop/btnCancel", this.node)
@@ -76,7 +73,7 @@ export default class MsgBox extends BaseScene {
                     point.x = 0
                     btnConfirm.setPosition(point)
 
-                    btnCancel.active = false                    
+                    btnCancel.active = false
                 }
             } else if (this.initParam["exchangeButton"]) {
                 let btnConfirm = cc.find("nodePop/btnConfirm", this.node)
@@ -106,7 +103,7 @@ export default class MsgBox extends BaseScene {
 
             if (this.initParam["maskCanClose"] == false) {
                 this.node.getChildByName("mask").getComponent(cc.Button).interactable = false
-            }   
+            }
 
             if (this.initParam["titleTexture"]) {
                 cc.find("nodePop/titlebg/common_title", this.node).active = true
@@ -143,6 +140,24 @@ export default class MsgBox extends BaseScene {
                     btn.getChildByName("label").active = false
             }
         }
+
+        if (this.initParam.showBanner) {
+            playADBanner(true, AdsConfig.banner.AwardResultPop)
+        }
+    }
+
+    onBannerResize(msg) {
+        cc.log("MsgBox.onBannerResize", msg.rect.height)
+        const node = cc.find("nodePop", this.node)
+        const box = node.getBoundingBoxToWorld()
+        const diff = msg.rect.height - box.y
+        if (diff > 0) {
+            node.y += diff
+        }
+    }
+
+    onDestroy() {
+        playADBanner(false, AdsConfig.banner.AwardResultPop)
     }
 
     onCloseScene() {
@@ -160,7 +175,7 @@ export default class MsgBox extends BaseScene {
     onCancel() {
         if (null != this.cancelFun)
             this.cancelFun()
-    
+
         SceneManager.Instance.closeScene("MsgBox")
     }
 

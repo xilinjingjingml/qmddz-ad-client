@@ -7,29 +7,28 @@
 
 import BaseFunc = require("../base/BaseFunc")
 import BaseScene from "../base/baseScene/BaseScene";
+import { functions } from "./utils/functions";
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class BaseComponent extends BaseScene {
 
-	@property
-	_skipBinding:Boolean = false;
+	private _$: object
+	private _skipBinding: boolean = false
 
 	__preload() {
-		if (typeof(this._skipBinding) != "undefined" && this._skipBinding) {
-
-		} else {
+		if (!this._skipBinding) {
 			BaseFunc.BindChild(this.node, this)
 		}
+		this._$ = functions.mark(this.node)
 
-
-		if (BaseFunc.IsLongScreen()) {
+		if (cc.winSize.width / cc.winSize.height > 1.875) {
 			this.onFixLongScreen()
-		}else if(BaseFunc.IsShortScreen()) {
+		} else if (cc.winSize.width / cc.winSize.height < 1.334) {
 			this.onFixShortScreen()
 		}
-		
+
 		this.__bindButtonHandler()
 
 		this.__preloadAfter()
@@ -48,6 +47,15 @@ export default class BaseComponent extends BaseScene {
 	}
 
 	__bindButtonHandler() {
-		// cc.warn(this.name + ": rewrite bindButtonHandler if you want bind button")
+	}
+
+	/**
+	 * 获取子节点或组件
+	 */
+	$(name: string): cc.Node
+	$<T extends cc.Component>(name: string, type: { prototype: T }): T
+	$<T extends cc.Component>(name: string, type?: { prototype: T }) {
+		const node = this._$[name] || cc.find(name, this.node)
+		return node && type ? node.getComponent(type) : node
 	}
 }

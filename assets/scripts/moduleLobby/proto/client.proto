@@ -2884,6 +2884,7 @@ message proto_cl_get_at_achieve_award_req{
 
 	required	int32	game_id	=	1;
 	required	int32	index	=	2;
+	required	int32	type	=	3;
 }
 message proto_lc_player_lost_per_match_notf{
 
@@ -3610,4 +3611,13 @@ message proto_cb_play_quit_flow_match_req{
 message	proto_bc_play_quit_flow_match_ack {
 	required 	int32	ret = 1;
 	required	int32	match_type_id = 2;
+}
+
+message proto_cl_get_newbie_reward_req{
+
+}
+
+message proto_lc_get_newbie_reward_ack{
+	required  int32  ack  =  1;
+	required  string  rewards  =  2;
 }

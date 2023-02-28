@@ -1,7 +1,8 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import { getHttpSpriteFrame, getNowTimeUnix, numberFormat2, numberFormat, showAwardResultPop } from "../base/BaseFuncTs";
-import BaseFunc = require("../base/BaseFunc")
+import { getNowTimeUnix, numberFormat2, numberFormat, showAwardResultPop } from "../base/BaseFuncTs";
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -84,15 +85,7 @@ export default class CashbackPop extends BaseScene {
         nodeSelf.getChildByName("nodeAward").active = false
         nodeSelf.getChildByName("noAward").active = true
 
-        let nodeFace = nodeSelf.getChildByName("nodeFace")
-        if (null != nodeFace && DataManager.UserData.face) {
-            getHttpSpriteFrame(DataManager.UserData.face, (sprite) => {
-                let face = cc.find("nodeMask/rank_face", nodeFace).getComponent(cc.Sprite)
-                let size = face.node.getContentSize()
-                face.spriteFrame = sprite
-                face.node.setContentSize(size)
-            })
-        }
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", nodeSelf), url: DataManager.UserData.face, fixSize: true })
 
         let scrollView = cc.find("nodeMain/rankContent", this.node)
         scrollView.on("scrolling", this.onScrollViewEnd.bind(this)) 
@@ -210,15 +203,7 @@ export default class CashbackPop extends BaseScene {
                 }
             }       
 
-            let nodeFace = item.getChildByName("nodeFace")
-            if (null != nodeFace && iter.face) {
-                getHttpSpriteFrame(iter.face, (sprite) => {
-                    let face = cc.find("nodeMask/rank_face", nodeFace).getComponent(cc.Sprite)
-                    let size = face.node.getContentSize()
-                    face.spriteFrame = sprite
-                    face.node.setContentSize(size)
-                })
-            }
+            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", item), url: iter.face, fixSize: true })
      
             item.getChildByName("item_self_bg").active = iter.plyGuid == DataManager.UserData.guid 
         }
@@ -308,7 +293,7 @@ export default class CashbackPop extends BaseScene {
         };
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             if (null == msg || null == self.node)
                 return
     
@@ -357,7 +342,7 @@ export default class CashbackPop extends BaseScene {
         };
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             if (null == msg)
                 return
         

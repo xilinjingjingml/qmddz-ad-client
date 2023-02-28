@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "a91785ba-3899-4222-a803-27cc373778e8",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "bg_trumpet_official ": {
+      "ver": "1.0.4",
+      "uuid": "0368ed04-c728-4c2f-9b5d-5d1c44e3da84",
+      "rawTextureUuid": "a91785ba-3899-4222-a803-27cc373778e8",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 774,
+      "height": 34,
+      "rawWidth": 774,
+      "rawHeight": 34,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

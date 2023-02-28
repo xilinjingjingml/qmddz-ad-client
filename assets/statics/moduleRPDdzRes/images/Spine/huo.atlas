@@ -1,0 +1,76 @@
+
+huo.png
+size: 1024,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: true
+  xy: 392, 70
+  size: 237, 143
+  orig: 237, 143
+  offset: 0, 0
+  index: -1
+10
+  rotate: true
+  xy: 239, 73
+  size: 234, 151
+  orig: 234, 151
+  offset: 0, 0
+  index: -1
+2
+  rotate: false
+  xy: 711, 315
+  size: 234, 147
+  orig: 234, 147
+  offset: 0, 0
+  index: -1
+3
+  rotate: false
+  xy: 2, 2
+  size: 235, 150
+  orig: 235, 150
+  offset: 0, 0
+  index: -1
+4
+  rotate: false
+  xy: 474, 313
+  size: 235, 149
+  orig: 235, 149
+  offset: 0, 0
+  index: -1
+5
+  rotate: false
+  xy: 2, 308
+  size: 235, 154
+  orig: 235, 154
+  offset: 0, 0
+  index: -1
+6
+  rotate: false
+  xy: 2, 154
+  size: 235, 152
+  orig: 235, 152
+  offset: 0, 0
+  index: -1
+7
+  rotate: false
+  xy: 239, 309
+  size: 233, 153
+  orig: 233, 153
+  offset: 0, 0
+  index: -1
+8
+  rotate: true
+  xy: 686, 75
+  size: 236, 138
+  orig: 236, 138
+  offset: 0, 0
+  index: -1
+9
+  rotate: true
+  xy: 537, 77
+  size: 234, 147
+  orig: 234, 147
+  offset: 0, 0
+  index: -1

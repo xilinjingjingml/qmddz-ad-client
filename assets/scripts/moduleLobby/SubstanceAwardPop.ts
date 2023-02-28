@@ -1,8 +1,9 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import { getHttpSpriteFrame, czcEvent, getUserAddress, updateUserAddress } from "../base/BaseFuncTs";
+import { czcEvent, getUserAddress, updateUserAddress } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
 import { getExchangeConfig, exchangeAward, sendReloadUserData } from "./LobbyFunc";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -18,7 +19,7 @@ export default class SubstanceAwardPop extends BaseScene {
         else
             this.initItemList()
 
-        czcEvent("大厅", "实物兑换", "打开实物兑换界面 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "实物兑换", "打开实物兑换界面 " + DataManager.Instance.userTag)
     }
 
     initItemList() {
@@ -59,17 +60,7 @@ export default class SubstanceAwardPop extends BaseScene {
                     cc.find("item_name_bg/award_name", item).getComponent(cc.Label).string = iterator["goodsName"]
                     // item.getChildByName("award_name").getComponent(cc.Label).string = iterator["goodsName"]
                     
-                    let icon = item.getChildByName("award_icon")
-                    if (icon) {
-                        icon.getComponent(cc.Sprite).spriteFrame = null
-                        getHttpSpriteFrame(iterator["goodsImg"], (spriteFrame) => {
-                            let s1 = icon.getContentSize()
-                            let s2 = spriteFrame.getOriginalSize()
-                            icon.getComponent(cc.Sprite).spriteFrame = spriteFrame
-                            icon.scale = Math.min(s1.width / s2.width, s1.height / s2.height)
-                        })
-                    }
-
+                    NodeExtends.setNodeSpriteNet({ node: item.getChildByName("award_icon"), url: iterator["goodsImg"], fixSize: true })
                     num = Math.floor(DataManager.UserData.getItemNum(iterator ["exchangeItemList"][0]["exchangeItem"]) / iterator ["exchangeItemList"][0]["exchangeNum"])
                     item.getChildByName("award_num").getComponent(cc.Label).string = "拥有数量:" + num    
                 }
@@ -83,19 +74,7 @@ export default class SubstanceAwardPop extends BaseScene {
                 let self = this
                 this["onExchange" + goodsId] = () => {       
                     let checkFun = function() {
-                        if (DataManager.CommonData["UserAddress"].length > 0) {                        
-                            // let param = {
-                            //     goodsId: iterator["goodsId"],
-                            //     goodsName: iterator["goodsName"],
-                            //     goodsImg: iterator["goodsImg"],
-                            //     goodsNum: num,
-                            //     confirmFunc: () => { 
-                            //         DataManager.UserData.setItemNum(iterator ["exchangeItemList"][0]["exchangeItem"], num - iterator ["exchangeItemList"][0]["exchangeNum"])
-                            //         self.initItemList() 
-                            //     }
-                            // }
-
-                            // SceneManager.Instance.popScene("moduleLobby", "AwardInfoPop", param)
+                        if (DataManager.CommonData["UserAddress"].length > 0) {
                             self.initAwardInfo(iterator)
                         }
                         else {
@@ -124,18 +103,7 @@ export default class SubstanceAwardPop extends BaseScene {
         let awardInfo = cc.find("nodePop/nodeInfo", this.node)
         awardInfo.getChildByName("noAward").active = null == goods
         if (null != goods) {           
-            let icon = cc.find("awardMask/icon", awardInfo)
-            if (icon) {
-                icon.getComponent(cc.Sprite).spriteFrame = null
-                getHttpSpriteFrame(goods["goodsImg"], (spriteFrame) => {
-                    if (null == icon) return;
-                    let s1 = icon.getContentSize()
-                    let s2 = spriteFrame.getOriginalSize()
-                    icon.getComponent(cc.Sprite).spriteFrame = spriteFrame
-                    icon.scale = Math.min(s1.width / s2.width, s1.height / s2.height)
-                    icon.active = true
-                })
-            }
+            NodeExtends.setNodeSpriteNet({ node: cc.find("awardMask/icon", awardInfo), url: goods["goodsImg"], delayShow: true, fixSize: true })
 
             awardInfo.getChildByName("awardName").getComponent(cc.Label).string = goods["goodsName"]
             let num = Math.floor(DataManager.UserData.getItemNum(goods ["exchangeItemList"][0]["exchangeItem"]) / goods ["exchangeItemList"][0]["exchangeNum"])
@@ -179,7 +147,7 @@ export default class SubstanceAwardPop extends BaseScene {
 
         let self = this
         exchangeAward(this._goods["goodsId"], () => {
-            czcEvent("大厅", "兑换实物", "兑换实物成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+            czcEvent("大厅", "兑换实物", "兑换实物成功 " + DataManager.Instance.userTag)
             sendReloadUserData()
             self.closeSelf()
             if (self.initParam["confirmFunc"])

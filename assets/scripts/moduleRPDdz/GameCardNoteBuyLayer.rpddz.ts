@@ -1,19 +1,16 @@
 import BaseFunc = require("../base/BaseFunc")
-import SceneManager from "../base/baseScene/SceneManager";
-import { playAD, getMD5, iMessageBox, showAwardMutipleResultPop, czcEvent } from "../base/BaseFuncTs";
-import DataManager from "../base/baseData/DataManager";
-import BaseComponent from "../base/BaseComponent";
-import GameLogic from "./GameLogic.rpddz";
-import { exchangeAward, getExchangeConfig } from "../moduleLobby/LobbyFunc";
+import BaseComponent from "../base/BaseComponent"
+import DataManager from "../base/baseData/DataManager"
+import { czcEvent, iMessageBox } from "../base/BaseFuncTs"
+import SceneManager from "../base/baseScene/SceneManager"
+import { exchangeAward, getExchangeConfig } from "../moduleLobby/LobbyFunc"
+import GameLogic from "./GameLogic.rpddz"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass } = cc._decorator
 
 @ccclass
 export default class GameCardNoteBuyLayer extends BaseComponent {
 
-    // LIFE-CYCLE CALLBACKS:
-
-    // onLoad () {}
     thisComponentName = "GameCardNoteBuyLayer.rpddz"
     thisCost = 500
     exchangeInfo1: any
@@ -22,25 +19,24 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
     onOpenScene() {
         this.updateItem()
     }
-    
+
     updateItem() {
-        
-        if ( null == DataManager.CommonData["ExchangeInfo"]) {
+        if (null == DataManager.CommonData.ExchangeInfo) {
             getExchangeConfig()
             return
         }
-        
-        let exchangeInfo = DataManager.CommonData["ExchangeInfo"].filter(item => {
+
+        let exchangeInfo = DataManager.CommonData.ExchangeInfo.filter(item => {
             return item["gainItemList"][0]["gainItem"] == 2
         })
-        
+
         exchangeInfo.forEach(element => {
-            if(element["gainItemList"][0]["gainNum"] == 1) {
+            if (element["gainItemList"][0]["gainNum"] == 1) {
                 this.exchangeInfo1 = element
-            }else if(element["gainItemList"][0]["gainNum"] == 10) {
+            } else if (element["gainItemList"][0]["gainNum"] == 10) {
                 this.exchangeInfo2 = element
-            } 
-        });
+            }
+        })
     }
 
     __bindButtonHandler() {
@@ -50,20 +46,16 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
     }
 
     onCloseScene() {
-        if (this.initParam["closeCallback"])
-            this.initParam["closeCallback"]()
+        const closeCb = this.initParam["closeCallback"]
+        closeCb && closeCb()
     }
 
     onPressConfirm1() {
-        
         this.buyCardNode(this.exchangeInfo1)
-
     }
 
     onPressConfirm2() {
-
         this.buyCardNode(this.exchangeInfo2)
-
     }
 
     buyCardNode(itemInfo) {
@@ -78,7 +70,6 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
 
         exchangeAward(itemInfo["goodsId"], () => {
             czcEvent("游戏", "兑换记牌器", "兑换记牌器成功，消耗" + itemInfo["exchangeItemList"][0]["exchangeNum"] + "金豆")
-            // SceneManager.Instance.popScene("moduleLobby", "ExchangeSuccPop")
             this.closeSelf()
         })
 
@@ -87,15 +78,9 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
 
     onPressClose() {
         this.close()
-    }    
-    
+    }
+
     close() {
         SceneManager.Instance.closeScene(this)
     }
-
-    start () {
-
-    }
-
-    // update (dt) {}
 }

@@ -1,50 +1,31 @@
 import DataManager from "./DataManager";
-import BaseFunc = require("../BaseFunc")
 import md5 = require("../extensions/md5.min")
-import SceneManager from "../baseScene/SceneManager";
-import { QTTSign, ParseSearch, QTTCheckSign, MsgBox, czcEvent, getUserRole, getNowTimeUnix, QttReportData } from "../BaseFuncTs";
-import CommonData from "./CommonData";
-import GameManager from "../GameManager";
-import QttPluginWrapper from "../QttPluginWrapper";
+import SceneManager from "../baseScene/SceneManager"
+import { ParseSearch, MsgBox, czcEvent, getNowTimeUnix, loadModule } from "../BaseFuncTs"
+import GameManager from "../GameManager"
+import WxWrapper from "../WxWrapper"
+import { ObjectExtends } from "../extends/ObjectExtends";
+import { http } from "../utils/http";
+import { functions } from "../utils/functions";
 
-const { ccclass, property } = cc._decorator;
-
-@ccclass
 export default class InitBaseData {
 
     constructor() {
-        // console.log("initBaseData")        
-        // if (DataManager.Instance.isTesting)
-        // this.loadQtt()
-
-        this.loadConfigs()
-        // this.userLogin()        
-
-
         if (cc.sys.isBrowser) {
-            var args = ParseSearch(window.location.search)
-            if (args.imei) {
-                DataManager.UserData.imei = args.imei
-            }
-
-            if (args.isGray == "false") {
-                DataManager.CommonData["isGray"] = false
+            let arg = ParseSearch(window.location.search)
+            if (arg.imei) {
+                DataManager.UserData.imei = arg.imei
             }
         }
 
+        // SceneManager.Instance.loadScene("moduleLobby", "LobbyScene")
         DataManager.CommonData["isLogin"] = null
-        if (CC_JSB) {
-            QttPluginWrapper.hideSplashAd(() => {
-                this.login()
-            })
-        } else {
-            this.login()
-        }
+        this.loadConfigs()
+        // this.login()
     }
 
     // 获取在线参数
     loadConfigs() {
-        // console.log("loadConfigs")
         let url = DataManager.getURL("LOADING_CONFIGS")
 
         let sign = "pn=" + DataManager.Instance.packetName + "&key=qwer123321zxcv";
@@ -71,8 +52,7 @@ export default class InitBaseData {
             appcode: 1
         };
 
-        let self = this
-        BaseFunc.HTTPGetRequest(url, params, function (msg) {
+        http.open(url, params, (msg) => {
             if (msg && msg.ret == 0) {
                 let ip = msg.ip
                 let port = msg.port
@@ -83,13 +63,9 @@ export default class InitBaseData {
                 }
             }
 
-            DataManager.Instance._configs = msg
-
             if (msg == null || typeof msg == "string") {
                 msg = DataManager.load("loadingConfig")
                 msg = JSON.parse(msg)
-                if (msg == null)
-                    GameManager.Instance.onError("0")
             }
 
             if (msg["versionupdate"]) {
@@ -97,74 +73,42 @@ export default class InitBaseData {
                 DataManager.Instance.envConfigs.socketPort = msg["versionupdate"]["port"]
             }
 
-            // console.log(DataManager.Instance._configs)
             DataManager.Instance.NormalBoxs = []
             DataManager.Instance.OnceBoxs = []
             DataManager.Instance.MonthBoxs = []
             DataManager.Instance.ClubBoxs = []
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
-            let shopcfg = BaseFunc.IsJSON(msg["box_0"]) ? JSON.parse(msg["box_0"]) : null
+            cc.log(msg)
+            let shopcfg = functions.IsJSON(msg["box_0"]) ? JSON.parse(msg["box_0"]) : null
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.NormalBoxs = shopcfg["sl"]
 
             DataManager.Instance.NormalBoxs.sort((a, b) => a.content[0].num < b.content[0].num ? -1 : a.content[0].num > b.content[0].num ? 1 : 0)
 
-            shopcfg = BaseFunc.IsJSON(msg["box_2"]) ? JSON.parse(msg["box_2"]) : null
+            shopcfg = functions.IsJSON(msg["box_2"]) ? JSON.parse(msg["box_2"]) : null
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.OneYuanBoxs = shopcfg["sl"]
 
-            shopcfg = BaseFunc.IsJSON(msg["box_7"]) ? JSON.parse(msg["box_7"]) : null
+            shopcfg = functions.IsJSON(msg["box_7"]) ? JSON.parse(msg["box_7"]) : null
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.OnceBoxs = shopcfg["sl"]
 
-            shopcfg = BaseFunc.IsJSON(msg["box_8"]) ? JSON.parse(msg["box_8"]) : null
+            shopcfg = functions.IsJSON(msg["box_8"]) ? JSON.parse(msg["box_8"]) : null
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.MonthBoxs = shopcfg["sl"]
 
-            shopcfg = BaseFunc.IsJSON(msg["box_12"]) ? JSON.parse(msg["box_12"]) : null
+            shopcfg = functions.IsJSON(msg["box_12"]) ? JSON.parse(msg["box_12"]) : null
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.ClubBoxs = shopcfg["sl"]
 
-            // if (DataManager.Instance.NormalBoxs && DataManager.Instance.NormalBoxs.length > 0) {
-            //     DataManager.save("BOX0", JSON.stringify(DataManager.Instance.NormalBoxs))
-            // }
-            // else {
-            //     let data = DataManager.load("BOX0")
-            //     if (null != data) {
-            //         DataManager.Instance.NormalBoxs = JSON.parse(data)
-            //     }
-            // }
-
-            // if (DataManager.Instance.OnceBoxs && DataManager.Instance.OnceBoxs.length > 0) {
-            //     DataManager.save("BOX7", JSON.stringify(DataManager.Instance.OnceBoxs))
-            // }
-            // else {
-            //     let data = DataManager.load("BOX7")
-            //     if (null != data) {
-            //         DataManager.Instance.OnceBoxs = JSON.parse(data)
-            //     }
-            // }
-
-            // if (DataManager.Instance.MonthBoxs && DataManager.Instance.MonthBoxs.length > 0) {
-            //     DataManager.save("BOX8", JSON.stringify(DataManager.Instance.MonthBoxs))
-            // }
-            // else {
-            //     let data = DataManager.load("BOX8")
-            //     if (null != data) {
-            //         DataManager.Instance.MonthBoxs = JSON.parse(data)
-            //     }
-            // }
-
-            // if (DataManager.Instance.ClubBoxs && DataManager.Instance.ClubBoxs.length > 0) {
-            //     DataManager.save("BOX12", JSON.stringify(DataManager.Instance.ClubBoxs))
-            // }
-            // else {
-            //     let data = DataManager.load("BOX12")
-            //     if (null != data) {
-            //         DataManager.Instance.ClubBoxs = JSON.parse(data)
-            //     }
-            // }
+            // 版本更新
+            DataManager.Instance.versionupdate = msg["versionupdate"]
+            // 分享
+            let sharedData = JSON.parse(msg.sharedData)
+            if (sharedData.ret == 0) {
+                sharedData = sharedData.sharedData[0]
+                sharedData.sdContent = ObjectExtends.values(JSON.parse(sharedData.sdContent))
+                DataManager.Instance.sharedData = sharedData
+            }
 
             DataManager.CommonData["privateConfig"] = []
 
@@ -181,6 +125,12 @@ export default class InitBaseData {
 
             DataManager.CommonData["configFinish"] = true
             DataManager.Instance.onlineParam = typeof msg.onlineparam == "object" ? msg.onlineparam : {}
+            if (DataManager.Instance.onlineParam.wechatPublic) {
+                DataManager.Instance.wechatPublic = DataManager.Instance.onlineParam.wechatPublic
+            }
+            if (DataManager.Instance.onlineParam.noAD) {
+                DataManager.GlobalData.noAD = true
+            }
             DataManager.Instance.matchList = Array.isArray(msg.matchInfo) ? msg.matchInfo : []
             DataManager.Instance.matchList.forEach(v => {
                 DataManager.Instance.matchMap[v.matchType] = v
@@ -199,51 +149,22 @@ export default class InitBaseData {
                 if (null != msg.md5)
                     DataManager.save("loadingConfigMD5", msg.md5)
             }
+
+            if (DataManager.Instance.onlineParam.shareConfig) {
+                WxWrapper.setShareConfig(DataManager.Instance.onlineParam.shareConfig)
+            }
         })
     }
 
     login() {
-        let url = DataManager.getURL("USER_LOGIN")
-        let params = {}
-        if (!DataManager.Instance.isTesting) {
-            QttPluginWrapper.login((data) => {
-                if (data.code == 0) {
-                    DataManager.CommonData["platform"] = data.platform
-                    DataManager.save('user_guest_openid', data.imei)
-                    params = {
-                        pn: DataManager.Instance.packetName,
-                        version: DataManager.Instance.version,
-                        type: 2,
-                        appId: data.appId,
-                        ticket: data.ticket,
-                        platform: data.platform,
-                    }
-                } else {                    
-                    this.showMessage(data.message || "登录错误")
-                    return
-                }
-            })
-        } else {
-            params = {
-                name: "Guest",
-                imei: DataManager.UserData.imei,
-                pn: DataManager.Instance.packetName,
-                version: DataManager.Instance.version
-            }
-        }
-
-        BaseFunc.HTTPGetRequest(DataManager.getURL("USER_LOGIN"), params, (res) => {            
-            this.onLoginResult(res)
+        WxWrapper.login((err, res) => {
+            err ? this.showMessage(err) : this.onLoginResult(res)
         })
     }
 
     onLoginResult(res) {
         if (res && res.ret == 0) {
-            QttReportData("role_loaded")
-
-            if (GameManager.Instance._btnLogin) {
-                GameManager.Instance._btnLogin.active = false
-            }
+            czcEvent("大厅", "登录", "web登录成功")
 
             let data = {
                 pid: res.pid,
@@ -252,19 +173,27 @@ export default class InitBaseData {
                 face: res.face,
                 imei: res.imei,
                 sex: res.sex,
+                openId: res.openId,
             }
 
+            DataManager.save('user_guest_openid', data.imei)
             DataManager.Instance.setUserData(data)
-            getUserRole()
             DataManager.CommonData["isLogin"] = true
             SceneManager.Instance.sendMessageToScene("updateUserData")
+            DataManager.CommonData["first"] = res.first
             DataManager.CommonData["morrow"] = res.first == 1 ? 0 : res.morrow
             DataManager.CommonData["regtime"] = res.regtime == 0 ? new Date().getTime() / 1000 : res.regtime
+            DataManager.CommonData["stayDay"] = res.stayDay
+
+            DataManager.Instance.userTag = DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"
 
             let time = getNowTimeUnix()
             DataManager.CommonData["flyBack"] = (time >= 1574006400 && time < 1575302400) && res.flyBack == "1"
+            loadModule(DataManager.Instance.startModule)
         } else {
-            this.showMessage(res ? res.tips || res.msg : "请求异常"))
+            const error = res ? res.tips || res.msg || "未知错误" : "请求异常"
+            czcEvent("大厅", "登录", "web登录失败 "+ error)
+            this.showMessage(error)
         }
     }
 

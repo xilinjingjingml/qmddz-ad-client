@@ -2,6 +2,8 @@ import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import {copyToClipBoard} from "../base/BaseFuncTs";
 import TabControl from "../base/extensions/Extpands/TabControl";
+import WxWrapper from "../base/WxWrapper";
+import PluginManager from "../base/PluginManager";
 
 const {ccclass, property} = cc._decorator;
 
@@ -23,6 +25,10 @@ export default class SettingScene extends BaseScene {
         let ver = cc.find("nodePop/nodeRight/verlabel", this.node)
         if (null != ver)
             ver.getComponent(cc.Label).string = "版本号: " + DataManager.Instance.version
+        if (null != ver)
+            ver.getComponent(cc.Label).string += ["测试", "镜像"][DataManager.Instance.CurENV] || ""
+        if (null != ver)
+            ver.getComponent(cc.Label).string += " " + PluginManager.getVersionName() + " " + PluginManager.getVersionCode() + " "
 
         if (DataManager.SoundVolume == 1)
             cc.find("nodePop/nodeLift/btnMusic02", this.node).getComponent(TabControl).onGroup()
@@ -59,10 +65,9 @@ export default class SettingScene extends BaseScene {
         this._lastTime = new Date().getTime()
 
         if (this._conClick > 15) {
-            DataManager.save("versetting", true)
-            if (null != DataManager.CommonData["vconsole"]) {
-                DataManager.CommonData["vconsole"].style.display=""
-            }
+            cc.log = console.log.bind(console)
+            DataManager.save("ENABLE_DEBUG", 1)
+            WxWrapper.setEnableDebug(true)
         }
     }
 }

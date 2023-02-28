@@ -1,73 +1,47 @@
 import BaseScene, { ScenePath } from './BaseScene'
 import BgAdapetr from '../components/BgAdapter'
-import GameManager from '../GameManager';
 
-const {ccclass, property, executeInEditMode} = cc._decorator;
+const {ccclass, property} = cc._decorator
 
 const SCENE_LAYER = 100
 const POP_SCENE_LAYER = 101
 
 @ccclass
-@executeInEditMode
 export default class SceneManager extends cc.Component {
 
-    static _instance:SceneManager;
-
-    @property()
-    _scenes: BaseScene[] = []
-
-    @property()
-    _popScenes: BaseScene[] = []
-
-    @property({
-        type: [String, BaseScene]
-    })
-    _sceneInstances = []
-
-    _singPopQueue = []
-
-    @property()
-    winSize: cc.Size = new cc.Size(1280, 720)//cc.Canvas.instance.designResolution
+    static _instance:SceneManager
 
     static get Instance() : SceneManager {
         return SceneManager._instance;
     }
-   
+
+    _scenes: BaseScene[] = []
+    _popScenes: BaseScene[] = []
+    _sceneInstances = []
+    _singPopQueue = []
+
     onLoad () {
         SceneManager._instance = this
-        // cc.game.addPersistRootNode(this.node);
-        // console.log(cc.Canvas.instance.designResolution)
-
-        if (CC_EDITOR) {
-            return
-        }
-        this.winSize = cc.Canvas.instance.designResolution
     }
 
     onInit () {
-
-        cc.game.on(cc.game.EVENT_HIDE, () => {
-            this.sendMessageToScene("game_hide")
-        })
-
-        cc.game.on(cc.game.EVENT_SHOW, () => {
-            this.sendMessageToScene("game_show")
-        })
-
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyEvent, this)
     }
 
     loadScene(moduleName, name, callback:(scene) => void = null, errCallBack:(err) => void = null, dir = "/prefab/") {
         let path = moduleName + dir + name;
-        // console.log(path)
         cc.loader.loadRes(path, 
             (err, res) => {
                 if (err) {
-                    console.log(err)
+                    cc.log(err)
                     errCallBack && errCallBack(err)
                 }
                 else if (res instanceof cc.Prefab) {
                     let scene = cc.instantiate(res)
-                    scene.name = name
+                    let strname = name
+                    if (0 < strname.indexOf("/"))
+                        strname = strname.substring(strname.lastIndexOf("/") + 1)                    
+                    scene.name = strname
                     callback && callback(scene);
                 }
             }
@@ -95,17 +69,11 @@ export default class SceneManager extends cc.Component {
         })))
     }
 
-    //callback:(scene: BaseScene) => void = null, errCallBack:(err) => void = null
     addScene<T>(moduleName, prefab:T, initParam?, callback: (scene: BaseScene) => void = null) {
-        let action = cc.sequence(cc.delayTime(5), cc.callFunc(() => GameManager.Instance.onError("s." + prefab)))
-        this.node.runAction(action)
-        // console.log("addScene", moduleName, prefab)
         if (null == prefab){
-            console.log("prefab is null")
+            cc.log("prefab is null")
             return 
         }
-
-        // console.log("start addScene " + new Date().getTime())
 
         // 如果initParam是方法 那么认为第三个参数实际是 callback
         if (initParam instanceof Function) {
@@ -128,15 +96,11 @@ export default class SceneManager extends cc.Component {
 
         let self = this
         let initFunc = function(scene: cc.Node) {
-            self.node.stopAction(action)
             let lastScene = self._scenes[self._scenes.length - 1]
             if (null != lastScene && lastScene.curScene.sceneName == pname)
                 return
 
-            // console.log("add init " + new Date().getTime())
             scene.setAnchorPoint(0.5, 0.5)
-            // let winSize = cc.Canvas.instance.designResolution
-            // console.log(winSize)
             scene.setPosition(cc.v2(10000, 10000))
     
             let baseScene = scene.getComponent(BaseScene)
@@ -144,21 +108,14 @@ export default class SceneManager extends cc.Component {
                 baseScene = scene.addComponent(BaseScene)
 
             baseScene.initParam = initParam
-            
-            // self.node.parent.addChild(scene)
-            cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)            
-            // if (baseScene.isProtrait || (initParam && initParam["isProtrait"] == true)){
-            //     cc.view.setOrientation(cc.macro.ORIENTATION_PORTRAIT);
-            // }
-            // else{
-            //     cc.view.setOrientation(cc.macro.ORIENTATION_LANDSCAPE);
-            // }
+
+            cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)
             self._scenes.push(baseScene)
-            baseScene.curScene = new ScenePath(moduleName, prefab);
+            baseScene.curScene = new ScenePath(moduleName, prefab)
             
             self._sceneInstances[baseScene.node.uuid] = baseScene
             self.clearPopScene(baseScene)
-            baseScene.onOpenScene()
+            baseScene.openScene()
             
             if (lastScene){
                 baseScene.lastScene = lastScene.curScene
@@ -166,7 +123,7 @@ export default class SceneManager extends cc.Component {
                 let idx = self._scenes.lastIndexOf(lastScene)
                 if (idx > -1)
                 self._scenes.splice(idx, 1)
-                scene.opacity = 0
+                scene.opacity = 255
                 baseScene.node.runAction(
                     cc.sequence(
                         cc.delayTime(.01), 
@@ -213,19 +170,16 @@ export default class SceneManager extends cc.Component {
 
     popScene<T>(moduleName, prefab: T, initParam: any = {}, position = cc.Vec2.ZERO, callback: (pop: BaseScene) => void = null) {
         if (null == prefab){
-            console.log("prefab is null")
+            cc.log("prefab is null")
             return 
         }
-
-        // console.log("start pop " + new Date().getTime())
 
         let self = this
         let callScene = this._scenes[this._scenes.length - 1]
         let initFunc = function(scene: cc.Node) {
-            // console.log("init pop " + new Date().getTime())
             let curScene = self._scenes[self._scenes.length - 1]
             if (null != callScene && callScene != curScene){
-                delete self._singPopQueue[scene.name]  
+                delete self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]  
                 return
             }
 
@@ -258,13 +212,14 @@ export default class SceneManager extends cc.Component {
 
             if (initParam && initParam["zorder"] && typeof initParam["zorder"] == "number")
                 parentNode.addChild(scene, initParam["zorder"] + POP_SCENE_LAYER)
+            else if (initParam && initParam["zIndex"] && typeof initParam["zIndex"] == "number")
+                cc.director.getScene().addChild(scene, initParam["zIndex"])
             else
                 parentNode.addChild(scene, POP_SCENE_LAYER)
             
             scene.opacity = 0
             // baseScene.node.position = cc.v2(10000, 10000)
             // self.node.parent.addChild(scene)
-            // console.log("push pop scene " + moduleName)
             self._popScenes.push(baseScene)
             baseScene.isPop = true
             baseScene.callScene = callScene
@@ -276,7 +231,7 @@ export default class SceneManager extends cc.Component {
                                         cc.callFunc(() => {
                                             // baseScene.node.position = position
                                             console.log("show pop " + moduleName + "/" + (typeof scene == "object" ? scene.name : prefab))
-                                            baseScene.onOpenScene()
+                                            baseScene.openScene()
                                             scene.opacity = 255
                                         })
                                     ))
@@ -284,7 +239,7 @@ export default class SceneManager extends cc.Component {
 
             callback && callback(baseScene)
             SceneManager.Instance.sendMessageToScene({opcode: "onScenePop", packet:{name: baseScene.name, zIndex: baseScene.node.zIndex}})
-            delete self._singPopQueue[scene.name]  
+            delete self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]  
         }
 
         if (prefab instanceof cc.Prefab){
@@ -362,19 +317,11 @@ export default class SceneManager extends cc.Component {
             if (idx > -1)
                 this._popScenes.splice(idx, 1)
         }
-        else {
-            // if (null != baseScene.lastScene) {
-            //     console.log(baseScene.lastScene)
-            //     this.addScene(baseScene.lastScene.moduleName, baseScene.lastScene.sceneName, null);
-            // }
-        }
 
         SceneManager.Instance.sendMessageToScene({opcode: "onSceneClose", packet:{name: baseScene.name}})
     }  
 
     sendMessageToScene(message) {
-        // console.log(this._scenes)
-        // console.log(this._popScenes)
         this._scenes.forEach(item => item.getMessage(message))
         this._popScenes.forEach(item => null != item && null != item.node && item.getMessage(message))
     }
@@ -418,5 +365,36 @@ export default class SceneManager extends cc.Component {
         }
 
         this._popScenes = []
+    }
+
+    onKeyEvent(evnet: cc.Event.EventKeyboard) {
+        if (evnet.keyCode == 6 || evnet.keyCode == 27) { // 返回键
+            for (let i = this._popScenes.length - 1; i >= 0; i--) {
+                const pop = this._popScenes[i]
+                if (pop && pop.curScene) {
+                    if (typeof pop['onPressBack'] == 'function') {
+                        cc.log(pop.curScene.sceneName, 'onPressBack')
+                        pop['onPressBack']()
+                        return
+                    }
+                    if (['TrumpetCom', 'KeyboardPop', 'SideRankPop'].indexOf(pop.curScene.sceneName as string) > -1) {
+                        continue
+                    }
+                    cc.log(pop.curScene.sceneName)
+                    pop['closeSelf']()
+                    return
+                }
+            }
+            for (let i = this._scenes.length - 1; i >= 0; i--) {
+                const scene = this._scenes[i]
+                if (scene && scene.curScene) {
+                    if (typeof scene['onPressBack'] == 'function') {
+                        cc.log(scene.curScene.sceneName, 'onPressBack')
+                        scene['onPressBack']()
+                        return
+                    }
+                }
+            }
+        }
     }
 }

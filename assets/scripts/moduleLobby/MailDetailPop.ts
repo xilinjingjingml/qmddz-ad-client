@@ -79,7 +79,7 @@ export default class MailDetailPop extends BaseScene {
         let self = this
         getMailAward(mail.mailId, (msg) => {
             if (msg.ret == 0) {
-                czcEvent("大厅", "邮件", "领取成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                czcEvent("大厅", "邮件", "领取成功 " + DataManager.Instance.userTag)
 
                 if (mail.mailMsgType != 0) {
                     let awards = []

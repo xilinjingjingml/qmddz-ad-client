@@ -1,110 +1,86 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import { getADAward, checkADNum, sendReloadUserData, getADConfig, getADDraw } from "./LobbyFunc";
-import { AdsConfig } from "../base/baseData/AdsConfig";
-import DataManager from "../base/baseData/DataManager";
-import { czcEvent, playAD, showTokenGrowPop, showAwardResultPop, iMessageBox } from "../base/BaseFuncTs";
+import { AdsConfig } from "../base/baseData/AdsConfig"
+import DataManager from "../base/baseData/DataManager"
+import { playADGrid } from "../base/BaseFuncTs"
+import BaseScene from "../base/baseScene/BaseScene"
+import SceneManager from "../base/baseScene/SceneManager"
+import { getAdLeftTimes, receiveAdAward } from "./LobbyFunc"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator
 
 @ccclass
 export default class DrawPop extends BaseScene {
 
     @property()
-    adNum: number = 0
+    adIndex: number = 0
 
     onOpenScene() {
-        let self = this
-        if (null == DataManager.CommonData["adConfig"]) {
-            getADConfig(() => {
-                self.updateState()
-            })
+        this.updateState()
+        if (DataManager.Instance.onlineParam.showGridAd != 0) {
+            playADGrid(true, AdsConfig.grid.DrawVipPop)
         }
-        else {
-            this.updateState()
-        }
+    }
 
+    onGridResize(msg) {
+        if (this.node.name === "DrawWages") {
+            const box = cc.find("nodePop/bg", this.node).getBoundingBoxToWorld()
+            const diff = msg.rect.height - box.y - 20
+            if (diff > 0) {
+                cc.find("nodePop", this.node).y += diff
+            }
+        } else {
+            const box = cc.find("nodePop/draw_vip_bg", this.node).getBoundingBoxToWorld()
+            const diff = msg.rect.height - box.y - 20
+            if (diff > 0) {
+                cc.find("nodePop", this.node).y += diff
+            }
+        }
+    }
+
+    onAfterOpen() {
+        if (this.node.name === "DrawWages") {
+            let coinNum = 10000
+            let vipLv = 0
+            if (DataManager.CommonData["VipData"]) {
+                vipLv = DataManager.CommonData["VipData"].vipLevel || 0
+            }
+            if (vipLv != 0) {
+                coinNum = 50000 * vipLv
+            }
+            cc.find("nodePop/bg/itemNum1", this.node).getComponent(cc.Label).string = "金豆x" + coinNum
+            cc.find("nodePop/bg/itemNum2", this.node).getComponent(cc.Label).string = "超级加倍卡x5"
+            cc.find("nodePop/bg/itemNum3", this.node).getComponent(cc.Label).string = "记牌器x5"
+        }
+    }
+
+    onPressVip() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        SceneManager.Instance.popScene("moduleLobby", "VipInfoPop")
     }
 
     updateState() {
-        cc.find("nodePop/btnDraw", this.node).getComponent(cc.Button).interactable = checkADNum(this.adNum)
-        
-        let gray = cc.find("nodePop/btnDraw/gray", this.node)
-        if (gray)
-            gray.active = !checkADNum(this.adNum)
+        const leftTimes = getAdLeftTimes(this.adIndex)
+        cc.find("nodePop/btnDraw", this.node).getComponent(cc.Button).interactable = leftTimes > 0
+        cc.find("nodePop/btnDraw/statusFinish", this.node).active = leftTimes <= 0
 
-        let counttip = cc.find("nodePop/counttip", this.node)
-        if (counttip) {
-            let count = counttip.getChildByName("count")
-            let zero = counttip.getChildByName("zero")
-            let num = DataManager.CommonData["adNum"][this.adNum].allNum - DataManager.CommonData["adNum"][this.adNum].countNum
-
-            count.getComponent(cc.Label).string = num > 0 ? "" + num : "0"
-            zero.getComponent(cc.Label).string = num === 0 ? "0" : ""
-            
+        const count = cc.find("nodePop/counttip/count", this.node)
+        if (count) {
+            count.getComponent(cc.Label).string = "" + leftTimes
         }
     }
 
-    onPressDraw(sender, data) {
-        getADDraw(this.adNum, () => {this.updateState()})
-        // let adNum = parseInt(data)
+    onPressDraw() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        receiveAdAward(this.adIndex, () => {
+            this.isValid && this.updateState()
+        })
+    }
 
-        // let adName = AdsConfig.getAdName(this.adNum)
-        // let adsReason = AdsConfig.getAdVideo(this.adNum)
+    onPressClose() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this.closeSelf()
+    }
 
-        // czcEvent("大厅", "领取" + adName + "1", "点击领取 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        // let self = this
-        // let getAward = function() {
-        //     if (checkADNum(self.adNum)) {
-        //         czcEvent("大厅", "领取" + adName + "2", "播放广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        //         playAD(adsReason, () => {
-        //             czcEvent("大厅", "领取" + adName + "3", "看完广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-
-        //             getADAward(self.adNum, (msg) => {  
-        //                 czcEvent("大厅", "领取" + adName + "4", "获取奖励 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        //                 // if (adNum == 5) {
-        //                 //     showTokenGrowPop(30) 
-        //                 // }
-        //                 // else if (adNum == 6) {
-        //                 //     let awards = [
-        //                 //         {
-        //                 //             index: 0,
-        //                 //             num: 1000,
-        //                 //         }
-        //                 //     ]
-        //                 //     showAwardResultPop(awards)
-        //                 // }
-        //                 // else if (adNum == 11) {
-        //                 //     let awards = [
-        //                 //         {index: 2, num: 1},
-        //                 //     ]
-                            
-        //                 //     // showAwardMutipleResultPop(awards)
-        //                 //     showAwardResultPop(awards)
-        //                 // }
-        //                 let awards = []
-        //                 if (null != msg.itemIndex && null != msg.itemNum)
-        //                     awards.push({index: msg.itemIndex, num: msg.itemNum})
-        //                 else if (msg.awards)
-        //                     awards = msg.awards
-        //                 showAwardResultPop(awards)
-        //                 sendReloadUserData()
-
-        //                 self.updateState()
-        //             })        
-        //         })                
-        //     }
-        //     else {
-        //         iMessageBox("您今日的" + adName + "次数已用完，请明天再来！")
-        //     }
-        // }
-
-        // if (null == DataManager.CommonData["adConfig"]) {
-        //     getADConfig(() => {
-        //         getAward()
-        //     })
-        //     return 
-        // }
-
-        // getAward()
+    onDestroy() {
+        playADGrid(false, AdsConfig.grid.DrawVipPop)
     }
 }

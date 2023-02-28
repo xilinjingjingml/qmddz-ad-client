@@ -3,8 +3,6 @@ const {ccclass, property} = cc._decorator;
 import SceneManager from "../base/baseScene/SceneManager";
 import { czcEvent } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
-import GameManager from "../base/GameManager";
-import { GAME_TYPE } from "../gameConfig";
 
 const path: string = "moduleLobby/texture/"
 
@@ -31,31 +29,11 @@ export default class ModuleLobby extends cc.Component{
     _bLoading = false;
 
     start () {
-        czcEvent("大厅", "登录5", "预加载界面 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "登录5", "预加载界面 " + DataManager.Instance.userTag)
 
-        // if (DataManager.Instance.GameType == GAME_TYPE.QMDDZ || DataManager.Instance.GameType == GAME_TYPE.QMDDZMD)
-            SceneManager.Instance.addScene<String>("moduleLobby", "LobbyScene")
-        // else if (DataManager.Instance.GameType == GAME_TYPE.QMMJ)
-        //     SceneManager.Instance.addScene<String>("moduleLobby", "QMMJLobbyScene")
-
-        
-
+        SceneManager.Instance.addScene<String>("moduleLobby", "LobbyScene")
         if (true != DataManager.CommonData["loadModuleLobby"])
             this.preload();
-    }
-
-    update() {
-        // if (false == this._bLoading && true == DataManager.CommonData["isLogin"]) {
-        //     if (DataManager.UserData.isGray())
-        //         SceneManager.Instance.addScene<String>("moduleLobby", "LobbySceneNew")
-        //     else 
-        //         SceneManager.Instance.addScene<String>("moduleLobby", "LobbyScene")
-        
-        //     this._bLoading = true
-
-        //     if (true != DataManager.CommonData["loadModuleLobby"])
-        //         this.preload();
-        // }
     }
 
     preload() {

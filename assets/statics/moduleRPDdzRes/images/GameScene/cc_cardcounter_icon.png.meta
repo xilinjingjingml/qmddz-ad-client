@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "50d2d23f-b1c8-4f44-9e70-858969efd4c9",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "cc_cardcounter_icon": {
+      "ver": "1.0.4",
+      "uuid": "c6a37b80-059b-4618-9b64-20a6f0eac378",
+      "rawTextureUuid": "50d2d23f-b1c8-4f44-9e70-858969efd4c9",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": -0.5,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 73,
+      "height": 77,
+      "rawWidth": 74,
+      "rawHeight": 77,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

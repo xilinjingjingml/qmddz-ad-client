@@ -39,7 +39,7 @@ export default class MatchTip extends BaseScene {
         this.closeSelf()
         const leftTime = this.initParam["startTime"] - Math.floor(new Date().getTime() / 1000)
         if (leftTime > getLeadTime()) {
-            const message = { packet: this.initParam }
+            const message = { opcode: "proto_lc_match_begin_not", packet: this.initParam }
             delayCallback(this.initParam["startTime"] - getLeadTime(), () => {
                 if (DataManager.CommonData["gameServer"]) {
                     return
@@ -48,7 +48,7 @@ export default class MatchTip extends BaseScene {
                 if (matchInfo == null || matchInfo.isSign == false) {
                     return
                 }
-                NetManager.Instance._notfiyMessage.proto_lc_match_begin_not(message)
+                NetManager.Instance.onMessage(message)
             })
         }
     }

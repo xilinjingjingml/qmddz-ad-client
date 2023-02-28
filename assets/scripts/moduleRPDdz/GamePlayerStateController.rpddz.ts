@@ -13,7 +13,7 @@ export default class GamePlayerStateController extends BaseComponent {
     }
     
     stepState() {
-        console.log("stepState:" + this.state);
+        cc.log("stepState:" + this.state);
         switch(this.state) {
             case 'none':
                 this.doStateChangeInit();

@@ -1,18 +1,24 @@
 import BaseFunc = require("../base/BaseFunc")
-import DataManager from "../base/baseData/DataManager";
-import GameSceneStateController from "./GameSceneStateController.rpddz"
-import GameLogic from "./GameLogic.rpddz"
-import GamePlayer from "./GamePlayer.rpddz"
-import {CCard, CCardsType} from "./CCard.rpddz"
-import GameRule from "./GameRule.rpddz";
-import { WizardConfig } from "../moduleLobby/WizardConfig";
-import { uploadGameRound, czcEvent, showAwardResultPop, getGameAward, getNewBieRoundLimit, getQttCoinQuery, iMessageBox, share, copyToClipBoard, extendMatchLogic } from "../base/BaseFuncTs";
-import { check03ExchangeGoods, getADDraw, checkADNum } from "../moduleLobby/LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
-import MatchGame from "./MatchGame.rpddz"
 import { AdsConfig } from "../base/baseData/AdsConfig";
-import * as proto from "./proto/client.rpddz"
+import DataManager from "../base/baseData/DataManager";
+import { copyToClipBoard, czcEvent, extendMatchLogic, getNewBieRoundLimit, getRedPacketAwardConfig, iMessageBox, playADBanner, share, showAwardResultPop, numberFormat, uploadKuaiShou } from "../base/BaseFuncTs";
+import SceneManager from "../base/baseScene/SceneManager";
+import GameMagicEmoji from "../moduleBase/GameMagicEmoji";
+import { check03ExchangeGoods, checkAdCanReceive, receiveAdAward } from "../moduleLobby/LobbyFunc";
+import { WizardConfig } from "../moduleLobby/WizardConfig";
+import AudioManager from "./AudioManager.rpddz";
+import CardNode from "./CardNode.rpddz";
+import GameLogic from "./GameLogic.rpddz";
+import GamePlayer from "./GamePlayer.rpddz";
+import GameRule from "./GameRule.rpddz";
+import GameSceneStateController from "./GameSceneStateController.rpddz";
+import MatchGame from "./MatchGame.rpddz";
+import PopupManager from "./PopupManager";
+import { ITEM } from "../base/baseData/ItemConfig";
 import NetManager from "../base/baseNet/NetManager";
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { http } from "../base/utils/http";
+import { math } from "../base/utils/math";
 
 
 const {ccclass, property} = cc._decorator;
@@ -39,8 +45,7 @@ export default class GameScene extends GameSceneStateController {
     @property(cc.Prefab)
     prefab_MatchGame:cc.Prefab = null
 
-    @property(CCard)
-    lordCards:CCard [] = []
+    lordCards:CardNode [] = []
 
     @property()
     thisComponentName:string = "GameScene.rpddz"
@@ -51,8 +56,7 @@ export default class GameScene extends GameSceneStateController {
     fakeRedPacketNum:number = 0
 	nowcChairID:number = -1
 	
-	@property(CCardsType)
-	nowCardType:CCardsType = null
+	nowCardType:ICardsType = null
 
     @property(GamePlayer)
 	players:GamePlayer[] = []
@@ -63,10 +67,7 @@ export default class GameScene extends GameSceneStateController {
 	@property()
 	curRoundIsSpring:boolean = false
 	enableCardCounter:boolean = true
-	enable88YuanTask:boolean = false
 
-
-    
 	cardsCount = [] //记牌器
 
     card_put_down = {
@@ -90,7 +91,7 @@ export default class GameScene extends GameSceneStateController {
 	isReconnecte: boolean;
 	firstShowStartGame: boolean;
 	nodeBet: cc.Node;
-	regainLose: proto.Iproto_gc_regain_lose_score_ack;
+	regainLose: Iproto_gc_regain_lose_score_ack;
 	nBombTips: number;
 	isLookCard: boolean;
 	lookcard_tips: cc.Node;
@@ -101,6 +102,17 @@ export default class GameScene extends GameSceneStateController {
 	showPutShowCard: boolean = false;
 	level03ExchangeGoodsTips = 0;
 	node_player_hand_card0: cc.Node;
+	nodeMain: cc.Node;
+	ani_spine_mingpai: cc.Node;
+	ani_spine_super_jiabei: cc.Node;
+	msg_proto_gc_get_redpackets_newbie_award_req: any;
+	msg_proto_gc_game_result_not1: IGameResult;
+	tipCards: ICard[][] = []
+	popupmanager: PopupManager; // 游戏结束后顺序弹框
+	nDouble: number; //倍数
+	nGameMoney: number; //底注
+	lastExchangeItemId: number; // 上次要兑换的道具
+	msg_proto_gc_win_doubel_req: Iproto_gc_win_doubel_req;
 
 	
 
@@ -113,7 +125,9 @@ export default class GameScene extends GameSceneStateController {
     }
 
     onOpenScene () {
-		czcEvent("斗地主", "进入游戏", "显示游戏界面" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+		if (DataManager.Instance.userTag != "老用户") {
+			czcEvent("斗地主", "进入游戏", "显示游戏界面" + DataManager.Instance.userTag)
+		}
 		cc.log("GameScene onOpenScene");
 
 		if(GameLogic.Instance().isMatchTable()) {
@@ -121,19 +135,12 @@ export default class GameScene extends GameSceneStateController {
 			extendMatchLogic(this)
 		}
 
+		// 在断线重连成功后自动登录
+		NetManager.Instance.setSocketLoginFunc(GameLogic.Instance().socketName, this.proto_cb_login_req_sender.bind(this))
+
 		this.registMessageHandler()
 		
-		if(GameLogic.Instance().henry_debug){
-			this.setDebug()
-		}else{
-			this.nodeDebug.active = false
-		}
-		
-		GameLogic.Instance().audioManager.init(new GameRule())
-		
-		GameLogic.Instance().audioManager.playBackground()		
-		
-		getQttCoinQuery()
+		AudioManager.playBackground()		
 
 		this.initRedPacket()
 
@@ -155,7 +162,7 @@ export default class GameScene extends GameSceneStateController {
 		
 		this.showChangCiInfo()
 
-		this.hideAniWait()
+		this.showAniWait()
 
 		this.btnNewUserSign.active = false
 
@@ -163,85 +170,72 @@ export default class GameScene extends GameSceneStateController {
 		{
 			this.btnNewUserSign.active = false && DataManager.CommonData["NewUserSgin"].day <= 7
 		}
-		// if (true) {
-		// 	this.nodeTopRight.active = false
-		// }
-
-		this["spt88YuanMainIcon1"].active = false
-		this["spt88YuanMainIcon2"].active = false
-		this["spt88YuanMainIcon2.5"].active = false
-		this["spt88YuanMainIcon3"].active = false
-		this.nodePlusRedPacketTip.active = false
-		
-		let changci = GameLogic.Instance().serverInfo.level
-		if (changci == 1) {
-			this["spt88YuanMainIcon1"].active = true
-		}else if (changci == 2) {
-			this["spt88YuanMainIcon2"].active = true
-		}else if (changci == 2.5) {
-			this["spt88YuanMainIcon2.5"].active = true
-		}else if (changci == 3) {
-			this["spt88YuanMainIcon3"].active = true	
-		}
-
-		this.GameScenePlus88Yuan.active = false
 
 		if (GameLogic.Instance().getRedPacketTableType() == 22) {			
 			if (DataManager.CommonData["regtime"] > 1573142400) { //20191031
-				this.enable88YuanTask = false
 			}
 		}else if (GameLogic.Instance().getRedPacketTableType() == 23) {	
 			if (DataManager.CommonData["regtime"] > 1578412800) { //20200108
-				this.enable88YuanTask = false
 			}
 		}
-		
-		this.refreshNewUserQMoneyTip()
 
-		let callback_refresh = (res) => {
-			this.refreshNewUserQMoneyTip(res)
-		}
-		getGameAward(null, 1, callback_refresh)
-
-		this.refreshCardNoteNum(DataManager.UserData.getItemNum(GameLogic.Instance().ITEM_CARD_RECORD))
+		this.refreshCardNoteNum(DataManager.UserData.getItemNum(ITEM.CARD_RECORD))
+		this.refreshLookCardNum(DataManager.UserData.getItemNum(ITEM.LOOK_LORDCARD))
 
 		if (!GameLogic.Instance().isRedPacketTable()) {
 			this.nodeRedPacket.active = false
 		}
 		this.btnShowStart.active = GameLogic.Instance().isRPGMode()
+		// this.firstShowStartGame = DataManager.CommonData["morrow"] == 0
+		// 默认第一次进入时自动准备
+		this.firstShowStartGame = true
+		this.RedPacketsNewbieABTest()
 
-		uploadGameRound = () => { }
-		getGameAward = () => { }
+		if (!this.prefab_magic_emoji) {
+			cc.loader.loadRes("moduleBaseRes/prefab/GameMagicEmoji", cc.Prefab, (err, prefab) => {
+				if (err) {
+					cc.log(err)
+				} else {
+					this.prefab_magic_emoji = prefab
+				}
+			})
+		}
+
+		this['btnPiece'].runAction(cc.repeatForever(cc.sequence([
+			cc.scaleTo(0.5, 1.2),
+			cc.scaleTo(0.5, 1),
+			cc.delayTime(1),
+		])))
+
+		// 预加载资源
+		AudioManager.preloadAudio()
 	}
 
-	
-	
-	refreshNewUserQMoneyTip(res?) {
-
-		this.labelNewUserQMoneyMsg1.active = false
-		this.labelNewUserQMoneyMsg2.active = false
-		if (true) {
+	RedPacketsNewbieABTest() {
+		if (DataManager.CommonData["first"] != 1) {
 			return
 		}
-		if (GameLogic.Instance().isPrivateRoom()) {
+		if (DataManager.CommonData["RedPacketsNewbieABTest"]) {
 			return
 		}
-
-		if (GameLogic.Instance().isMatchTable()) {
+		DataManager.CommonData["RedPacketsNewbieABTest"] = true
+		if (!DataManager.Instance.getOnlineParamSwitch("RedPacketsNewbieABTest")) {
 			return
 		}
-
-		if(DataManager.CommonData["morrow"] > 2) {
+		if (!checkAdCanReceive(AdsConfig.taskAdsMap.NewbieRedpacket)) {
 			return
 		}
-
-		if (!!res && typeof(res.gameNum) != "undefined") {
-			if (res.gameNum >= 20) {
-				this.labelNewUserQMoneyMsg2.active = true				
-			}else{
-				this.labelNewUserQMoneyMsg1.active = true				
+		this.firstShowStartGame = false
+		GameLogic.Instance().showNewbieRedpacketPop({
+			nAmount: DataManager.Instance.onlineParam.RedPacketsNewbieAmount || 10000,
+			closeCallback: () => {
+				if (this['btnStartGame'].activeInHierarchy) {
+					this.onPressStartGame()
+				} else if (this['btnContinue'].activeInHierarchy) {
+					this.onPressContinue(undefined, undefined)
+				}
 			}
-		}
+		})
 	}
 
 	wizardRedPacket() {
@@ -302,7 +296,6 @@ export default class GameScene extends GameSceneStateController {
 		BaseFunc.AddClickEvent(this["btnShop"], this.node, this.thisComponentName, "onPressShop", 0, 3);
 		BaseFunc.AddClickEvent(this["btnTask"], this.node, this.thisComponentName, "onPressTask", 0, 3);
 		BaseFunc.AddClickEvent(this["btnNewUserSign"], this.node, this.thisComponentName, "onPressNewUserSign", 0, 3);
-		BaseFunc.AddClickEvent(this["btnRedPacket88YuanDetail"], this.node, this.thisComponentName, "onPressRedPacket88YuanDetail", 0, 3);
 		BaseFunc.AddClickEvent(this["btnCardCounter"], this.node, this.thisComponentName, "onPressCardCounter", 0, 3);
 		BaseFunc.AddClickEvent(this["btnStartGame"], this.node, this.thisComponentName, "onPressStartGame", 0, 3);
 		BaseFunc.AddClickEvent(this["btnShowStart"], this.node, this.thisComponentName, "onPressShowStart", 5, 3);
@@ -310,7 +303,7 @@ export default class GameScene extends GameSceneStateController {
 		BaseFunc.AddClickEvent(this["btnShowCard"], this.node, this.thisComponentName, "onPressShowCard", 2, 3);
 		BaseFunc.AddClickEvent(this["nodeBigBet"], this.node, this.thisComponentName, "onPressShowBeishuInfo", 0, 3);
 		BaseFunc.AddClickEvent(this["btnShowBeishuInfo"], this.node, this.thisComponentName, "onPressShowBeishuInfo", 0, 3);
-		BaseFunc.AddClickEvent(this["btnHideBeishuInfo"], this.node, this.thisComponentName, "onPressHideBeishuInfo", 0, 3);
+		BaseFunc.AddClickEvent(this["btn_lookcard"], this.node, this.thisComponentName, "onPressLookCardItem", 0, 3);
 	}
 
 	proto_gc_regain_lose_score_ack(event) {
@@ -318,10 +311,10 @@ export default class GameScene extends GameSceneStateController {
 		this.regainLose = event.packet
 	}
 
-    setDebug() {
-		this.nodeDebug.active = true
-        this.nodeDebug.getComponent("GameDebugLayer.rpddz").setView(this)
-    }
+	proto_gc_win_doubel_req(event) {
+		cc.log("proto_gc_win_doubel_req", event.packet)
+		this.msg_proto_gc_win_doubel_req = event.packet
+	}
 
 	addLordCards() {
         
@@ -334,12 +327,25 @@ export default class GameScene extends GameSceneStateController {
 			nodeCard.x = (2 * i - sumCard + 1) / 2 * CardDiss
 			nodeCard.scale = CardScale
 			this.nodeLordCard.addChild(nodeCard)
-			this.lordCards.push(nodeCard.getComponent(cc.Component))
+			this.lordCards.push(nodeCard.getComponent(CardNode))
 		}
     }    
     
 	initTouchScene() {
-
+		if (DataManager.Instance.getOnlineParamSwitch("BackgroundChange", 1)) {
+			let BackgroundChangeDays = DataManager.Instance.onlineParam.BackgroundChangeDays
+			let newBg = false
+			if (BackgroundChangeDays == -1) {
+				newBg = true
+			} else {
+				if (BackgroundChangeDays == null) {
+					BackgroundChangeDays = 3
+				}
+				newBg = DataManager.CommonData["morrow"] < BackgroundChangeDays
+			}
+			this.$("sptBackground1").active = !newBg
+			this.$("sptBackground2").active = newBg
+		}
         this.sptBackground.on(cc.Node.EventType.TOUCH_START, (event) => {
         	// cc.log(event.currentTouch._point.x)
         	// cc.log(event.currentTouch._point.y)
@@ -412,7 +418,8 @@ export default class GameScene extends GameSceneStateController {
         // for(let i = 0 ; i < 150 ; i++){
             let spriteAni = new cc.Node("spriteAni");	        
             spriteAni.sprite = spriteAni.addComponent(cc.Sprite);			
-			spriteAni.getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("GameDDZ_2", "login_pic_bean")
+			NodeExtends.setNodeSprite({ node: spriteAni, url: "moduleRPDdzRes/images/GamePlayer/login_pic_bean" })
+
 
             this.sopCoinPool.put(spriteAni)
         }
@@ -426,7 +433,7 @@ export default class GameScene extends GameSceneStateController {
 			this["nodeGamePlayerPos" + i].getComponent(cc.Widget).updateAlignment()
             this["nodeGamePlayerPos" + i].addChild(nodePlayer)
 
-            let player = nodePlayer.getComponent("GamePlayer.rpddz")
+            let player = nodePlayer.getComponent(GamePlayer)
             let param = {
                 nodeHandcard: this["node_player_hand_card" + i],
                 nodePutcard: this["node_player_put_card" + i],
@@ -473,7 +480,7 @@ export default class GameScene extends GameSceneStateController {
 		
 		this.showChangCiSpt() 		
 		
-		this.proto_cb_login_req_sender()
+		NetManager.Instance.getSocketState(GameLogic.Instance().socketName) && this.proto_cb_login_req_sender()
 		
 		this.hideCardCounterBtn()
 	}
@@ -484,13 +491,21 @@ export default class GameScene extends GameSceneStateController {
 
     onEnterStartGame() {
         cc.log("GameScene.onEnterStartGame")
+		// 未能正常准备
+		for (let i = 0; i < GameLogic.Instance().MAX_PLAYER_NUM; ++i) {
+			const player = this.players[i]
+			if (player.state == "endGame") {
+				player.doStateChangeStay()
+				player.doStateChangeReady()
+			}
+		}
 		this.clearDesk()
 		
 	    for (let i = 0; i < GameLogic.Instance().MAX_PLAYER_NUM; ++i){
 			this.players[i].doStateChangeStartGame()
 	    }
 		
-		GameLogic.Instance().playSound('audio_start')
+		AudioManager.playSound('audio_start')
 
 		if (GameLogic.Instance().isMatchTable()) {
 			this.matchGame.setState(true)
@@ -499,10 +514,10 @@ export default class GameScene extends GameSceneStateController {
 		this.showTopNode()
 
 		this.hideChangCiInfo()
-
-		// this.hidePlusRedPacketTip()
 		
 		this.update03ExchangeGoodsTip()
+
+		this.showNewbieRedpacketTips()
 
 		if(DataManager.CommonData["morrow"] > 2) {
 			if (DataManager.load(GameLogic.Instance().socketName + GameLogic.Instance().gameStorageKey.magic_emoji) != 1) {		
@@ -546,6 +561,10 @@ export default class GameScene extends GameSceneStateController {
 		DataManager.CommonData["roleCfg"]["roundSum"] = (null != DataManager.CommonData["roleCfg"]["roundSum"]) ? DataManager.CommonData["roleCfg"]["roundSum"] + 1 : 0
 
 	    for (let i = 0; i < GameLogic.Instance().MAX_PLAYER_NUM; ++i){
+			const player = this.players[i]
+			if (player.state == "stay" || player.state == "ready") {
+				player.doStateChangeStartGame()
+			}
 			this.players[i].doStateChangeEndGame()
 		}
 		this.showAuto(false)
@@ -650,6 +669,14 @@ export default class GameScene extends GameSceneStateController {
 		// 快速赛需要让牌张数
 		this.addListener("proto_gc_two_lord_card_not", this.proto_gc_two_lord_card_not_handler.bind(this))
 		this.addListener("proto_gc_two_let_card_not", this.proto_gc_two_let_card_not_handler.bind(this))
+
+		// 游戏结束后的顺序弹窗
+		const popupManager  = new PopupManager([
+			this.checkGameEndPops_NewbieRedpacket.bind(this),
+			this.checkGameEndPops_GameResult.bind(this),
+		])
+		this.addListener("GameScene_PopupManager", popupManager.showPopup.bind(popupManager))
+		this.popupmanager = popupManager
 	}
 
 	
@@ -661,20 +688,11 @@ export default class GameScene extends GameSceneStateController {
 		let socketlink = GameLogic.Instance().serverInfo.serverAddr + ":" + (GameLogic.Instance().serverInfo.serverPort + 1)
 		cc.log("socket_closed", event.socket.url, socketlink)
 		if (event && event.socket && event.socket.url && event.socket.url == socketlink) {			
-			GameLogic.Instance().LeaveGameScene()
+			iMessageBox("服务器连接失败！")
+			GameLogic.Instance().LeaveGameScene(-1)
 		}
 	}
 
-	proto_lc_use_protocol_proto_ack(event) {
-		cc.log("proto_lc_use_protocol_proto_ack")
-
-		if (GameLogic.Instance().getNeedReConnect()) {	
-			this.onEnterInit()
-			GameLogic.Instance().setNeedReConnect(false)
-		}
-		
-	}
-	
 	proto_gc_magic_emoji_config_not(event) {
 		let message = event.packet
 		cc.log(message.emojiConfigs)
@@ -687,7 +705,8 @@ export default class GameScene extends GameSceneStateController {
 		if (this.myPlayer) {			
 			this.myPlayer.setItemView(0, DataManager.UserData.money)
 			this.myPlayer.setItemView(365, DataManager.UserData.getItemNum(365))
-			this.refreshCardNoteNum(DataManager.UserData.getItemNum(GameLogic.Instance().ITEM_CARD_RECORD))
+			this.refreshCardNoteNum(DataManager.UserData.getItemNum(ITEM.CARD_RECORD))
+			this.refreshLookCardNum(DataManager.UserData.getItemNum(ITEM.LOOK_LORDCARD))
 		}
 		// plyItems
 		// plyLobbyData
@@ -810,6 +829,9 @@ export default class GameScene extends GameSceneStateController {
 	proto_gc_double_score_req_handler(event) {
 		let message = event.packet
 
+		for (var player of this.players) {
+			player.hideGameTip(true)
+		}
 		this.nSerialID = message.nSerialID //序列ID
 		this.showJiaBei()
 	}
@@ -829,86 +851,48 @@ export default class GameScene extends GameSceneStateController {
 	}	
 	
 	proto_gc_game_result_not1_handler(event) {
-		czcEvent("斗地主", "游戏2", "显示游戏结算界面" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-		let message = event.packet
+		czcEvent("斗地主", "游戏2", "显示游戏结算界面" + DataManager.Instance.userTag)
+		const message: Iproto_gc_game_result_not1 & IGameResult = event.packet
 		this.startPutCards = false
+		cc.find("nodeMain/nodeGamePlayer/nodeGamePlayer0/newbieRedpacketTips", this.node).active = false
 		this.showBeishuInfo(false)
 		this.clearLookCard()
-        this.hideFingerWizard()
+		this.hideFingerWizard()
 		if (GameLogic.Instance().isMatchTable()) {
 			this.matchGame.setState(false)
 		}
 
+		// this.myPlayer.setStopRefreshRedPacket(true)
+		this.fakeRedPacketNum = GameLogic.Instance().userProperties[ITEM.REDPACKET_TICKET]
 
-		this.myPlayer.setStopRefreshRedPacket(true)
-		this.fakeRedPacketNum = GameLogic.Instance().userProperties[GameLogic.Instance().HONGBAO_GOLD_TICKET]
-		
-		let useresult = message.vecUserResult1 
-
-		let localMessage = message
-		localMessage.vecUserResult1 = []
-		localMessage.nGameMoney = this.nGameMoney
-		localMessage.nDouble = this.nDouble
-
-		for (let key in useresult) {
-			let nPos = this.S2C(useresult[key].nChairID)
-			let pPlayerData = this.players[nPos].getPlyData()
-
-			let stUserResult = {
-				nChairID 	: nPos,
-				name 		: pPlayerData.nickname,
-				nScore 		: useresult[key].nScore,
-				is_lord 	: this.players[nPos].isLord
-				headimage 	: pPlayerData.headimage, 
-				sex_ 		: pPlayerData.sex,
-				nJifen 		: useresult[key].nJifen
-			} 
-			localMessage.vecUserResult1[nPos] = stUserResult
+		const userResults = message.vecUserResult1
+		message.vecUserResult1 = []
+		message.nDouble = this.nDouble
+		message.nGameMoney = this.nGameMoney
+		for (let key in userResults) {
+			const userResult = userResults[key]
+			const nPos = this.S2C(userResult.nChairID)
+			const player = this.players[nPos]
+			if (player == null) {
+				continue
+			}
+			const userData = player.getPlyData()
+			message.vecUserResult1[nPos] = {
+				nChairID: nPos,
+				nScore: userResult.nScore,
+				nJifen: userResult.nJifen,
+				is_lord: player.isLord,
+				name: player.isMe() ? DataManager.UserData.nickname : userData.nickname,
+				money: userData.money,
+				headimage: userData.headimage,
+				sex_: userData.sex,
+			}
 		}
+		this.showGameResultAndCheckSpring(message)
 
-		
-		
-		this.OnGameResultAndCheckSpring(localMessage)
-		
-		if (window.qttGame) {			
-			uploadGameRound()
-		}
-
-		if (this.isGameStart()) {			
+		if (this.isGameStart()) {
 			this.doStateChangeEndGame()
 		}
-	}		
-	
-	proto_gc_get_redpackets_88yuan_award_ack(event) {
-		let message = event.packet
-		if (!this.enable88YuanTask) {
-			return
-		}
-		cc.log(message)
-
-		this.GameScenePlus88Yuan.active = true
-		
-		
-		GameLogic.Instance().redpacket_88Yuan_info = message
-		
-		this.refreshRedPacket88YuanInfo(message.curRounds, message.limitRounds)
-
-		if (GameLogic.Instance().redpacket_88Yuan_info.ret == 2) {
-			
-			let awards = []
-			awards[0] = {
-				index: 365,
-				num: GameLogic.Instance().redpacket_88Yuan_info.nAmount,
-			} 
-			this.myPlayer.setStopRefreshRedPacket(false)
-			showAwardResultPop(awards, {zorder:GameLogic.Instance().zOrder.nodeRedPacket + 1})
-		}else if(GameLogic.Instance().redpacket_88Yuan_info.ret == 3){
-			return
-		}
-
-		if (!this.GameScenePlus88Yuan.hasShowed) {			
-			this.onPressRedPacket88YuanDetail()			
-		} 
 	}
 
 	proto_gc_get_redpackets_award_ack_handler(event) {
@@ -926,6 +910,7 @@ export default class GameScene extends GameSceneStateController {
 				return
 			}
 			GameLogic.Instance().redpacket_award_info = message
+			return
 			let delayTime = 2
 
 			if (this.curRoundIsSpring) {
@@ -945,7 +930,6 @@ export default class GameScene extends GameSceneStateController {
 						if (this.myPlayer && this.myPlayer.setStopRefreshRedPacket) {							
 							this.myPlayer.setStopRefreshRedPacket(false)
 						}
-						NetManager.Instance.onMessage({ opcode: "GameRedPacketAwardLayer_close", packet: {} })
 					}
 					GameLogic.Instance().showGameRedPacketAwardLayer(initParam)//因为界面延时显示，传的参数可能会更不上节奏
 				}
@@ -995,7 +979,7 @@ export default class GameScene extends GameSceneStateController {
 		}else if (GameLogic.Instance().isKeepInGameTable()) {
 			cc.log("keep in game")
 		}else{				
-			czcEvent("斗地主", "离桌2", "离桌请求完成" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+			czcEvent("斗地主", "离桌2", "离桌请求完成" + DataManager.Instance.userTag)
 			GameLogic.Instance().LeaveGameScene()
 		}
 	}
@@ -1024,6 +1008,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 	
 	proto_gc_lord_card_not_handler(event) {
+		this["node_lookcard"].active = false
 		let message = event.packet
 		if (message.cLord == -1) {
 			this.showLookLordCard(message)
@@ -1033,14 +1018,14 @@ export default class GameScene extends GameSceneStateController {
 
 		var chair = this.S2C(message.cLord)
 		for (var player of this.players) {
-			player.showRole(player.chairid == chair)
+			player.showRole(player.chairid == chair, message.vecCards)
 		}
 		if (this.beishuInfo) {
 			this.setDouble(this.getDouble(this.myPlayer.chairid))
 		}
 
 		this.startPutCards = true
-		this.showLordCard(message.vecCards, noAni)
+		// this.showLordCard(message.vecCards, noAni) // 20200727 策划需求 1.3.1
 		this.showLookLordCard(message)
 		
 		if (this.myPlayer.getPlyData().chairId == message.cLord) {						
@@ -1097,10 +1082,18 @@ export default class GameScene extends GameSceneStateController {
 	}
 	
 	proto_gc_game_start_not_handler(event) {
-		czcEvent("斗地主", "游戏1", "游戏开始" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+		if (DataManager.Instance.userTag != "老用户") {
+			czcEvent("斗地主", "游戏1", "游戏开始" + DataManager.Instance.userTag)
+		}
+		DataManager.CommonData["roleCfg"]["roundSum"] == 0 && uploadKuaiShou(1)
+		playADBanner(false, AdsConfig.banner.All)
+        !cc.audioEngine.isMusicPlaying() && AudioManager.playBackground()
+		this.msg_proto_gc_win_doubel_req = null
+		this.lastExchangeItemId = null
 		let message = event.packet
 		this.bHadStart = true
 		this.force_dismiss = false
+		this.popupmanager.reset()
 		
 		this.nSerialID = message.nSerialID //序列ID
 
@@ -1146,8 +1139,11 @@ export default class GameScene extends GameSceneStateController {
 	proto_gc_update_player_tokenmoney_not_handler(event) {
 		let message = event.packet
 		let chairid = this.S2C(message.plyChairid)
+		if (chairid == null) {
+			return
+		}
 		message.itemInfo.forEach(v => {
-			this.players[chairid].setItemView(v.nItemIndex, v.nItemNum)
+			this.players[chairid].setItemView(v.nItemIndex, v.nItemNum64 || v.nItemNum)
 		});
 	}
 
@@ -1159,8 +1155,11 @@ export default class GameScene extends GameSceneStateController {
 		
 		var ret = message.ret
 		if (ret == 0) {
-			if (message.tableAttrs && message.tableAttrs.tableId != 100000000)
-				czcEvent("斗地主", "进桌2", "游戏进桌成功" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+			if (message.tableAttrs && message.tableAttrs.tableId != 100000000) {
+				if (DataManager.Instance.userTag != "老用户") {
+					czcEvent("斗地主", "进桌2", "游戏进桌成功" + DataManager.Instance.userTag)
+				}
+			}
 			// succeed			
 			message.tableAttrs.players.forEach(element => {
 				GameLogic.Instance().addPlayerData(element)
@@ -1175,6 +1174,25 @@ export default class GameScene extends GameSceneStateController {
 				this.firstShowStartGame = true
 				this.showStartGame(true)
 			} else {
+				if (this["state"] == "endGame") {
+					return
+				}
+				if (GameLogic.Instance().isRPGMode()) {
+					this.showLookCard()
+				}
+
+				// 换服后换桌
+				if (GameLogic.Instance().isGoToNormalChangCi) {
+					const players: Iproto_PlyBaseData[] = message.tableAttrs.players
+					if (players.length == 3) {
+						GameLogic.Instance().isGoToNormalChangCi = false
+						if (players.every(player => player.plyGuid == GameLogic.Instance().userData.plyBaseData.plyGuid || player.ready == 0)) {
+							this.proto_cb_change_table_req_sender()
+							return
+						}
+					}
+				}
+
 				this.proto_cb_ready_req_sender()
 			}
 		} else if(ret == 10) {
@@ -1182,7 +1200,7 @@ export default class GameScene extends GameSceneStateController {
 			GameLogic.Instance().setUsingGameCarryMoney(true)
 			this.proto_cb_setinto_and_seatdown_req_sender(message.tableAttrs.tableId)
 		}else {
-			czcEvent("斗地主", "进桌2", "游戏进桌失败" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+			// czcEvent("斗地主", "进桌2", "游戏进桌失败" + DataManager.Instance.userTag)
 			// GameLogic.Instance().closeSocket()
 			GameLogic.Instance().enterLobby()
 
@@ -1293,7 +1311,7 @@ export default class GameScene extends GameSceneStateController {
 		let ret = message.ret
 
 		if (ret == 0 || ret == 1 || ret == 2) {
-			czcEvent("斗地主", "登录2", "游戏服务器登录成功" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+			czcEvent("斗地主", "登录2", "游戏服务器登录成功" + DataManager.Instance.userTag)
 			if (GameLogic.Instance().isPrivateRoom()) {
 				if (message.plyBaseData.tableId > 0) {
 					if (DataManager.CommonData["gameServer"]["pr_info"] == null) {
@@ -1317,6 +1335,9 @@ export default class GameScene extends GameSceneStateController {
 			} else if(GameLogic.Instance().isMatchTable()) {
 			} else {
 				if (ret == 0) {
+					if (!DataManager.Instance.getOnlineParamSwitch("gamescene_guide_close_abtest")) {
+						GameLogic.Instance().showGuideLayer()
+					}
 					this.proto_cb_join_table_req_sender()
 				}
 			}
@@ -1324,7 +1345,7 @@ export default class GameScene extends GameSceneStateController {
 			GameLogic.Instance().bEnterInGame = GameLogic.Instance().userData.plyBaseData.tableId > 0
 
 		} else {
-			czcEvent("斗地主", "登录2", "游戏服务器登录失败" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+			czcEvent("斗地主", "登录2", "游戏服务器登录失败" + DataManager.Instance.userTag)
 			GameLogic.Instance().closeSocket()
 
 			var info
@@ -1576,12 +1597,12 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	
-	proto_magic_emoji_req_sender(index, toChairId) {
+	proto_magic_emoji_req_sender(index, toChairId, cCostType) {
 		GameLogic.Instance().sendMessage({
 			opcode: 'proto_magic_emoji_req',
 			cEmojiIndex:index,
 			cToChairID:toChairId,
-			cCostType:1
+			cCostType:cCostType
 		})
 	}
 	
@@ -1597,18 +1618,7 @@ export default class GameScene extends GameSceneStateController {
 			return
 		}
 
-		if (DataManager.GlobalData && DataManager.GlobalData.noQtt) {
-			for (const config of GameLogic.Instance().emojiConfigs) {
-				if (config.cEmojiIndex == message.cEmojiIndex) {
-					if (config.cCostType == 367) {
-						return
-					}
-					break
-				}
-			}
-		}
-
-		this.playEmojiInteractAniByServerChairId(message.cEmojiIndex, message.cFromChairID, message.cToChairID)
+		this.playEmojiInteractAniByServerChairId(message, message.cFromChairID, message.cToChairID)
 	}
 	//
 	proto_cb_change_table_req_sender() {
@@ -1617,7 +1627,7 @@ export default class GameScene extends GameSceneStateController {
 			return
 		}
 
-		if (DataManager.CommonData["roleCfg"]["roundSum"] < getNewBieRoundLimit()) {
+		if (DataManager.CommonData["roleCfg"]["roundSum"] < getNewBieRoundLimit() || GameLogic.Instance().redpacket_info["curRounds"] > 0) {
 		
 		}else{
 			if (GameLogic.Instance().goToNormalChangCi()) {
@@ -1627,9 +1637,6 @@ export default class GameScene extends GameSceneStateController {
 		
 		//策划要求的
 		this.showAniWait()
-		if (!this.nodeRedPacketDetail.isShow) {
-			this.onPressRedPacketDetail()
-		}
 		
 		for (var plyData of GameLogic.Instance().playerData) {
 			plyData.chairId = -1
@@ -1696,6 +1703,15 @@ export default class GameScene extends GameSceneStateController {
 		if (check && GameLogic.Instance().checkMoneyOutOfRange()) {
 			return
 		}
+
+		if (DataManager.CommonData["roleCfg"]["roundSum"] < getNewBieRoundLimit() || GameLogic.Instance().redpacket_info["curRounds"] > 0) {
+		
+		}else{
+			if (GameLogic.Instance().goToNormalChangCi()) {
+				return
+			}
+		}
+		
 		this.force_dismiss = false
 		GameLogic.Instance().sendMessage({
 			opcode: 'proto_cb_ready_req',
@@ -1703,7 +1719,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	proto_cb_join_table_req_sender(tableId: number = -1) {	
-		czcEvent("斗地主", "进桌1", "游戏进桌请求" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+		czcEvent("斗地主", "进桌1", "游戏进桌请求" + DataManager.Instance.userTag)
 		// if (GameLogic.Instance().checkMoneyOutOfRange()) {
 		// 	return
 		// }
@@ -1716,7 +1732,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	proto_cb_login_req_sender() {
-		czcEvent("斗地主", "登录1", "游戏服务器登录请求" + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+		// czcEvent("斗地主", "登录1", "游戏服务器登录请求" + DataManager.Instance.userTag)
 		GameLogic.Instance().sendMessage({
 			plyTicket: DataManager.UserData.ticket,
 			opcode: "proto_cb_login_req",
@@ -1773,7 +1789,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	refreshCardNoteNum(num) {
-		DataManager.UserData.setItemNum(GameLogic.Instance().ITEM_CARD_RECORD, num)
+		DataManager.UserData.setItemNum(ITEM.CARD_RECORD, num)
 		this["labelCardCounterAll"].$Label.string = num
 	}
 
@@ -1944,12 +1960,15 @@ export default class GameScene extends GameSceneStateController {
 		}
 
 		let chair = this.S2C(chairId)
+		if (chair == null) {
+			return
+		}
 		let notCardForceTime = false
 		if(chair == 0){
 			if (!this.nowcChairID || this.nowcChairID == -1 || this.nowcChairID == this.myPlayer.chairid || this.nowCardType.mNTypeNum == 0) {
 				
 			} else {
-				if (this.myPlayer.gameRule.tipCards.length == 0) {
+				if (this.tipCards.length == 0) {
 					notCardForceTime = true
 					time = 3
 				}
@@ -1967,6 +1986,7 @@ export default class GameScene extends GameSceneStateController {
 			player.showTips()
 		}
 		this.hidGameButton()
+		this.showCardNodeDetail()
 	}
     
 	onBuChu() {
@@ -1976,20 +1996,21 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onChuPai() {
-		var cardType = this.nowCardType
+		let cardType = this.nowCardType
 		if (!this.nowcChairID || this.nowcChairID == -1 || this.nowcChairID == this.myPlayer.chairid || this.nowCardType.mNTypeNum == 0) {
 			cardType = {
-				mNTypeNum: 0
+				mNTypeNum: 0,
+				mNTypeValue: 0,
+				mNTypeBomb: 0,
 			}
 		}
 
+		const vecCards = this.myPlayer.getChooseCards()
 		// 检测是否选中的牌
-		if (!this.myPlayer.checkChooseCards(cardType)) {
+		if (!this.myPlayer.checkChooseCards(vecCards, cardType)) {
 			this.showChuPaiTip(2)
 			return
 		}
-
-		var vecCards = this.myPlayer.getChooseCards()
 
 		// 1. 通知服务器出牌
 		this.proto_cg_play_card_ack_sender(vecCards)
@@ -1999,27 +2020,27 @@ export default class GameScene extends GameSceneStateController {
 
 		// 3. 刷新玩家自己的出牌区域
 		this.myPlayer.playPutCard({
-			cType: this.myPlayer.gameRule.chooseCardType,
+			cType: GameRule.m_chooseCardType,
 			vecCards: vecCards,
 		})
 	}
 
 	onTiShi() {
-		var tipsCount = this.myPlayer.gameRule.tipCards.length
+		var tipsCount = this.tipCards.length
 		if (tipsCount == 0) {
 			this.onBuChu()
 		} else {
 			if (this.tipIndex >= tipsCount) {
 				this.tipIndex = 0
 			}
-			var vecCards = this.myPlayer.gameRule.tipCards[this.tipIndex]
+			var vecCards = this.tipCards[this.tipIndex]
 			this.myPlayer.seleteCards(vecCards)
 			this.tipIndex++
 		}
 	}    
     
 	onPressContinue(EventTouch, data) {		
-    	GameLogic.Instance().playBtnSoundEffect()
+    	AudioManager.playButtonSound()
 		if (GameLogic.Instance().isPrivateRoom()) {
 			this.proto_cb_ready_req_sender()
 			return
@@ -2036,23 +2057,81 @@ export default class GameScene extends GameSceneStateController {
 	
     
 	onPressChangeTable(EventTouch, data) {		
-		GameLogic.Instance().playBtnSoundEffect()	
+		EventTouch && AudioManager.playButtonSound()	
 		GameLogic.Instance().removeAllPlayerData()
 		this.proto_cb_change_table_req_sender()
 	}
 
+	checkItemExchange(parmes: { itemId: number, itemNum: number, failCallback: Function, tryCallback: Function }): boolean {
+		if (DataManager.UserData.getItemNum(parmes.itemId) >= parmes.itemNum) {
+			return true
+		}
+
+		this.lastExchangeItemId = parmes.itemId
+
+		let ExchangeInfos = DataManager.CommonData["ExchangeInfo"] || []
+		ExchangeInfos = ExchangeInfos.filter(item => {
+			if (item.exchangeItemList && item.exchangeItemList[0] && item.exchangeItemList[0].exchangeItem === ITEM.REDPACKET_TICKET) {
+			} else {
+				return false
+			}
+			for (const gainItem of item.gainItemList) {
+				if (gainItem.gainItem === parmes.itemId && gainItem.gainNum >= parmes.itemNum) {
+					return true
+				}
+			}
+			return false
+		})
+
+		if (ExchangeInfos.length <= 0) {
+			parmes.failCallback()
+			return false
+		}
+
+		ExchangeInfos.sort((a, b) => a["exchangeItemList"][0]["exchangeNum"] < b["exchangeItemList"][0]["exchangeNum"] ? -1 : 1)
+		const ExchangeInfo = Object.assign(ExchangeInfos[0])
+		ExchangeInfo["closeCallback"] = () => {
+			this.node.runAction(cc.sequence(cc.delayTime(0.2), cc.callFunc(() => {
+				if (DataManager.UserData.getItemNum(parmes.itemId) >= parmes.itemNum) {
+					parmes.tryCallback()
+				}
+			})))
+		}
+		SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", ExchangeInfo)
+		return false
+	}
 
 	onPressJiaBei(EventTouch, data) {
-		if (data == 4 && DataManager.UserData.getItemNum(GameLogic.Instance().SUPER_JIABEI_CARD) <= 0) {
-			iMessageBox("您还没有超级加倍卡，通过兑换或商城可获得超级加倍卡")
-			return
+		this.firstRoundLog()
+		if (data == 4) {
+			if (this.checkItemExchange({
+				itemId: ITEM.SUPER_JIABEI,
+				itemNum: 1,
+				failCallback: () => {
+					iMessageBox("您的超级加倍卡不足，通过兑换或商城可获得")
+				},
+				tryCallback: () => {
+					if (!this["nodeBet"].active) {
+						return
+					}
+					this.onPressJiaBei(EventTouch, data)
+				}
+			})) {
+			} else {
+				return
+			}
 		}
 		this.hidGameButton()
-
+		if (data > 1) {
+			czcEvent("斗地主", "加倍", data == 4 ? "超级加倍" : "加倍")
+		} else {
+			AudioManager.playButtonSound()
+		}
 		this.proto_cg_double_score_ack_sender(data)
 	}
 
 	onPressJiao(EventTouch, data) {
+		this.firstRoundLog()
 		this.hidGameButton()
 
 		var nScore = Number(data) || 0
@@ -2060,6 +2139,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressQiang(EventTouch, data) {
+		this.firstRoundLog()
 		this.hidGameButton()
 
 		var cRob = (data == 1) ? 1 : 0
@@ -2067,6 +2147,7 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressChuPai(EventTouch, data) {
+		this.firstRoundLog()
 		// 不出
 		if (data == 0) {
 			this.onBuChu()
@@ -2076,40 +2157,36 @@ export default class GameScene extends GameSceneStateController {
 
 	}
 
-	onPressCardCounter() {
-
-		if (DataManager.UserData.getItemNum(GameLogic.Instance().ITEM_CARD_RECORD) > 0) {
-			if (this.isGameStart()) {			
-				this.setNodeCardCounterDetail(!this.nodeCardCounterDetail.active)
-			}else{
-				iMessageBox("游戏尚未开始，游戏开始后将自动使用记牌器");
-				return;
-			}
-		}else{			
-			let ExchangeInfos = DataManager.CommonData["ExchangeInfo"] || []
-			ExchangeInfos = ExchangeInfos.filter(item => {
-				if (item["gainItemList"] && item["gainItemList"][0] && item["gainItemList"][0]["gainItem"] === 2) {
-					// if (item["exchangeItemList"] && item["exchangeItemList"][0]) {
-					// 	if (DataManager.UserData.getItemNum(item["exchangeItemList"][0].exchangeItem) >= item["exchangeItemList"][0].exchangeNum) {
-							return true
-					// 	}
-					// }
+	onPressCardCounter(event?: cc.Event.EventTouch) {
+		event && AudioManager.playButtonSound()
+		if (this.checkItemExchange({
+			itemId: ITEM.CARD_RECORD,
+			itemNum: 1,
+			failCallback: () => {
+				iMessageBox("您的记牌器不足，通过兑换或商城可获得")
+			},
+			tryCallback: () => {
+				if (!this.isGameStart()) {
+					return
 				}
-				return false
-			})
-			ExchangeInfos.sort((a, b) => a["exchangeItemList"][0]["exchangeNum"] < b["exchangeItemList"][0]["exchangeNum"] ? -1 : 1)
-			if (ExchangeInfos.length > 0) {
-				SceneManager.Instance.popScene("moduleLobby", "ExchangeConfirm3Pop", Object.assign(ExchangeInfos[0]))
-			} else {
-				iMessageBox("您的记牌器不足")
+				this.onPressCardCounter()
 			}
-			// todo show shop
+		})) {
+		} else {
+			return
 		}
+
+		if (!this.isGameStart()) {
+			iMessageBox("游戏尚未开始，游戏开始后将自动使用记牌器");
+			return
+		}
+
+		this.setNodeCardCounterDetail(!this.nodeCardCounterDetail.active)
 	}
 
 	showCardNodeDetail() {
 		
-		if (DataManager.UserData.getItemNum(GameLogic.Instance().ITEM_CARD_RECORD) > 0) {
+		if (DataManager.UserData.getItemNum(ITEM.CARD_RECORD) > 0) {
 			if (this.isGameStart()) {			
 				this.setNodeCardCounterDetail(true)
 				return true;
@@ -2125,7 +2202,7 @@ export default class GameScene extends GameSceneStateController {
 		}
 		this.nodeCardCounterDetail.active = active
 		this.nodeBigBet.active = active
-		this.btnTask.active = !active
+		// this.btnTask.active = !active
 		this.setTopNode(!active, 2)
 		this.btnNewUserSign.active = false
 		if(!active && DataManager.CommonData["NewUserSgin"] && DataManager.CommonData["NewUserSgin"].day) {
@@ -2134,20 +2211,24 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressTiShi() {
-		var tipsCount = this.myPlayer.gameRule.tipCards.length
+		this.firstRoundLog()
+		AudioManager.playButtonSound()
+		var tipsCount = this.tipCards.length
 		if (tipsCount == 0) {
 			this.onPressChuPai(null, 0)
 		} else {
 			if (this.tipIndex >= tipsCount) {
 				this.tipIndex = 0
 			}
-			var vecCards = this.myPlayer.gameRule.tipCards[this.tipIndex]
+			var vecCards = this.tipCards[this.tipIndex]
 			this.myPlayer.seleteCards(vecCards)
 			this.tipIndex++
 		}
 	}
 
 	onPressTuoGuan(EventTouch, data) {
+		this.firstRoundLog()
+		AudioManager.playButtonSound()
 		this.nodeAuto.active = (data == 1) ? true : false
 
 		var cAuto = (data == 1) ? 1 : 0
@@ -2158,7 +2239,7 @@ export default class GameScene extends GameSceneStateController {
 	onPressExit(EventTouch, data) {
 		cc.log("onPressExit")
 
-        GameLogic.Instance().playBtnSoundEffect()
+        AudioManager.playButtonSound()
 		
 		
 		GameLogic.Instance().judgeExitGame()
@@ -2176,7 +2257,7 @@ export default class GameScene extends GameSceneStateController {
 		this.shouldShowTopNode2 = true;
 	}
 	
-	play_game_ani_dealcard(callback){
+	play_game_ani_dealcard(callback?){
 		this.nBombTips = 0
 		let startChairid = 0
 		let distance = 5
@@ -2205,9 +2286,10 @@ export default class GameScene extends GameSceneStateController {
         }
 		this.ani_dealcard.removeAllChildren()
 		
-		GameLogic.Instance().playSound("audio_dispatch")
+		AudioManager.playSound("audio_dispatch")
 		const n = GameLogic.Instance().MAX_PLAYER_NUM
 		let nAllCardNum = nHandCardNum * n
+		this.isLookCard = true // 20200727 策划需求 1.3.1
 		if (this.isLookCard) {
 			nAllCardNum += 3
 		}
@@ -2222,8 +2304,7 @@ export default class GameScene extends GameSceneStateController {
 
 			let dealCardScale = dealCardWidth/sptDealCard.width
 
-			// sptDealCard.getComponent(cc.Component).set_value(0, 0);
-			sptDealCard.getComponent(cc.Component).showPaiBei()
+			sptDealCard.getComponent(CardNode).showPaiBei()
 			sptDealCard.scale = dealCardScale
 			sptDealCard.x = distance * i - nodeDealWidth/2 + dealCardWidth/2
 			sptDealCard.y = this.nodeGamePlayerPos1.y
@@ -2462,6 +2543,7 @@ export default class GameScene extends GameSceneStateController {
 		}
 		
 		this.nodeBet.active = false
+		this.hideChuPaiTip()
 		this.myPlayer.hideChuPaiTip()
 		this.myPlayer.startClockTime(0)
 		
@@ -2471,14 +2553,15 @@ export default class GameScene extends GameSceneStateController {
     }
     
 	showCallScore(nScore) {
+		const bJiaoFen = this.isCallScore()
         this.hidGameButton()
 		this.myPlayer.setClockPos(cc.winSize.width/2)
 		this.nodeCall.active = true
-		this.btnJiaoDiZhu.active = !this.bJiaoFen
-		this.btnJiao1.active = !!this.bJiaoFen
-		this.btnJiao2.active = !!this.bJiaoFen
-		this.btnJiao3.active = !!this.bJiaoFen
-		if (this.bJiaoFen) {
+		this.btnJiaoDiZhu.active = !bJiaoFen
+		this.btnJiao1.active = !!bJiaoFen
+		this.btnJiao2.active = !!bJiaoFen
+		this.btnJiao3.active = !!bJiaoFen
+		if (bJiaoFen) {
 			if (nScore == 0) {
 				this.btnBuJiao.x = -420
 				this.myPlayer.setClockPos(cc.winSize.width/2 - 240)
@@ -2514,7 +2597,7 @@ export default class GameScene extends GameSceneStateController {
 		this.hidGameButton()
 		this.myPlayer.setClockPos(cc.winSize.width/2) 
 		this.nodeBet.active = true
-		this.lblSuperNum.getComponent(cc.Label).string = "" + DataManager.UserData.getItemNum(GameLogic.Instance().SUPER_JIABEI_CARD)
+		this.lblSuperNum.getComponent(cc.Label).string = "" + DataManager.UserData.getItemNum(ITEM.SUPER_JIABEI)
 
 		const buttonPos = [-300, 0, 300]
 		const buttons = [this.btnBuJiaoBei, this.btnJiaBei, this.btnSuperJiaBei]
@@ -2563,6 +2646,9 @@ export default class GameScene extends GameSceneStateController {
 		if (GameLogic.Instance().isPrivateRoom()) {
 			return
 		}
+		if (this.nodeMatchPlayerAni.getNumberOfRunningActions() > 0) {
+			return
+		}
 		this.nodeMatchPlayerAni.active = true
 
 		
@@ -2572,6 +2658,9 @@ export default class GameScene extends GameSceneStateController {
 			this.labelMatchPlayer.countTime = (++this.labelMatchPlayer.countTime) % 10
 			if (this.labelMatchPlayer.countTime == 6) {
 				// this.showChangeTable(true)
+				if (DataManager.Instance.getOnlineParamSwitch("ready_wait_timeout_changetable", 1)) {
+					this.onPressChangeTable(null,null)
+				}
 			}		
 		})	
 		actions[actions.length] = cc.delayTime(1)
@@ -2616,12 +2705,13 @@ export default class GameScene extends GameSceneStateController {
 		if (!this.nowcChairID || this.nowcChairID == -1 || this.nowcChairID == this.myPlayer.chairid || this.nowCardType.mNTypeNum == 0) {
 			typenum = 1
 
-			this.myPlayer.gameRule.tipsAuto()
+			GameRule.tipsAuto(this.myPlayer.handCardsVec)
+			this.tipCards = GameRule.m_tipCards
 
 			// 只有1张牌 玩家必须出 帮他出牌
-			if (this.myPlayer.gameRule.handCards.length == 1) {
+			if (this.myPlayer.handCardsVec.length == 1) {
 				this.scheduleOnce(() => {
-					this.myPlayer.seleteCards(this.myPlayer.gameRule.handCards)
+					this.myPlayer.seleteCards(this.myPlayer.handCardsVec)
 					this.onChuPai()
 				}, 0.1)
 			}
@@ -2632,11 +2722,12 @@ export default class GameScene extends GameSceneStateController {
 				// return
 			}
 
-			this.myPlayer.gameRule.tips(this.nowCardType)
-			var tipsCount = this.myPlayer.gameRule.tipCards.length
+			GameRule.tips(this.myPlayer.handCardsVec, this.nowCardType)
+			this.tipCards = GameRule.m_tipCards
+			let tipsCount = this.tipCards.length
 			if (tipsCount == 0) { // 无牌大过上家
 				typenum = 2
-				// this.myPlayer.showChuPaiTip(1)
+				this.showChuPaiTip(1)
 			} else if (tipsCount == 1) { // 只有一种配能接 弹出提示
 				this.onPressTiShi()
 			}
@@ -2668,6 +2759,7 @@ export default class GameScene extends GameSceneStateController {
             [50],
             [-230, 230],
             [-300, 60, 300],
+			[-420, -60, 180, 420],
         ]
 		for (var i = 0; i < buttons.length; i++) {
 			buttons[i].active = true
@@ -2714,41 +2806,9 @@ export default class GameScene extends GameSceneStateController {
 		this["sptChangCiName"].getComponent(cc.Label).string = name
 	}
 
-	showPlusRedPacketTip() {		
-		this.nodePlusRedPacketTip.active = true
-		let actions = []
-		actions[actions.length] = cc.delayTime(0.1)
-        actions[actions.length] = cc.fadeTo(0.3, 255)
-		this.nodePlusRedPacketTip.stopAllActions()
-		this.nodePlusRedPacketTip.runAction(cc.sequence(actions))
-
-	}
-
-	hidePlusRedPacketTip(delaytime = 1) {
-		this.nodePlusRedPacketTip.active = false
-
-		let actions = []
-        actions[actions.length] = cc.delayTime(delaytime)
-        actions[actions.length] = cc.fadeTo(0.6, 0)
-        actions[actions.length] = cc.callFunc(() => {
-			this.nodePlusRedPacketTip.active = false
-		})
-		this.nodePlusRedPacketTip.stopAllActions()
-		this.nodePlusRedPacketTip.runAction(cc.sequence(actions))
-	}
-
-
 	showChangCiInfo() {
 		this.lbl_tex_info.$Label.string = GameLogic.Instance().GetMoneyShortString(GameLogic.Instance().serverInfo.tax || 0)
-
-		let winMaxMoney = 1
-		if (GameLogic.Instance().serverInfo.winMaxMoney > 0) {
-			winMaxMoney = GameLogic.Instance().serverInfo.winMaxMoney
-		}else{
-			winMaxMoney = GameLogic.Instance().serverInfo.winMaxBet * GameLogic.Instance().serverInfo.baseBet
-		}
-		this.lbl_fengding_info.$Label.string = GameLogic.Instance().GetMoneyShortString(winMaxMoney || 0)
-
+		this.lbl_fengding_info.$Label.string = GameLogic.Instance().GetMoneyShortString(GameLogic.Instance().getWinMaxMoney() || 0)
 
 		this.nodeChangCiInfo.active = true
 		let actions = []
@@ -2918,8 +2978,9 @@ export default class GameScene extends GameSceneStateController {
     
     
 	showLordCard(vecCards, noAction = false, showBack = false) {
-		if (showBack || noAction) {
-			this.showCardNodeDetail()
+		this.nodeLordCard.active = !!vecCards
+		if (vecCards == null) {
+			return
 		}
         if(showBack) {
             this.nodeLordCard.active = true
@@ -2974,12 +3035,6 @@ export default class GameScene extends GameSceneStateController {
 			seqTable3.push(cc.spawn(spatable2))
 			seqTable3.push(cc.delayTime(0.5))
 			seqTable3.push(cc.spawn(spatable3))
-			if (i == 0) {
-				seqTable3.push(cc.callFunc(() => {
-					this.showCardNodeDetail()
-				}))
-			}
-
 			this.lordCards[i].node.runAction(cc.sequence(seqTable3))
 		}
     }
@@ -2987,51 +3042,54 @@ export default class GameScene extends GameSceneStateController {
 	showLookLordCard(message) {
 		this.lookcard_tips.active = false
 		this.isLookCard = false
-		if (message.cLord == -1) {
-			if (this.nodeLookCard.childrenCount == 0) {
-				for (let i = 0; i < 3; i++) {
-					const dealCradScale = 0.47
-					const dstPos = cc.v2(92 * (i - 1), 0)
-					var curCard = this.prefab_bigCardPool.get() || cc.instantiate(this.prefab_bigCard)
-					curCard.getComponent(cc.Component).set_value(message.vecCards[i].mNValue, message.vecCards[i].mNColor)
-					curCard.name = "" + i
-					curCard.x = dstPos.x
-					curCard.y = dstPos.y
-					curCard.scale = dealCradScale
-					curCard.parent = this.nodeLookCard
-				}
-			} else {
-				for (let i = 0; i < this.nodeLookCard.childrenCount; i++) {
-					const node = this.nodeLookCard.getChildByName("" + i)
-					if (node == null) {
-						break
-					}
-					node.getComponent(cc.Component).set_value(message.vecCards[i].mNValue, message.vecCards[i].mNColor)
-				}
+		if (message.cLord != -1 && this.nodeLookCard.childrenCount == 0) {
+			this.showLordCard(message.vecCards, true)
+			return
+		}
+
+		for (let i = 0; i < this.nodeLookCard.childrenCount; i++) {
+			const node = this.nodeLookCard.getChildByName("" + i)
+			let showCardValue = function() {
+				node.getComponent(CardNode).set_value(message.vecCards[i].mNValue, message.vecCards[i].mNColor)
+			}.bind(this)
+
+			let scaleValue = node.scale
+			let nBeiShu = 0.2625
+
+			let move
+			if (i == 0) {
+				move = cc.moveBy(nBeiShu, cc.v2(-40, -20))
+			} else if (i == 1) {
+				move = cc.moveBy(nBeiShu, cc.v2(0, -20))
+			} else if (i == 2) {
+				move = cc.moveBy(nBeiShu, cc.v2(40, -20))
 			}
-		} else {
-			for (let i = 0; i < this.nodeLookCard.childrenCount; i++) {
-				const node = this.nodeLookCard.getChildByName("" + i)
-				if (node == null) {
-					this.clearLookCard()
-					break
-				}
+			let actions = [
+				cc.scaleTo(nBeiShu, 0, scaleValue),
+				cc.callFunc(showCardValue),
+				cc.spawn(move, cc.scaleTo(nBeiShu, scaleValue * 1.4)),
+				cc.delayTime(0.5),
+			]
+			if (message.cLord == -1) {
+				actions.push(cc.spawn([
+					cc.scaleTo(nBeiShu, scaleValue),
+					move.reverse(),
+				]))
+			} else {
 				const nodeCardSmall: cc.Node = this.lordCards[i].node
 				const pos = this.nodeLookCard.convertToNodeSpaceAR(nodeCardSmall.convertToWorldSpaceAR(cc.v2(0, 0)))
-				if (!this.nodeLordCard.activeInHierarchy) {
-					pos.y += 80
-				}
-				node.stopAllActions()
-				node.runAction(cc.sequence([
-					cc.spawn([
-						cc.moveTo(0.5, pos),
-						cc.scaleTo(0.5, nodeCardSmall.width / node.width),
-					]),
-					cc.callFunc(() => {
-						this.prefab_bigCardPool.put(node)
-					})
+				actions.push(cc.spawn([
+					cc.moveTo(0.5, pos),
+					cc.scaleTo(0.5, nodeCardSmall.width / node.width),
 				]))
+				actions.push(cc.callFunc(() => {
+					this.prefab_bigCardPool.put(node)
+					if (i == 0) {
+						this.showLordCard(message.vecCards, true)
+					}
+				}))
 			}
+			node.runAction(cc.sequence(actions))
 		}
 	}
     
@@ -3080,37 +3138,21 @@ export default class GameScene extends GameSceneStateController {
 	hideChuPaiTip() {		
 		this.sptTipChuPai.stopAllActions()
 		this.sptTipChuPai.active = false
+		this.sptTipChuPai2.stopAllActions()
+		this.sptTipChuPai2.active = false
 	}
 	
 	showChuPaiTip(nOp) {
-		if (!this.sptTipChuPai) {
-			return
-		}
-
-		let tipfile
-		if (nOp == 1) {
-			tipfile = 'game_pic_wupai'
-		} else if (nOp == 2) {
-			tipfile = 'game_pic_chongxuan'
-		}
-		
-		let action = cc.sequence(
+		this.hideChuPaiTip()
+		const sptTipChuPai = nOp == 2 ? this.sptTipChuPai : this.sptTipChuPai2
+		sptTipChuPai.active = true
+		sptTipChuPai.opacity = 255
+		sptTipChuPai.runAction(cc.sequence(
 			cc.fadeIn(0.25),
 			cc.delayTime(1),
 			cc.fadeOut(0.25),
-			cc.callFunc(() => {
-				this.sptTipChuPai.active = false
-			}),
-		)
-
-		this.sptTipChuPai.active = true
-		this.sptTipChuPai.opacity = 255
-		
-		this.sptTipChuPai.getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("GameDDZ_2", tipfile)
-
-		this.sptTipChuPai.stopAllActions()
-		this.sptTipChuPai.runAction(action)
-
+			cc.callFunc(this.hideChuPaiTip, this),
+		))
 	}
 
 	showHandicapInfo() {
@@ -3162,7 +3204,7 @@ export default class GameScene extends GameSceneStateController {
 	    pos_end.randW = 25
 	    pos_end.randH = 25
 
-	    let matchY=  BaseFunc.Random(200)
+	    let matchY=  math.random(200)
 	    let windowSize = cc.winSize
 	    matchY = matchY -100
 	    bezierCfg.pos_1 = cc.v2((pos_start.x + pos_end.x) / 2 + windowSize.width / 8, (pos_start.y + pos_end.y) / 2+matchY + windowSize.height / 8)
@@ -3177,15 +3219,15 @@ export default class GameScene extends GameSceneStateController {
 
 	    for (let i = 0; i < Math.floor(num*1.3); i++) {
 
-	        let pos_start_x = pos_start.x + BaseFunc.Random(pos_start.randW * 2) - pos_start.randW
-	        let pos_start_y = pos_start.y + BaseFunc.Random(pos_start.randH * 2) - pos_start.randH
+	        let pos_start_x = pos_start.x + math.random(pos_start.randW * 2) - pos_start.randW
+	        let pos_start_y = pos_start.y + math.random(pos_start.randH * 2) - pos_start.randH
             
             let spriteAni = this.sopCoinPool.get()
 
             if(spriteAni == null) {
                 spriteAni = new cc.Node("spriteAni");	
                 spriteAni.sprite = spriteAni.addComponent(cc.Sprite);
-				spriteAni.getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("GameDDZ_2", "login_pic_bean")
+				NodeExtends.setNodeSprite({ node: spriteAni, url: "moduleRPDdzRes/images/GamePlayer/login_pic_bean" })
             }	     
 
 	        spriteAni.setPosition(pos_start_x, pos_start_y)
@@ -3193,8 +3235,8 @@ export default class GameScene extends GameSceneStateController {
 	        spriteAni.opacity = 0
 	        nodeSopCoinAni.addChild(spriteAni)
 	        
-	        let pos_end_x = pos_end.x + BaseFunc.Random(pos_end.randW * 2) - pos_end.randW
-	        let pos_end_y = pos_end.y + BaseFunc.Random(pos_end.randH * 2) - pos_end.randH
+	        let pos_end_x = pos_end.x + math.random(pos_end.randW * 2) - pos_end.randW
+	        let pos_end_y = pos_end.y + math.random(pos_end.randH * 2) - pos_end.randH
 	        
 	        let bezierConfig = []
 	        bezierConfig[bezierConfig.length] = bezierCfg.pos_1
@@ -3204,14 +3246,13 @@ export default class GameScene extends GameSceneStateController {
 	        let bezier = cc.bezierTo(1, bezierConfig)
 	        let actions = []
 	        let getRandomValue = function(value,i) {
-	            return (num == i) ? value + 0.01 : BaseFunc.Random(value)
+	            return (num == i) ? value + 0.01 : math.random(value)
 	        }
 	    	
 	        actions[actions.length] = cc.delayTime(getRandomValue(20,i)/100*4.2)
 	        actions[actions.length] = cc.fadeIn(0.1);
 	        actions[actions.length] = bezier.easing(cc.easeSineIn())
 	        actions[actions.length] = cc.callFunc(() => {
-                // spriteAni.removeFromParent()
                 this.sopCoinPool.put(spriteAni)
 	            if (num == i) {
 	                if (initParam.callback) {
@@ -3219,7 +3260,8 @@ export default class GameScene extends GameSceneStateController {
 	                }
 
 	                nodeSopCoinAni.removeAllChildren()
-	                nodeSopCoinAni.removeFromParent()
+					nodeSopCoinAni.removeFromParent(true)
+					nodeSopCoinAni.destroy()
 	            }
 	        })
 
@@ -3232,60 +3274,38 @@ export default class GameScene extends GameSceneStateController {
 		}.bind(this), 0.01)
     }
     
-	OnGameResultAndCheckSpring(noti) {
-
-
-		let actions = []
-
-		// 1. 检查是否存在春天或者反春天
-		let delayTime = 0.7
-		
-		
-		actions[actions.length] = cc.delayTime(1)
-
-		actions[actions.length] = cc.callFunc(() => {			
-			// 明牌
-			for (let i = 1; i < GameLogic.Instance().MAX_PLAYER_NUM; ++i){
+	showGameResultAndCheckSpring(message: Iproto_gc_game_result_not1 & IGameResult) {
+		const actions = []
+		actions.push(cc.delayTime(1))
+		// 明牌
+		actions.push(cc.callFunc(() => {
+			for (let i = 1; i < GameLogic.Instance().MAX_PLAYER_NUM; ++i) {
 				this.players[i].showCard()
 			}
-		})	
-		
-		actions[actions.length] = cc.delayTime(delayTime)	
-
-		this.curRoundIsSpring = false
-		if (noti.bSpring == 1){
+		}))
+		// 春天
+		if (message.bSpring == 1 || message.bReverseSpring == 1) {
 			this.curRoundIsSpring = true
-			delayTime = 1.5
-			actions[actions.length] = cc.callFunc(() => {
-				this.play_game_spine_ani("spring", 0)
-			})
-
-		}else if(noti.bReverseSpring == 1) {
-			this.curRoundIsSpring = true
-			delayTime = 1.5
-			actions[actions.length] = cc.callFunc(() => {
-				this.play_game_spine_ani("reverse_spring", 0)
-			})
+			actions.push(cc.delayTime(2.2))
+			actions.push(cc.callFunc(() => {
+				this.play_game_spine_ani(message.bSpring == 1 ? "spring" : "reverse_spring", 0)
+			}))
+		} else {
+			this.curRoundIsSpring = false
+			actions.push(cc.delayTime(1.4))
 		}
-		
-		actions[actions.length] = cc.delayTime(delayTime)	
-		actions[actions.length] = cc.callFunc(() => {
-			this.OnGameResult(noti)
-		})		
-		this.nodeActionResult.stopAllActions();
-		this.nodeActionResult.runAction(cc.sequence(actions))	
+		// 结算
+		actions.push(cc.callFunc(() => {
+			this.showGameResult(message)
+		}))
+		this.nodeActionResult.stopAllActions()
+		this.nodeActionResult.runAction(cc.sequence(actions))
+	}
 
-    }
-    
-	OnGameResult(noti) {
-		
-		let callback_refresh = (res) => {
-			this.refreshNewUserQMoneyTip(res)
-		}
-		getGameAward(GameLogic.Instance().zOrder.nodeJieSuan + 1, 0, callback_refresh)
-		
-		GameLogic.Instance().showGameResultLayer(noti)
-    }    
+	showGameResult(message: IGameResult) {
+		this.msg_proto_gc_game_result_not1 = message
+		this.popupmanager.showPopup()
+	}
     
 	onCloseScene() {
 		cc.log("onDestroy")
@@ -3301,106 +3321,56 @@ export default class GameScene extends GameSceneStateController {
     }
 	
 	initRedPacket() {		
-
-		// this.nodeRedPacketDetail.isShow = false
-		// this.nodeRedPacketDetail.x = 200
-		this.onPressRedPacketDetail()
-	}
-
-	refreshRedPacket88YuanInfo(cur, dst) {
-		this.progressBar88YuanMin.$ProgressBar.progress = cur/dst
-		if(cur == dst) {
-			this.sptBar88YuanMax.active = true
-			
-			let actionList = []
-			actionList[actionList.length] = cc.fadeOut(1)
-			actionList[actionList.length] = cc.fadeIn(1)			
-			this.sptBar88YuanMax.stopAllActions()
-			this.sptBar88YuanMax.runAction(cc.repeatForever(cc.sequence(actionList)));
-		}else{			
-			this.sptBar88YuanMax.active = false
-		}
 	}
 
 	refreshRedPacketInfo(cur, dst) {
 		
 		this.progressBarBig.$ProgressBar.progress = cur/dst
 		this.progressBarMin.$ProgressBar.progress = cur/dst
-		this.labelProgressBig.$Label.string = cur + "/" + dst
+		this.labelProgressBig.getComponent(cc.Label).string = cur + "/" + dst
 		this.labelProgressMin.$Label.string = cur + "/" + dst
-		this.labelRedPacketDetail.$Label.string = "再玩" + (dst-cur) +"局可开启"
 
-		if (dst == 1 && GameLogic.Instance().serverInfo.newbieMode == 1) {			
-			this.showPlusRedPacketTip()
-		}else{
-			this.hidePlusRedPacketTip()
-		}
-	}
+		const num = DataManager.UserData.getItemNum(ITEM.REDPACKET_TICKET)
+		this.labelRedPacketDetail.$Label.string = "" + num
+		this.labelRedPacketDetail2.$Label.string = "≈" + numberFormat(num / 10000) + "元"
 
-	onPressRedPacket88YuanDetail() {
-		if (GameLogic.Instance().redpacket_88Yuan_info.length == 0) {
-			return;
+		const money = getRedPacketAwardConfig()[GameLogic.Instance().serverInfo.level]
+		this['label_title2'].getComponent(cc.Label).string = `每${dst}局开福袋` + (money ? `最高${money}元` : '')
+		if (!checkAdCanReceive(AdsConfig.taskAdsMap.DrawRedpacket)) {
+			this.$("progressBarBig").active = false
+			this.$("progressBarMin").active = false
+			this.$("radio").active = false
+			this.$("label_rp_tips").active = true
+			this.$("rp_task_icon").y = this.$("progressBarMin").y
+			this.$("label_title2").y = -50
+			this.$("label_title2").color = cc.Color.WHITE
+			this.$("label_title2", cc.Label).string = "您今日的福袋已开完"
 		}
-		this.GameScenePlus88Yuan.hasShowed = true
-		GameLogic.Instance().showGame88YuanTask()	
 	}
 
 	onPressExchange() {
+		AudioManager.playButtonSound()
 		GameLogic.Instance().showExchangePop()
 	}
 
 	onPressNewUserSign() {
+		AudioManager.playButtonSound()
 		GameLogic.Instance().showNewUserSignPop()
 	}
 
 	onPressShop() {
+		AudioManager.playButtonSound()
 		GameLogic.Instance().showShopScene()
 	}
 
 	onPressTask() {
+		AudioManager.playButtonSound()
 		GameLogic.Instance().showTaskPop()
 	}
 
 	onPressRedPacketDetail() {
-		this.nodeRedPacketDetail.stopAllActions()
-
-		let dir = 1
-
-		let xoffset = -200
-
-		if (dir == 1) {
-			xoffset = 200
-		}
-
-		let hideAni = () => {			
-			let actionList = []
-			actionList[actionList.length] = cc.moveTo(0.4, cc.v2(xoffset, 0))
-			actionList[actionList.length] = cc.callFunc(() => {
-				this.nodeRedPacketDetail.isShow = false
-				this.progressBarMin.active = true
-			})
-
-			this.nodeRedPacketDetail.runAction(cc.sequence(actionList));
-		}
-		let showAni = () => {
-			this.progressBarMin.active = false
-			let actionList = []
-			actionList[actionList.length] = cc.moveTo(0.4, cc.v2(0, 0))
-			actionList[actionList.length] = cc.callFunc(() => {
-				this.nodeRedPacketDetail.isShow = true
-			})
-			actionList[actionList.length] = cc.delayTime(9)
-			actionList[actionList.length] = cc.callFunc(() => {
-				hideAni()
-			})
-
-			this.nodeRedPacketDetail.runAction(cc.sequence(actionList));
-		}
-		if (this.nodeRedPacketDetail.isShow) {
-			hideAni()
-		} else {
-			showAni()
-		}
+		AudioManager.playButtonSound()
+		this.nodeRedPacketDetail.active = !this.nodeRedPacketDetail.active
 	}
 
 	proto_gc_get_redpackets_award_not_handler(event) {
@@ -3458,13 +3428,13 @@ export default class GameScene extends GameSceneStateController {
             "美人月下醉醉美人月下醉",
         ]
         let msg = {
-            vip : BaseFunc.Random(0, 8),
+            vip : math.random(0, 8),
             place : '钻石红包初级场',
-            playername : name[BaseFunc.Random(name.length)],
-            num : BaseFunc.Random(1000)/100,
+            playername : name[math.random(name.length)],
+            num : math.random(1000)/100,
         }
         if( msg.vip > 5 ){
-            msg.num = BaseFunc.Random(10000)/10
+            msg.num = math.random(10000)/10
         }
 
         let message = {
@@ -3474,7 +3444,7 @@ export default class GameScene extends GameSceneStateController {
         this.proto_gc_get_redpackets_award_not_handler({packet:message})
 
         this.awardNum = this.awardNum ? this.awardNum : 0;
-        this.awardNum = this.awardNum + BaseFunc.Random(0, 8);
+        this.awardNum = this.awardNum + math.random(0, 8);
         // this.gametools.performWithDelayGlobal(this.testmessage, 1)
 
         let thisTimer = setInterval(() => {
@@ -3537,7 +3507,7 @@ export default class GameScene extends GameSceneStateController {
 				rePos()
 			})
             actions[actions.length] = cc.spawn(action1)
-            actions[actions.length] = cc.delayTime(BaseFunc.Random(30, 35)/10)
+            actions[actions.length] = cc.delayTime(math.random(30, 35)/10)
             actions[actions.length] = cc.spawn(action2)
             actions[actions.length] = cc.callFunc(() => {
                 this.nodeRedPacketBroadCast.playing = false;
@@ -3549,7 +3519,6 @@ export default class GameScene extends GameSceneStateController {
             this.nodeRedPacketBroadCast.runAction(cc.sequence(actions))
 		}
 	}
-	// update (dt) {}
 	
 	update03ExchangeGoodsTip() {
 		let tipNode = cc.find("nodeMain/nodeGamePlayer/nodeGamePlayer0/03ExchangeTips", this.node)
@@ -3589,6 +3558,19 @@ export default class GameScene extends GameSceneStateController {
 			tip.runAction(cc.sequence(cc.fadeIn(0.2), cc.delayTime(5), cc.fadeOut(0.5), cc.callFunc(() => tip.active = false)))			
 		}
 		
+	}
+
+	showNewbieRedpacketTips() {
+		if (!DataManager.Instance.getOnlineParamSwitch("Gamescene_newbieRedpacket_show", 1)) {
+            return
+		}
+		if (DataManager.Instance.getOnlineParamSwitch("gamescene_guide_close_abtest")) {
+			return
+		}
+		const round = DataManager.Instance.onlineParam.NewbieRedpacketTipsRound || 1
+		if (DataManager.CommonData["roleCfg"]["roundSum"] == (round - 1)) {
+			cc.find("nodeMain/nodeGamePlayer/nodeGamePlayer0/newbieRedpacketTips", this.node).active = true
+		}
 	}
 
 	// player magic emoji
@@ -3636,8 +3618,8 @@ export default class GameScene extends GameSceneStateController {
 		this.playEmojiInteractAni(index, fr_userData, to_userData)
 	}
 
-	playEmojiInteractAni(index, fr_userData, to_userData) {
-		cc.log("playEmojiInteractAni", index, fr_userData, to_userData)
+	playEmojiInteractAni(message, fr_userData, to_userData) {
+		cc.log("playEmojiInteractAni", message, fr_userData, to_userData)
 
 		let srcPos = fr_userData["btnAvatar"].parent.convertToWorldSpaceAR(fr_userData["btnAvatar"].getPosition())		
 		srcPos = this["nodeMagicEmojiAni"].parent.convertToNodeSpaceAR(srcPos);
@@ -3648,13 +3630,25 @@ export default class GameScene extends GameSceneStateController {
 		cc.log(srcPos)
 		cc.log(dstPos)
 
+		if (!this.prefab_magic_emoji) {
+			return
+		}
+
+		const index = message.cEmojiIndex, num = message.cEmojiNum || 1
+		const endPos = dstPos, range = 20
+        for (let i = 0; i < num; i++) {
+        if (num > 1) {
+            dstPos = cc.v2(endPos.x + Math.random() * range * 2 - range, endPos.y + Math.random() * range * 2 - range)    
+        }
+
 		let node_ani = cc.instantiate(this.prefab_magic_emoji)
-        let node_ani_handler = node_ani.getComponent("GameMagicEmoji")		
+        let node_ani_handler = node_ani.getComponent(GameMagicEmoji)		
 		this["nodeMagicEmojiAni"].addChild(node_ani)
 		node_ani_handler.initWithIndex(index)
 		node_ani.setPosition(srcPos)
 
 		let actionList1 = [];
+		actionList1[actionList1.length] = cc.delayTime(i * 0.1)
 		actionList1[actionList1.length] = cc.fadeIn(0.5);
 		actionList1[actionList1.length] = cc.moveTo(0.5, dstPos);
 		// actionList1[actionList1.length] = cc.delayTime(0.2);
@@ -3665,7 +3659,8 @@ export default class GameScene extends GameSceneStateController {
 		actionList1[actionList1.length] = cc.callFunc(function(){
 			// to_userData.showMsgInteractEmoji(index)
 			let callback = () => {
-				node_ani.removeFromParent()
+				node_ani.removeFromParent(true)
+				node_ani.destroy()
 			}
 			node_ani_handler.showMsgInteractEmoji(index, callback)
 		});
@@ -3675,7 +3670,9 @@ export default class GameScene extends GameSceneStateController {
 		// });
 
 
+		node_ani.opacity = 0;
 		node_ani.runAction(cc.sequence(actionList1));
+	}
 
 	}
 
@@ -3700,12 +3697,12 @@ export default class GameScene extends GameSceneStateController {
 		if (!GameLogic.Instance().isPrivateRoom()) {
 			return
 		}
-        // 隐藏趣头条任务
-		const qttSuspensionWin = SceneManager.Instance.findSceneByName("QttSuspensionWin")
-		if (qttSuspensionWin.length > 0) {
-			qttSuspensionWin[0].node.active = false
+
+		if (!this.prefab_privateRoom) {
+			cc.error("prefab_privateRoom is null")
+			return
 		}
-			
+
 		const nodePrivateRoom = cc.instantiate(this.prefab_privateRoom)
 		BaseFunc.BindChild(nodePrivateRoom, this)
 		this["nodeBackground"].addChild(nodePrivateRoom)
@@ -3728,8 +3725,6 @@ export default class GameScene extends GameSceneStateController {
 		this.update03ExchangeGoodsTip = () => { }
 		this.wizardHongBaoQuan = () => { }
 		this.showFingerWizard = () => { }
-		uploadGameRound = () => { }
-		getGameAward = () => { }
 		this.getShareInfo()
 	}
 
@@ -3827,7 +3822,7 @@ export default class GameScene extends GameSceneStateController {
 		const param = {
 			gameid: DataManager.Instance.gameId
 		}
-		BaseFunc.HTTPGetRequest(url, param, (res) => {
+		http.open(url, param, (res) => {
 			if (res) {
 				this._gameName = res.gameName
 				this._domianName = res.domianName
@@ -3864,6 +3859,12 @@ export default class GameScene extends GameSceneStateController {
 	proto_gc_beishu_info_ack_handler(event) {
 		this.beishuInfo = event.packet
 		this.setDouble(this.getDouble(this.myPlayer.chairid))
+		this.beishuInfo.vecPlayerBeiShu.forEach((beishu, i) => {
+			const player = this.getPlayerByChairID(i)
+			if (player) {
+				player.setBet(beishu)
+			}
+		})
 	}
 
 	proto_cg_show_card_ack_sender(nShowCardBet: number, nShowCardType: number) {
@@ -3883,7 +3884,8 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressStartGame() {
-		GameLogic.Instance().playBtnSoundEffect()
+		this.showLookCard()
+		AudioManager.playButtonSound()
 		if (GameLogic.Instance().checkMoneyOutOfRange()) {
 			this.showStartGame(true)
 			return
@@ -3900,22 +3902,24 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressShowStart(EventTouch, data) {
-		GameLogic.Instance().playBtnSoundEffect()
+		AudioManager.playButtonSound()
 		if (GameLogic.Instance().checkMoneyOutOfRange()) {
 			this.showStartGame(true)
 			return
 		}
+		czcEvent("斗地主", "明牌", "明牌开始")
 		this.proto_cg_show_card_ack_sender(Number(data) || 0, 1)
 		this.goStartGame()
 	}
 
 	onPressLookCard(EventTouch, data) {
-		GameLogic.Instance().playBtnSoundEffect()
+		AudioManager.playButtonSound()
 		if (GameLogic.Instance().checkMoneyOutOfRange()) {
 			this.showStartGame(true)
 			return
 		}
-		getADDraw(AdsConfig.taskAdsMap.LookLordCard, () => {
+
+		receiveAdAward(AdsConfig.taskAdsMap.LookLordCard, () => {
 			this.proto_cg_look_lord_card_req_sender()
 			this.isLookCard = true
 			this.lookcard_tips.active = true
@@ -3924,13 +3928,15 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressShowCard(EventTouch, data) {
-		GameLogic.Instance().playBtnSoundEffect()
 		this.showShowCard(false)
+		czcEvent("斗地主", "明牌", "发牌明牌")
 		this.proto_cg_show_card_ack_sender(Number(data) || 0, 2)
 	}
 
 	onPressPutShowCard(EventTouch, data) {
-		GameLogic.Instance().playBtnSoundEffect()
+		this.firstRoundLog()
+		AudioManager.playButtonSound()
+		czcEvent("斗地主", "明牌", "出牌明牌")
 		this.proto_cg_show_card_ack_sender(Number(data) || 0, 3)
 		this.showPutButton()
 	}
@@ -3942,6 +3948,9 @@ export default class GameScene extends GameSceneStateController {
 		if (!this.beishuInfo) {
 			return
 		}
+		if (this.nodeBeishuInfo.active) {
+			return
+		}
 		this.showBeishuInfo(true)
 	}
 
@@ -3951,7 +3960,10 @@ export default class GameScene extends GameSceneStateController {
 
 	showStartGame(active) {
 		this.nodeStartGame.active = active
-		this.btnLookCard.active = active
+		this.btnLookCard.active = false
+		this.btnShowStart.active = false
+		active && this.showLookCard()
+		/**
 		if (active) {
 			if (DataManager.GlobalData && DataManager.GlobalData.noAD) {
 				this.btnLookCard.active = false
@@ -3960,6 +3972,7 @@ export default class GameScene extends GameSceneStateController {
 				this.btnLookCard.active = false
 			}
 		}
+		*/
 	}
 
 	showShowCard(active: boolean, value: number = 0) {
@@ -4143,6 +4156,12 @@ export default class GameScene extends GameSceneStateController {
 		if (!GameLogic.Instance().isMatchTable()) {
 			return
 		}
+
+		if (!this.prefab_MatchGame) {
+			cc.error("prefab_MatchGame is null")
+			return
+		}
+
 		const node = cc.instantiate(this.prefab_MatchGame)
 		BaseFunc.BindChild(node, this)
 		node.parent = cc.find("nodeMain", this.node)
@@ -4150,7 +4169,6 @@ export default class GameScene extends GameSceneStateController {
 		this.matchGame = node.getComponent(MatchGame)
 		this.matchGame.onOpenScene()
 
-		this.enable88YuanTask = false
 		this["btnExit"].active = false
 		this["btnExchange"].active = false
 		this["btnShop"].active = false
@@ -4159,8 +4177,6 @@ export default class GameScene extends GameSceneStateController {
 		this.update03ExchangeGoodsTip = () => { }
 		this.wizardHongBaoQuan = () => { }
 		this.showChangCiInfo = () => { }
-		uploadGameRound = () => { }
-		getGameAward = () => { }
 
 		const matchInfo = GameLogic.Instance().getCurMatchInfo()
 		if (matchInfo) {
@@ -4197,6 +4213,132 @@ export default class GameScene extends GameSceneStateController {
 			} else if (fist) {
 				node.active = false
 			}
+		}
+	}
+
+	// 新人前n局红包
+	proto_gc_get_redpackets_newbie_award_req(event) {
+		cc.log("proto_gc_get_redpackets_newbie_award_req")
+		this.msg_proto_gc_get_redpackets_newbie_award_req = event.packet
+	}
+
+	proto_gc_get_redpackets_newbie_award_not(event) {
+		cc.log("proto_gc_get_redpackets_newbie_award_not")
+		let message = event.packet
+		if (message.nRet != 0) {
+			return
+		}
+		showAwardResultPop([{ index: ITEM.REDPACKET_TICKET, num: message.nAmount }], null, () => {
+			cc.log("cyl proto_gc_get_redpackets_newbie_award_not close")
+		})
+	}
+
+	checkGameEndPops_NewbieRedpacket(): boolean {
+		// 开关控制显示
+        if (!DataManager.Instance.getOnlineParamSwitch("Gamescene_newbieRedpacket_show", 1)) {
+            return false
+		}
+
+		if (!this.msg_proto_gc_get_redpackets_newbie_award_req) {
+			return false
+		}
+
+		if (!checkAdCanReceive(AdsConfig.taskAdsMap.NewbieRedpacket)) {
+			return false
+		}
+
+		GameLogic.Instance().showNewbieRedpacketPop(this.msg_proto_gc_get_redpackets_newbie_award_req)
+		this.msg_proto_gc_get_redpackets_newbie_award_req = null
+		return true
+	}
+
+	checkGameEndPops_GameResult(): boolean {
+		if (!this.msg_proto_gc_game_result_not1) {
+			return false
+		}
+
+		GameLogic.Instance().showGameResultLayer(this.msg_proto_gc_game_result_not1)
+		this.msg_proto_gc_game_result_not1 = null
+		return true
+	}
+
+	refreshLookCardNum(num: number) {
+		this["lbl_lookcard_count"].$Label.string = num
+	}
+
+	onPressLookCardItem(EventTouch, data) {
+		AudioManager.playButtonSound()
+		if (this.checkItemExchange({
+			itemId: ITEM.LOOK_LORDCARD,
+			itemNum: 1,
+			failCallback: () => {
+				iMessageBox("您的底牌卡不足，通过兑换或商城可获得")
+			},
+			tryCallback: () => {
+				if (!this["node_lookcard"].active) {
+					return
+				}
+				this.onPressLookCardItem(EventTouch, data)
+			}
+		})) {
+		} else {
+			return
+		}
+
+		czcEvent("斗地主", "看底牌", this.isGameStart() ? "发牌后" : "发牌前")
+		GameLogic.Instance().sendMessage({
+			opcode: 'proto_cg_look_lord_card_item_req',
+		})
+		this["node_lookcard"].active = false
+	}
+
+	showLookCard() {
+		if (this.isLookCard) {
+			return
+		}
+		this["node_lookcard"].active = true
+	}
+
+	proto_gc_look_lord_card_item_ack(event) {
+		const message = event.packet
+		if (message.nRet >= 0) {
+			this.isLookCard = true
+		}
+		if (message.nRet == 0) {
+			this.lookcard_tips.active = true
+		} else if (message.nRet == -4) {
+			iMessageBox("您的底牌卡不足，通过兑换或商城可获得")
+			this.proto_gc_item_info_not({ packet: { nItemIndex: ITEM.LOOK_LORDCARD, nItemCount: 0 } })
+		} else if (message.nRet < 0) {
+			iMessageBox("看底牌失败，道具已返还")
+		}
+	}
+
+	proto_gc_item_add_not(event) {
+		const message = event.packet
+		if (message.nItemIndex == ITEM.CHIP_ADVANCE || message.nItemIndex == ITEM.CHIP_LEGEND) {
+			GameLogic.Instance().showItemAdd({ index: message.nItemIndex, value: message.nItemCount })
+		}
+	}
+
+	proto_gc_item_info_not(event) {
+		const message = event.packet
+		for (const item of DataManager.UserData.items) {
+			if (item.idx == message.nItemIndex) {
+				item.num = message.nItemCount
+				break
+            }
+		}
+	}
+
+	_firstRoundLog = false
+	firstRoundLog() {
+		if (DataManager.CommonData["roleCfg"]["roundSum"] == 0) {
+			if (this._firstRoundLog) {
+				return
+			}
+			this._firstRoundLog = true
+			czcEvent("斗地主", "游戏", "新用户操作")
 		}
 	}
 }

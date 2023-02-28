@@ -1,4 +1,6 @@
-import GameLogic from "./GameLogic.rpddz"
+import GameRule from "./GameRule.rpddz";
+import DataManager from "../base/baseData/DataManager";
+import { czcEvent } from "../base/BaseFuncTs";
 
 // let GameLogic.Instance() = GameLogic.Instance()
 
@@ -86,6 +88,12 @@ cc.Class({
             type:cc.Node,
             displayName: "初始点",
         },
+
+        // 炸弹选牌火焰
+        spine_bomb_fire:{
+            default:null,
+            type:sp.SkeletonData,
+        },
     },
 
 
@@ -130,6 +138,7 @@ cc.Class({
         for(let ele of this.node._children) {
             this.nodeCardPool.put(ele)
         }
+        this.nodeSpineBomb = null
         this.node.removeAllChildren()
         this.InitData()
     },
@@ -202,7 +211,6 @@ cc.Class({
             if (ExistList[nIndex]) {
                 TempList.push(this.mVecHandCard[nIndex])
             } else {
-                // this.mVecHandCard[nIndex].removeFromParent();
                 this.nodeCardPool.put(this.mVecHandCard[nIndex])
             }
         }
@@ -274,7 +282,6 @@ cc.Class({
         if (ExistList[nIndex]) {
             TempList.push(this.mVecHandCard[nIndex])
         } else {
-            // this.mVecHandCard[nIndex].removeFromParent();
             this.nodeCardPool.put(this.mVecHandCard[nIndex])
         }
     }
@@ -539,6 +546,7 @@ cc.Class({
                 node_js.move_to_dst_action()
             }
         }
+        this.showBombSpine([])
     },
 
 
@@ -714,6 +722,7 @@ cc.Class({
 			}
 		}
 		this.touchedCards = [];
+		this.node.stopAllActions()
 	},
 
     /**
@@ -739,6 +748,14 @@ cc.Class({
 
 		}
 
+        // 记录新用户选牌
+        if (vecTouchedCards.length > 0) {
+            if (!DataManager.CommonData.newbieChooseCards && DataManager.CommonData["roleCfg"]["roundSum"] == 0) {
+                DataManager.CommonData.newbieChooseCards = true
+                czcEvent("斗地主", "游戏", "新用户选牌")
+            }
+        }
+
         //重置
         this.clearTouchedCards();
 
@@ -757,16 +774,30 @@ cc.Class({
      * 显示选中的牌
      */
     showSelectedCards: function() {
+        const info = { value: 0,cards:[] }
         this.selectedCards = [];
         for (var i = 0; i < this.mVecHandCard.length; i++) {
             var card = this.mVecHandCard[i];
             var isSelected = this.check_is_select(card);
             if (isSelected) {
                 this.selectedCards.push(card.name);
+
+                if (info.value == -1) {
+                } else if (info.value == 0) {
+                    info.value = card.getComponent(cc.Component).mNValue
+                    info.cards.push(card)
+                } else if (info.value == card.getComponent(cc.Component).mNValue) {
+                    info.cards.push(card)
+                } else {
+                    info.value = -1
+                    info.cards.length = 0
+                }
             }
         }
+        this.showBombSpine(info.cards)
+
         //输出
-        console.info("selected cards is: " + JSON.stringify(this.selectedCards));
+        cc.log("selected cards is: " + JSON.stringify(this.selectedCards));
     },
 
     releaseSelectedCards() {        
@@ -780,6 +811,7 @@ cc.Class({
                 }
             }
         }
+        this.showBombSpine([])
     },
 
 	check_is_select_y(nPosY) {
@@ -891,7 +923,7 @@ cc.Class({
         }
 
         // 如果选中牌已经成型 就不再检测
-        if (GameLogic.Instance().gamescene.myPlayer.gameRule.checkCardsType(vecCards)) {
+        if (GameRule.checkCardsType(vecCards)) {
             return vecDownNodeCards
         }
 
@@ -905,12 +937,31 @@ cc.Class({
 
         var vecChooseNodeCard
         var maxLong = 0
+        var findRound = false
+        var checkCards = (cards)=>{
+            var find1 = false
+            var find2 = false
+            for (const card of cards) {
+                if (card.name == this.touchedCards[0].name) {
+                    find1 = true
+                }
+                if (card.name == this.touchedCards[this.touchedCards.length - 1].name) {
+                    find2 = true
+                }
+            }
+
+            return find1 && find2
+        }
         for (var vecSeriesCards of vecChooseNodeCards) {
             if (vecSeriesCards) {
-                for (let cards of vecSeriesCards) {
-                    if (cards.length > maxLong) {
+                for (var cards of vecSeriesCards) {
+                    var find = checkCards(cards)
+                    if (findRound ? (find && cards.length > maxLong) : (find || cards.length > maxLong)) {
                         vecChooseNodeCard = cards
                         maxLong = cards.length
+                    }
+                    if (!findRound && find) {
+                        findRound = true
                     }
                 }
             }
@@ -997,4 +1048,31 @@ cc.Class({
 
         return vecSeriesCards
     },
+
+    showBombSpine(cards: cc.Node[]) {
+        if (cards.length != 4) {
+            if (this.nodeSpineBomb) {
+                this.nodeSpineBomb.active = false
+            }
+            return
+        }
+
+        if (!this.nodeSpineBomb) {
+            if (!this.spine_bomb_fire) {
+                return
+            }
+
+            const node = new cc.Node()
+            this.node.addChild(node, -1)
+            this.nodeSpineBomb = node
+            const spine = node.addComponent(sp.Skeleton)
+            spine.skeletonData = this.spine_bomb_fire
+            spine.setAnimation(0, "animation", true)
+        } else {
+            this.nodeSpineBomb.active = true
+        }
+
+        this.nodeSpineBomb.setPosition(cc.v2((cards[cards.length - 1].x + cards[0].x) / 2, 82))
+        this.nodeSpineBomb.scaleX = (cards[cards.length - 1].x - cards[0].x + cards[0].width * cards[0].scaleX) / 413
+    }
 });

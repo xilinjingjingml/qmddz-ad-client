@@ -1,0 +1,62 @@
+
+gxhd.png
+size: 1024,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Text_flare_002
+  rotate: false
+  xy: 2, 529
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+di
+  rotate: false
+  xy: 260, 396
+  size: 697, 373
+  orig: 697, 373
+  offset: 0, 0
+  index: -1
+g-1
+  rotate: false
+  xy: 2, 939
+  size: 1000, 29
+  orig: 1000, 29
+  offset: 0, 0
+  index: -1
+g-2
+  rotate: false
+  xy: 2, 865
+  size: 1000, 72
+  orig: 1000, 72
+  offset: 0, 0
+  index: -1
+lizi
+  rotate: false
+  xy: 253, 787
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+tex_flare_004
+  rotate: true
+  xy: 2, 2
+  size: 392, 466
+  orig: 392, 466
+  offset: 0, 0
+  index: -1
+zi
+  rotate: false
+  xy: 2, 791
+  size: 249, 72
+  orig: 249, 72
+  offset: 0, 0
+  index: -1
+zi-1
+  rotate: false
+  xy: 331, 771
+  size: 652, 92
+  orig: 652, 92
+  offset: 0, 0
+  index: -1

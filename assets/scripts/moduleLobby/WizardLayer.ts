@@ -192,7 +192,7 @@ export default class WizardLayer extends BaseComponent {
 
     close() {   
         this.changeParent(this.param.node, this.nodeParentBackup)
-        czcEvent("游戏", "新手引导" + this.param.wizardIndex, "点击下一步 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("游戏", "新手引导" + this.param.wizardIndex, "点击下一步 " + DataManager.Instance.userTag)
         DataManager.save(WizardConfig.wizard_storage_key + "" + this.param.wizardIndex, 1)
         
         SceneManager.Instance.closeScene("WizardLayer")
@@ -226,5 +226,4 @@ export default class WizardLayer extends BaseComponent {
         node.position = newLocPos;
 		// node.rotation = newLocRot;
     }
-    // update (dt) {}
 }

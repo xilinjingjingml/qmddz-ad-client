@@ -44,6 +44,4 @@ export default class ClockTrigger extends BaseTrigger {
             this.beFired = true;
         }
     }
-
-
 }

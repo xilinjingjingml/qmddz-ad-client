@@ -2,13 +2,13 @@
 import ItemData from "../baseData/ItemData";
 import SceneManager from "../baseScene/SceneManager";
 import NetManager from "./NetManager";
-import { iMessageBox, showAwardResultPop, enterGame, showShopPop, getLowMoneyRoom, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, gobackToMain, getNowTimeUnix, iMessageBox, enterPrivateGame, gotoMatchSvr, getLeadTime } from "../BaseFuncTs";
-import { sendReloadUserData, getReliefState, getServerList, getMonthCardStatus, getTaskList } from "../../moduleLobby/LobbyFunc";
+import { iMessageBox, showAwardResultPop, enterGame, showShopPop, getLowMoneyRoom, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, gobackToMain, getNowTimeUnix, enterPrivateGame, gotoMatchSvr, getLeadTime, setServerTime, getUserRole, getShopBox, playADBanner } from "../BaseFuncTs";
+import { sendReloadUserData, getReliefState, getServerList, getMonthCardStatus, getTaskList, openShareMoney } from "../../moduleLobby/LobbyFunc";
+import { kickout, pluginCallBack } from "../BaseFuncTs";
+import * as bproto from "../../moduleLobby/proto/lobbyproto";
+import { EPlatformEvent } from "../PluginManager";
+import { AdsConfig } from "../baseData/AdsConfig";
 
-
-const {ccclass, property} = cc._decorator;
-
-@ccclass
 export default class NotfiyMessage {
 
     serverExtParam(server) {
@@ -22,8 +22,6 @@ export default class NotfiyMessage {
 
     proto_lc_verity_ticket_ack(msg) {
         msg = msg.packet
-        // console.log(msg)
-        // BaseFunc.UnBlockUI()
         if (msg.ret == 0){
             let plyLobbyData = msg.plyLobbyData
 
@@ -37,7 +35,29 @@ export default class NotfiyMessage {
 
             DataManager.UserData.ply_state = msg.plyStatus;
 
-            DataManager.UserData.items = msg.plyItems.map(element => ItemData.create(element));
+            DataManager.UserData.items = msg.plyItems.map(element => new ItemData(element));
+
+            for (const item of DataManager.UserData.items) {
+                if (item.idx == 379) {
+                    if (DataManager.CommonData.WeekCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.WeekCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.WeekCardExpireTime = item.param1
+                } else if (item.idx == 380) {
+                    if (DataManager.CommonData.MonthCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.MonthCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.MonthCardExpireTime = item.param1
+                } else if (item.idx == 381) {
+                    if (DataManager.CommonData.DayCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.DayCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.DayCardExpireTime = item.param1
+                }
+            }
 
             SceneManager.Instance.sendMessageToScene("updateUserData")
             DataManager.CommonData["plyStatus"] = msg.plyStatus
@@ -50,13 +70,11 @@ export default class NotfiyMessage {
             // DataManager.CommonData["onlineTime"] = typeof msg.dailyOnlineTime == "undefined" ? 0 : msg.dailyOnlineTime
             // DataManager.CommonData["loginTime"] = getNowTimeUnix() - DataManager.CommonData["onlineTime"] + 10
             
-            czcEvent("大厅", "登录8", "登录完成 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+            czcEvent("大厅", "登录8", "登录完成 " + DataManager.Instance.userTag)
 
             getServerList()
 
-            getMonthCardStatus(1)
-            getMonthCardStatus(2)
-            getMonthCardStatus(3)
+            setServerTime(msg.timeStamp)
 
             DataManager.CommonData["AchieveList"] = []
             DataManager.CommonData["TaskList"] = []
@@ -66,7 +84,15 @@ export default class NotfiyMessage {
             getReliefState()
         }     
         else {
-            NetManager.Instance.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => NetManager.Instance.reconnect("lobby"))))
+            let initParam = {
+                title: "提示",
+                content: "网络异常，请重试 ret:" + msg.ret,
+                confirmFunc: () => {
+                    NetManager.Instance.reconnect("lobby")
+                },
+                confirmClose: true,
+            }                
+            MsgBox(initParam)
         }
     }
 
@@ -76,7 +102,7 @@ export default class NotfiyMessage {
 
         message = message.packet
 
-        let vipData = []
+        let vipData = {}
         vipData["vipLevel"] = message.vipLevel
         vipData["vipRate"] = message.vipRate
         vipData["nextVipneedMoney"] = message.nextVipneedMoney
@@ -106,8 +132,6 @@ export default class NotfiyMessage {
         //     items.sort((a, b) => a.min_money < b.min_money ? -1 : a.min_money > b.min_money ? 1 : 0);
         //     items = items.map(element => this.serverExtParam(element));
         // })
-
-        // console.log(DataManager.CommonData["ServerDatas"])
     }
 
     proto_lc_send_user_data_change_not(message) {
@@ -125,7 +149,24 @@ export default class NotfiyMessage {
 
         DataManager.UserData.ply_state = msg.plyStatus;
 
-        DataManager.UserData.items = msg.plyItems.map(element => ItemData.create(element));
+        DataManager.UserData.items = msg.plyItems.map(element => new ItemData(element));
+
+        for (const item of DataManager.UserData.items) {
+            if (item.idx == 379 && DataManager.CommonData.WeekCardExpireTime != item.param1) {
+                DataManager.CommonData.WeekCardExpireTime = item.param1
+                getUserRole()
+            } else if (item.idx == 380 && DataManager.CommonData.MonthCardExpireTime != item.param1) {
+                DataManager.CommonData.MonthCardExpireTime = item.param1
+                getUserRole()
+            } else if (item.idx == 381 && DataManager.CommonData.DayCardExpireTime != item.param1) {
+                DataManager.CommonData.DayCardExpireTime = item.param1
+                getUserRole()
+                getShopBox(7)
+                if (SceneManager.Instance.isSceneExist("DayCardPop")) {
+                    SceneManager.Instance.closeScene("DayCardPop")
+                }
+            }
+        }
         
         SceneManager.Instance.sendMessageToScene("updateUserData")
     }
@@ -187,6 +228,7 @@ export default class NotfiyMessage {
         })
         
         if (null == DataManager.CommonData["isOnGameExit"] && DataManager.CommonData["closeGameErr"] == 1){
+            DataManager.CommonData["closeGameErr"] = 0
             let gameId = DataManager.CommonData["plyStatus"].gameId
             let serverId = DataManager.CommonData["plyStatus"].gameServerId
             if (gameId && serverId){
@@ -209,13 +251,18 @@ export default class NotfiyMessage {
                 // SceneManager.Instance.sendMessageToScene("updateServerStatus")
                 let initParam = {
                     title: "提示",
-                    content: "您的帐号已在其他地方登录\n\r是否需要重新登录？",
+                    content: "您的帐号已在其他地方登录\n是否需要重新登录？",
+                    confirmClose: true,
+                    buttonNum: 1,
+                    confirmText: "重新登录",
                     confirmFunc: () => {
+                        kickout()
+                        return
                         NetManager.Instance.reconnect("lobby")
                     },
-                    confirmClose: true,
                 }                
                 MsgBox(initParam)
+                playADBanner(false, AdsConfig.banner.All)
             }
             else{
                 iMessageBox("您的帐号已在其他地方登录");
@@ -462,12 +509,14 @@ export default class NotfiyMessage {
             else if (type == 2) {
                 //关闭游戏
                 // iMessageBox("关闭游戏")
+                cc.game.end()
             }
         }       
         cancelFunc = () => {
             if (type == 0) {
                 //关闭游戏
                 // iMessageBox("关闭游戏")
+                cc.game.end()
             }
         }
        
@@ -484,6 +533,61 @@ export default class NotfiyMessage {
         }
 
         MsgBox(initParam)
+    }
+
+    PluginSocialCallBack(message: any) {
+        if (!DataManager.GlobalData.shareADCallBack) {
+            return
+        }
+        cc.log("[NotfiyMessage.PluginSocialCallBack] data", message.data)
+        const data: { ShareResultCode: number, msg: string, shareResultInfo: any } = JSON.parse(message.data)
+        if (data.ShareResultCode == 4) {
+            return
+        }
+
+        if (data.ShareResultCode == 0) {
+            const time = new Date().getTime() - DataManager.GlobalData.shareADTime
+            if (time >= 3000) {
+                pluginCallBack(DataManager.GlobalData.shareADCallBack)
+            } else {
+                iMessageBox('分享失败，请换个群试试。')
+            }
+        } else {
+            iMessageBox(data.msg)
+        }
+        DataManager.GlobalData.shareADCallBack = null
+    }
+
+    PluginPlatformCallBack(message: any) {
+        cc.log("[NotfiyMessage.PluginPlatformCallBack] data", message.data)
+        const data: { PlatformResultCode: number, msg: string, url: any } = JSON.parse(message.data)
+        if (data.PlatformResultCode == EPlatformEvent.FANGCHENMI) {
+            const message: { title: string, msg: string, modal: number } = JSON.parse(data.msg)
+            const parmes = {
+                title: message.title,
+                content: message.msg,
+                buttonNum: 1,
+                confirmClose: true,
+                clickMaskToClose: true,
+            }
+            if (message.modal == 1) {
+                parmes['confirmText'] = "退出游戏"
+                parmes['clickMaskToClose'] = false
+                parmes['confirmFunc'] = () => { cc.game.end() }
+            }
+            MsgBox(parmes)
+        } else if (data.PlatformResultCode == EPlatformEvent.GET_OPENINSTALL_PARAMS) {
+            cc.log("GET_OPENINSTALL_PARAMS", data.url)
+            if (data.url == 0) {
+                return
+            }
+            const params: { inviteCode?: string, originUid?: string, shareMoneyId?: string } = JSON.parse(data.url)
+            cc.log("shareMoneyId", params.shareMoneyId)
+            if (params.shareMoneyId) {
+                cc.log("openShareMoney")
+                openShareMoney(params.shareMoneyId, null, false)
+            }
+        }
     }
 
     proto_lc_get_private_invite_info_ack(message) {

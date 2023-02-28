@@ -9,7 +9,7 @@ export default class ReliefResultPop extends BaseScene {
 
     onOpenScene() {
         cc.find("nodePop/relief_gold_1000", this.node).active = false
-        cc.find("nodePop/num", this.node).getComponent(cc.Label).string = "" + DataManager.Instance.getReliefLine()
+        cc.find("nodePop/num", this.node).getComponent(cc.Label).string = "" + DataManager.CommonData["reliefStatus"]["reliefAwardCount"]
     }
 
     onPressGotoGame() {
@@ -19,7 +19,7 @@ export default class ReliefResultPop extends BaseScene {
         let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
         if (null != gameId) {
             let servers = getLowMoneyRoom(gameId)
-            if (servers.length > 0)
+            if (servers && servers.length > 0)
                 enterGame(servers[0])
         }
     }

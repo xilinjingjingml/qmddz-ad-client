@@ -1,10 +1,10 @@
-import BaseScene from "../base/baseScene/BaseScene";
+import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
-import SceneManager from "../base/baseScene/SceneManager";
-import { getLowMoneyRoom, enterGame, unenoughGold, iMessageBox, showAwardResultPop, checkFirstBox, numberFormat, findStringIndexs } from "../base/BaseFuncTs";
-import { getTaskAward, getTaskList, exchangeQttCoin, sendReloadUserData } from "./LobbyFunc";
+import { enterGame, findStringIndexs, getLowMoneyRoom, iMessageBox, numberFormat, playAD, showAwardResultPop, unenoughGold, czcEvent, playADBanner } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
-import { GAME_TYPE, isSmallGame } from "../gameConfig";
+import BaseScene from "../base/baseScene/BaseScene";
+import SceneManager from "../base/baseScene/SceneManager";
+import { getTaskAward, getTaskList, sendReloadUserData } from "./LobbyFunc";
 
 const {ccclass, property} = cc._decorator;
 
@@ -18,6 +18,7 @@ export default class TaskPop extends BaseScene {
     }
 
     onOpenScene() {
+        czcEvent("大厅", "任务", "打开")
         this.getActivityRewardsList()
         getTaskList(0)
         getTaskList(1)
@@ -25,13 +26,15 @@ export default class TaskPop extends BaseScene {
         this.updateTaskList({message: {taskList: DataManager.CommonData["AchieveList"]}})
         this.updateTaskList({message: {taskList: DataManager.CommonData["TaskList"]}})
 
-        if (DataManager.Instance.GameType === GAME_TYPE.QMDDZMD) {
-            cc.find("nodePop/nodeProgress/box5", this.node).active = false
+        if (DataManager.CommonData["gameServer"]) {
+            playADBanner(false, AdsConfig.banner.All)
         }
     }
 
-    onCloseScene() {
-        exchangeQttCoin(true)
+    onDestroy() {
+        if (DataManager.CommonData["gameServer"]) {
+            playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz)
+        }
     }
 
     gotoGame(gameId, level = null) {
@@ -39,7 +42,7 @@ export default class TaskPop extends BaseScene {
             return;
 
         let servers = getLowMoneyRoom(gameId, level)
-        if (servers.length > 0){
+        if (servers && servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)
             enterGame(servers[i])
         }
@@ -97,6 +100,13 @@ export default class TaskPop extends BaseScene {
         })
     }
 
+    getTaskAwardDouble(gameId, index) {
+        playAD(AdsConfig.taskAdsMap.None, () => {
+            czcEvent("大厅", "任务", "双倍领取看广告完成")
+            getTaskAward(gameId, index, true)
+        })
+    }
+
     updateShowList(index = -1) {
         if (null == this._taskNodes[index])
             return 
@@ -110,6 +120,7 @@ export default class TaskPop extends BaseScene {
             let self = this
 
             let item = cc.instantiate(model)
+            item.active = true
             content.addChild(item)
             this._taskNodes[index].taskNode = item
 
@@ -120,6 +131,7 @@ export default class TaskPop extends BaseScene {
             clickEventHandler1.handler = "onJumpTo" + task.index; 
             this["onJumpTo" + task.index] = () => {
                 let gotoGameLevel = -1
+                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
 
                 if (-1 != task.name.indexOf("绑定手机")) {
                     SceneManager.Instance.popScene("moduleLobby", "BindPhonePop")
@@ -168,36 +180,41 @@ export default class TaskPop extends BaseScene {
             clickEventHandler2.component = "TaskPop";
             clickEventHandler2.handler = "btnGetAward" + task.index;
             this["btnGetAward" + task.index] = () => {
+                czcEvent("大厅", "任务", "点击单倍领取")
+                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
                 getTaskAward(task.gameId, task.index)
             }          
 
             btnGetAward.clickEvents.push(clickEventHandler2);
 
-            let height = model.height + 5
-            if (DataManager.Instance.GameType === GAME_TYPE.QMDDZMD) {
-                if (-1 != task.name.indexOf("中级场") || -1 != task.name.indexOf("2元场") ||
-                    -1 != task.name.indexOf("高级场") || -1 != task.name.indexOf("50元场") ||
-                    isSmallGame(task.gameId)){
-                    item.active = false
-                    height = 0
-                }
-            }
-            
-            let size = content.getContentSize()
-            size.height += height
-            content.setContentSize(size)
+            let btnGetAwardDouble = cc.find("nodeState/btnGetAwardDouble", item).getComponent(cc.Button)
+            let clickEventHandler3 = new cc.Component.EventHandler();
+            clickEventHandler3.target = this.node; 
+            clickEventHandler3.component = "TaskPop";
+            clickEventHandler3.handler = "btnGetAwardDouble" + task.index;
+            this["btnGetAwardDouble" + task.index] = () => {
+                czcEvent("大厅", "任务", "点击双倍领取")
+                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+                this.getTaskAwardDouble(task.gameId, task.index)
+            }          
+
+            btnGetAwardDouble.clickEvents.push(clickEventHandler3);
         }
 
         let item = this._taskNodes[index].taskNode
         item.getChildByName("taskName").getComponent(cc.Label).string = task.name
         for (let award of task.vecAwards) {
-            if (award.itemIndex == 0 || award.itemIndex == 367){
-                cc.find("award1/num", item).getComponent(cc.Label).string = numberFormat(award.itemNum)
-                cc.find("award1/awardIcon/gold", item).active = award.itemIndex == 0
-                cc.find("award1/awardIcon/qtt", item).active = award.itemIndex == 367
+            if (award.itemIndex == 400) {
+                continue
             }
-            else if (award.itemIndex == 369) {
+            if (award.itemIndex == 369) {
                 cc.find("award2/num", item).getComponent(cc.Label).string = numberFormat(award.itemNum)
+            }else {
+                cc.find("award1/num", item).getComponent(cc.Label).string = numberFormat(award.itemNum)
+                const awardIcon = cc.find("award1/awardIcon/icon_" + award.itemIndex, item)
+                if (awardIcon) {
+                    awardIcon.active = true
+                }
             }
         }
 
@@ -209,6 +226,7 @@ export default class TaskPop extends BaseScene {
         cc.find("nodeState/taskFinish", item).active = task.status == 1
         cc.find("nodeState/btnJumpTo", item).active = task.status == 0 && task.value < task.max && -1 == task.name.indexOf("游戏在线")
         cc.find("nodeState/btnGetAward", item).active = task.status == 0 && task.value >= task.max
+        cc.find("nodeState/btnGetAwardDouble", item).active = task.status == 0 && task.value >= task.max
         let value = task.value
         item.stopAllActions()
         if (-1 != task.name.indexOf("游戏在线") && value < task.max) {            
@@ -280,6 +298,7 @@ export default class TaskPop extends BaseScene {
                 clickEventHandler2.component = "TaskPop";
                 clickEventHandler2.handler = "btnBox" + config.activity; 
                 this["btnBox" + config.activity] = () => {
+                    cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
                     if (DataManager.CommonData["activityRewards"].activity >= config.activity) {
                         btnBox.interactable = false
                         btnBox.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(() => btnBox.interactable = true)))

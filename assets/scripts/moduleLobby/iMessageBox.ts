@@ -1,7 +1,7 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import ClockTrigger from "../base/extensions/Trigger/ClockTrigger";
+import BaseScene from "../base/baseScene/BaseScene"
+import ClockTrigger from "../base/extensions/Trigger/ClockTrigger"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass } = cc._decorator
 
 @ccclass
 export default class iMessageBox extends BaseScene {
@@ -9,10 +9,11 @@ export default class iMessageBox extends BaseScene {
     onOpenScene() {
         if (this.initParam) {
             this.node.getChildByName("message").getComponent(cc.Label).string = this.initParam["message"]
-
             this.node.getComponent(ClockTrigger).beFired = false
-
-            this.node.runAction(cc.sequence(cc.delayTime(3), cc.fadeOut(1)))
+            this.node.runAction(cc.sequence(cc.delayTime(this.initParam.delayTime || 3), cc.fadeOut(1)))
+            if (this.initParam.delayTime) {
+                this.node.getComponent(ClockTrigger).ClockTime = this.initParam.delayTime - 1
+            }
         }
     }
 

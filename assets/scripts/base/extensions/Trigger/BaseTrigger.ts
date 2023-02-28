@@ -18,6 +18,7 @@ export default class BaseTrigger extends cc.Component {
     })
     target = []
 
+    @property()
     bEffect: boolean = true
 
     onTrigger() {

@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "7cda5cd8-e9da-4c9b-96e5-a59e4e20deca",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "game_pic_dizhu_2": {
+      "ver": "1.0.4",
+      "uuid": "5098cc4f-7c85-46fc-a10b-fa621fc560eb",
+      "rawTextureUuid": "7cda5cd8-e9da-4c9b-96e5-a59e4e20deca",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0.5,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 48,
+      "height": 61,
+      "rawWidth": 48,
+      "rawHeight": 62,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

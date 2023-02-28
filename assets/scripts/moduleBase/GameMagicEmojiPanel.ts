@@ -2,7 +2,7 @@
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import DataManager from '../base/baseData/DataManager';
-import { iMessageBox, numberFormat, showGameReportPanel } from '../base/BaseFuncTs';
+import { iMessageBox, numberFormat, showGameReportPanel, czcEvent } from '../base/BaseFuncTs';
 
 const {ccclass, property} = cc._decorator;
 
@@ -16,11 +16,8 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     sptAvatar: any;
     labelMoney: any;
     labelRedPacket: any;
-    labelMyQttCoin: any;
     btn_Close: any;
-    // LIFE-CYCLE CALLBACKS:
-
-    // onLoad () {}
+    label_name: any;
 
     __bindButtonHandler() {
         
@@ -28,7 +25,8 @@ export default class GameMagicEmojiPanel extends BaseComponent {
 		BaseFunc.AddClickEvent(this["nodeEmoji1"].getChildByName("btnEmoji"), this.node, this.thisComponentName, "onPressMagicEmoji", 1, 3);
 		BaseFunc.AddClickEvent(this["nodeEmoji2"].getChildByName("btnEmoji"), this.node, this.thisComponentName, "onPressMagicEmoji", 2, 3);
         BaseFunc.AddClickEvent(this["nodeEmoji3"].getChildByName("btnEmoji"), this.node, this.thisComponentName, "onPressMagicEmoji", 3, 3);
-        
+        BaseFunc.AddClickEvent(this["toggle1"], this.node, this.thisComponentName, "onPressToggle", 1, 3);
+        BaseFunc.AddClickEvent(this["toggle2"], this.node, this.thisComponentName, "onPressToggle", 2, 3);
         BaseFunc.AddClickEvent(this["btnReport"], this.node, this.thisComponentName, "onPressReport", 3, 3);
         
         BaseFunc.AddClickEvent(this.maskLayer, this.node, this.thisComponentName, "onPressClose", 0, 0);
@@ -44,6 +42,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
 
     onPressReport() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         let prarm = {}
         
         prarm["logic"] = this.initParam["logic"]
@@ -59,16 +58,26 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         showGameReportPanel(prarm)        
     }
     
-    onPressMagicEmoji(EventTouch, data = 0) {       
-        let sendFlag = this.sendMagicEmoji(data)
+    onPressMagicEmoji(EventTouch, data = 0) {  
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        for (let i = 0; i < 4; i++) {
+            this.disDoubelHit(this["nodeEmoji" + i].getChildByName("btnEmoji"))
+        }
+        const isChecked = this['toggle2'].activeInHierarchy && this['toggle2'].getComponent(cc.Toggle).isChecked
+        const message = {
+            cEmojiIndex: data,
+            cCostType: isChecked ? 2 : 1,
+            cEmojiNum: isChecked ? this.logic.emojiConfigs[data].nTenEmojiNum : 1,
+        }
+        let sendFlag = this.sendMagicEmoji(message)
         if (sendFlag == 0) {
-            if (this.initParam.callback) {
-                this.initParam.callback(data)
-            }
             this.close()
+            if (this.initParam.callback) {
+                this.initParam.callback(message)
+            }
         }else if(sendFlag == 1){
             if (this.initParam.callback) {
-                this.initParam.callback(data)
+                this.initParam.callback(message)
             }
             this.hideNode()
         }else if(sendFlag == -1){
@@ -77,6 +86,18 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         }else if(sendFlag == -3){
             iMessageBox("趣金币不足");
         }
+    }
+
+    disDoubelHit(node: cc.Node, delay: number = 0.5) {
+        node.getComponent(cc.Button).interactable = false
+        node.runAction(cc.sequence(cc.delayTime(delay), cc.callFunc(() => {
+            node.getComponent(cc.Button).interactable = true
+        })))
+    }
+
+    onPressToggle(EventTouch, data = 0) {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        DataManager.save("GameMagicEmojiPanel_Toggle", data)
     }
 
     hideNode() {
@@ -93,19 +114,24 @@ export default class GameMagicEmojiPanel extends BaseComponent {
             return -1
         }
 
-        if (this.logic.emojiConfigs[data].cCostType == 0) {   
-            if (DataManager.UserData.money - this.logic.emojiConfigs[data].cCostValue > this.logic.serverInfo.minMoney) {
+        const emojiConfig = this.logic.emojiConfigs[data.cEmojiIndex]
+        let cCostType = emojiConfig.cCostType
+        let cCostValue = emojiConfig.cCostValue
+        if (data.cCostType == 2) {
+            cCostType = emojiConfig.nTenItemIndex
+            cCostValue = emojiConfig.nTenItemNum
+        }
+        if (cCostType == 0) {
+            if (DataManager.UserData.money - cCostValue > this.logic.serverInfo.minMoney) {
                 this.sendMagicEmoji_socket(data)
-                return 0                
-            }else{
+                return 0
+            } else {
                 return -2
             }
-        }else if (this.logic.emojiConfigs[data].cCostType == 367) {//DataManager.CommonData["QttCoinNum"]
-            if (DataManager.CommonData["QttCoinNum"] >= this.logic.emojiConfigs[data].cCostValue) {
-                this.sendMagicEmoji_http(data)            
-                return 1            
-            }else{
-                return -3
+        } else {
+            if (cCostValue <= DataManager.UserData.getItemNum(cCostType)) {
+                this.sendMagicEmoji_socket(data)
+                return 0
             }
         }
 
@@ -114,6 +140,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
 
 
     start () {
+        czcEvent("斗地主", "魔法表情", "打开")
         this.node.opacity = 255
         this.logic = this.initParam.logic
 
@@ -123,15 +150,37 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         this.labelRedPacket.$Label.string = this.initParam.repacketValue
         this.toChairId = this.initParam.toChairId
         
-        this.labelMyQttCoin.$Label.string = numberFormat(DataManager.CommonData["QttCoinNum"] || 0)
-        
         this.refreshCostValue()
 
         this.refreshReportBtn()
 
-        if (Number(this.initParam.repacketValue) <= 0) {
-            this.nodeRedPacket.active = false
+        const emojiConfig = this.logic.emojiConfigs[0]
+        if (emojiConfig.nTenEmojiNum == null || emojiConfig.nTenEmojiNum == 0) {
+            this['toggleContainer'].active = false
+            return
         }
+
+        const toggle =  DataManager.load("GameMagicEmojiPanel_Toggle") || 1
+        this['toggle1'].getComponent(cc.Toggle).isChecked = toggle == 1
+        this['toggle2'].getComponent(cc.Toggle).isChecked = toggle == 2
+        for (const emojiConfig of this.logic.emojiConfigs) {
+            if (emojiConfig.nTenItemNum > DataManager.UserData.getItemNum(emojiConfig.nTenItemIndex)) {
+                this['toggle2'].getComponent(cc.Toggle).interactable = false
+                return
+            }
+        }
+
+        this['label_times_name'].getComponent(cc.Label).string = { 10: "十" }[emojiConfig.nTenEmojiNum] + "连发"
+        this["toggle2"].getChildByName("sptItem0").active = false
+        this["toggle2"].getChildByName("sptItem365").active = false
+        if (emojiConfig.nTenItemNum == 0) {
+            this['label_times'].active = false
+            return
+        }
+        if (this["toggle2"].getChildByName("sptItem" + emojiConfig.nTenItemIndex)) {
+            this["toggle2"].getChildByName("sptItem" + emojiConfig.nTenItemIndex).active = true
+        }
+        this['label_times'].getComponent(cc.Label).string = "x" + emojiConfig.nTenItemNum
     }
 
     refreshCostValue() {
@@ -139,7 +188,6 @@ export default class GameMagicEmojiPanel extends BaseComponent {
             if (!!this["nodeEmoji" + k]) {                
                 this["nodeEmoji" + k].getChildByName("sptItem0").active = false
                 this["nodeEmoji" + k].getChildByName("sptItem365").active = false
-                this["nodeEmoji" + k].getChildByName("sptItem367").active = false
                 if (v.cCostValue == 0) {
                     this["nodeEmoji" + k].getChildByName("labelCostValue").active = false
                     return
@@ -152,50 +200,18 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         });
     }
     
-    sendMagicEmoji_socket(index) {
-        this.logic.gamescene.proto_magic_emoji_req_sender(index, this.toChairId)
+    sendMagicEmoji_socket(message) {
+        czcEvent("斗地主", "魔法表情", message.cCostType == 2 ? "十连发" : "单发")
+        this.logic.gamescene.proto_magic_emoji_req_sender(message.cEmojiIndex, this.toChairId, message.cCostType)
         
     }
 
-    sendMagicEmoji_http(index) {
-        //uid=5412134300543855&pn=com.zhangxin.android.weiping.qutoutiao.baibao&ticket=847F413C7BA79E59F73BE0EDDE625903&pageNow=1&pageSize=20&gameid=1192
-        // http://t_mall.wpgame.com.cn/qtw/open/coin/sub?app_id=a3DU28NdpPFW&open_id=u3EHcvURBjr7&gameId=1238&serverId=1
-        let url = DataManager.getURL("SEND_MAGIC_EMOJI")
-        let params = {
-            app_id:DataManager.Instance.QTT_APPID,
-            open_id:DataManager.load('user_guest_openid'),
-            gameId:DataManager.Instance.gameId,
-            serverId:(index+1),
-            pid:DataManager.UserData.guid,
-        }
-
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            // {"code":0,"message":"成功","showErr":0,"currentTime":1570698824,"data":{}}
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
-            if (msg) {
-                if(typeof(msg.code) != "undefined" && msg.code == 0) {
-                    this.sendMagicEmoji_socket(index)
-                    DataManager.CommonData["QttCoinNum"] -= this.logic.emojiConfigs[index].cCostValue
-                }else{
-
-                }              
-            }       
-            this.close()     
-        }) 
-    }
-    
     onPressClose() {
-        
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this.close()
     }
 
     close() {
         this.logic.closeScene(this.thisComponentName)
-        if (this.initParam.callback) {
-            this.initParam.callback(this.initParam)
-        }
     }
-
-    // update (dt) {}
 }

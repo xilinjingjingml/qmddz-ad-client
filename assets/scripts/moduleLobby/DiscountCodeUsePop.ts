@@ -3,6 +3,7 @@ import DataManager from "../base/baseData/DataManager";
 import BaseFunc = require("../base/BaseFunc")
 import { getMD5, getShopBox, numberFormat, setGray, payOrder, getNowTimeUnix } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 @ccclass
@@ -152,9 +153,8 @@ export default class DiscountCodeUsePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.vipDiscountCode) {
                 this.vipDiscountCodeList = msg.vipDiscountCode
                 this.updateDiscountView()

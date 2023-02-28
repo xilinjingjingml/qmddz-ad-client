@@ -1,10 +1,8 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { iMessageBox, MsgBox, czcEvent } from "../base/BaseFuncTs";
-import SceneManager from "../base/baseScene/SceneManager";
 import { exchangeAward } from "./LobbyFunc";
-import BaseFunc = require("../base/BaseFunc")
-import QttPluginWrapper from "../base/QttPluginWrapper";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -12,7 +10,7 @@ const {ccclass, property} = cc._decorator;
 export default class ExchangeConfirmPop extends BaseScene {
 
     onOpenScene() {
-        czcEvent("大厅", "兑换红包", "请求兑换红包 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "兑换红包", "请求兑换红包 " + DataManager.Instance.userTag)
         if (null == this.initParam)
             return
         
@@ -21,20 +19,7 @@ export default class ExchangeConfirmPop extends BaseScene {
         //     num = num / 10
         // let icon = cc.find("nodePop/exchange_item_frame/" + num + "RMB", this.node)
         // if (icon) icon.active = true
-        let self = this
-        cc.loader.load({ url: this.initParam["goodsImg"], type: "png" }, (err, texture) => {
-            if (err) {
-                console.log(err)
-                return
-            }
-
-            if (!self.node)
-                return
-                
-            let icon = cc.find("nodePop/exchange_item_frame/sprite", self.node)
-            if (icon)
-                icon.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-        })
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/exchange_item_frame/sprite", this.node), url: this.initParam["goodsImg"] })
         
         cc.find("nodePop/labelName", this.node).getComponent(cc.Label).string = this.initParam["goodsName"]
 
@@ -50,13 +35,11 @@ export default class ExchangeConfirmPop extends BaseScene {
         clickEventHandler.handler = "onExchange"; 
 
         this["onExchange"] = () => {
-            czcEvent("大厅", "兑换红包", "请求兑换红包 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+            czcEvent("大厅", "兑换红包", "请求兑换红包 " + DataManager.Instance.userTag)
             exchangeAward(this.initParam["goodsId"], () => {
-                czcEvent("大厅", "兑换红包", "兑换红包成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                // SceneManager.Instance.popScene("moduleLobby", "ExchangeSuccPop")
+                czcEvent("大厅", "兑换红包", "兑换红包成功 " + DataManager.Instance.userTag)
                 // iMessageBox(this.initParam["goodsName"] + " 兑换成功")
-                QttPluginWrapper.openWithDrawPage()
-                self.closeSelf()
+                this.closeSelf()
             })
         }         
         

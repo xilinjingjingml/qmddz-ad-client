@@ -1,0 +1,62 @@
+
+shangc.png
+size: 256,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+ba
+  rotate: false
+  xy: 95, 18
+  size: 53, 30
+  orig: 53, 30
+  offset: 0, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 2
+  size: 68, 21
+  orig: 68, 21
+  offset: 0, 0
+  index: -1
+guang-12
+  rotate: false
+  xy: 2, 25
+  size: 91, 91
+  orig: 91, 91
+  offset: 0, 0
+  index: -1
+gwc
+  rotate: false
+  xy: 95, 50
+  size: 95, 66
+  orig: 95, 66
+  offset: 0, 0
+  index: -1
+pd
+  rotate: false
+  xy: 192, 80
+  size: 62, 36
+  orig: 62, 36
+  offset: 0, 0
+  index: -1
+pd-1
+  rotate: false
+  xy: 191, 28
+  size: 35, 14
+  orig: 35, 14
+  offset: 0, 0
+  index: -1
+scz
+  rotate: false
+  xy: 192, 44
+  size: 61, 34
+  orig: 61, 34
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 150, 9
+  size: 39, 39
+  orig: 39, 39
+  offset: 0, 0
+  index: -1

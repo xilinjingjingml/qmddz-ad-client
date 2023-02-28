@@ -3,6 +3,7 @@ import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import DataManager from '../base/baseData/DataManager';
 import { iMessageBox, numberFormat } from '../base/BaseFuncTs';
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -126,10 +127,8 @@ export default class GameReportPanel extends BaseComponent {
 
         cc.log(params)
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
                     this.logic.addPidToReportList(params.reportPid)
@@ -156,6 +155,4 @@ export default class GameReportPanel extends BaseComponent {
             this.initParam.callback(this.initParam)
         }
     }
-
-    // update (dt) {}
 }

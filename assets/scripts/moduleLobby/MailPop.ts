@@ -1,15 +1,10 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import NetManager from "../base/baseNet/NetManager";
-import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
 import { showAwardResultPop, czcEvent, loadModule, numberFormat } from "../base/BaseFuncTs";
 import { getMailInfo, sendReloadUserData, getMailAwardInfo } from "./LobbyFunc";
 
 const {ccclass, property} = cc._decorator;
-
-const NEW_MAIL_TITLE = new cc.Color(55, 146, 209)
-const NEW_MAIL_CONTENT = new cc.Color(55, 146, 209)
 
 @ccclass
 export default class MailPop extends BaseScene {
@@ -17,7 +12,7 @@ export default class MailPop extends BaseScene {
     _mailInfos = null;
 
     onOpenScene() {
-        czcEvent("大厅", "邮件", "打开邮件界面 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "邮件", "打开邮件界面 " + DataManager.Instance.userTag)
         getMailInfo()
     }
 
@@ -77,7 +72,7 @@ export default class MailPop extends BaseScene {
                             for (let ad of mail.awards){
                                 strAd += (ad["itemIndex"] == 0 ? "金豆" : 
                                         ad["itemIndex"] == 2 ? "记牌器" : 
-                                        ad["itemIndex"] == 365 ? "红包券" : 
+                                        ad["itemIndex"] == 365 ? "福卡" : 
                                         ad["itemIndex"] == 367 ? "趣金币" : "道具") + "*" + 
                                         ad["itemNum"] + " "
                             }
@@ -174,7 +169,7 @@ export default class MailPop extends BaseScene {
             clickEventHandler1.component = "MailPop";
             clickEventHandler1.handler = "onMail" + mail.mailId; 
             this["onMail" + mail.mailId] = () => {
-                czcEvent("大厅", "邮件", "开启邮件详情 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                czcEvent("大厅", "邮件", "开启邮件详情 " + DataManager.Instance.userTag)
                 SceneManager.Instance.popScene("moduleLobby", "MailDetailPop", {mail: mail})                
             }          
 

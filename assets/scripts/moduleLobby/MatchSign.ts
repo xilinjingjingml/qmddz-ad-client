@@ -1,9 +1,10 @@
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
-import { checkWaterMatchTime, getNameByItemId, getSpritePathByItemId, gotoMatchSvr, iMessageBox, leftMatchTime, setNodeSpriteLocal, getSpriteByItemId } from "../base/BaseFuncTs";
+import DataManager from "../base/baseData/DataManager";
+import { checkWaterMatchTime, getNameByItemId, getSpriteByItemId, gotoMatchSvr, iMessageBox, leftMatchTime } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import BaseScene from "../base/baseScene/BaseScene";
 import SceneManager from "../base/baseScene/SceneManager";
 import BaseFunc = require("../base/BaseFunc")
+import { time } from "../base/utils/time";
 const { ccclass, property } = cc._decorator;
 
 enum EShowType {
@@ -104,9 +105,9 @@ export default class MatchSign extends BaseScene {
             } else if (this.matchInfo.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                 str += "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()] + "  "
             } else {
-                str += BaseFunc.TimeFormat("mm-dd", this.matchInfo.begin) + "  "
+                str += time.format("mm-dd", this.matchInfo.begin) + "  "
             }
-            str += BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+            str += time.format("HH:MM", this.matchInfo.begin)
             lbl_time.getComponent(cc.Label).string = str
         }), cc.delayTime(1))))
 
@@ -148,7 +149,6 @@ export default class MatchSign extends BaseScene {
                 BaseFunc.AddClickEvent(cc.find("nodeSign/nodeRight/node_price/sign_info_bg", this.node), this, this.thisComponentName, "onPressMatchSignInfo", "", 3)
             } else {
                 cc.find("nodeSign/nodeRight/node_price/label", this.node).getComponent(cc.Label).string = sign.signItemNum + getNameByItemId(sign.signItem)
-                // setNodeSpriteLocal({ node: cc.find("nodeSign/nodeRight/node_price/icon", this.node), url: getSpritePathByItemId(sign.signItem), fixSize: true })
                 cc.find("nodeSign/nodeRight/node_price/icon", this.node).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(sign.signItem)
             }
         } else {
@@ -163,14 +163,14 @@ export default class MatchSign extends BaseScene {
     showSignTip() {
         let strTime = ""
         if (leftMatchTime(this.matchInfo) > 24 * 60 * 60 * 2) {
-            strTime = BaseFunc.TimeFormat("mm/dd HH:MM", this.matchInfo.begin)
+            strTime = time.format("mm/dd HH:MM", this.matchInfo.begin)
         } else {
-            let day = BaseFunc.TimeFormat("dd", this.matchInfo.begin)
+            let day = time.format("dd", this.matchInfo.begin)
             let nDay = new Date().getDate()
             if (day != nDay) {
-                strTime = "明天" + BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+                strTime = "明天" + time.format("HH:MM", this.matchInfo.begin)
             } else {
-                strTime = "今天" + BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+                strTime = "今天" + time.format("HH:MM", this.matchInfo.begin)
             }
         }
         cc.find("nodeSignTip/node_sign/lbl_msg2", this.node).getComponent(cc.Label).string = strTime

@@ -1,11 +1,10 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import NetManager from "../base/baseNet/NetManager";
-import BaseFunc = require("../base/BaseFunc")
 import { getPrivateInviteInfo } from "../base/BaseFuncTs";
-import { proto_bc_get_online_award_items_ack } from "./proto/lobbyproto";
 import SceneManager from "../base/baseScene/SceneManager";
 import { getPrivateGameDataList } from "./LobbyFunc";
+import { UserExtends } from "../base/extends/UserExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -59,27 +58,7 @@ export default class PrivateBillPop extends BaseScene {
                 if (null == playerInfo)
                     continue;
 
-                let url = DataManager.getURL("USERBATCH")
-                let uids = playerInfo.plyGuid
-
-                BaseFunc.HTTPGetRequest(url, {
-                    uids: uids
-                }, (event) => {
-                    if (event && event.list && event.list.length > 0) {
-                        let face: string = event.list[0].face
-                        face = face.replace("http://", "https://")
-                        if (-1 != face.indexOf("https://")) { 
-                            cc.loader.load({url: face, type: 'png'}, (err, texture) => {
-                                if (err) {
-                                    console.log(err)
-                                    return
-                                }
-                    
-                                self.setPlayerIcon(player.getChildByName("nodeIcon"), new cc.SpriteFrame(texture))
-                            })
-                        }
-                    }
-                })
+                UserExtends.setUserFace({ node: player.getChildByName("nodeIcon").getChildByName("private_bill_icon"), url: "", uid: playerInfo.plyGuid, fixSizeByParent: true })
 
                 if (playerInfo.itemNum > 0) {
                     player.getChildByName("pic_priScoreDi2").active = true

@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "c095d358-1bc2-4f86-ab89-d2e42ccdf9b7",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "game_pic_chongxuan": {
+      "ver": "1.0.4",
+      "uuid": "f23d81a1-ca77-45f5-8f56-5357c8bcbc94",
+      "rawTextureUuid": "c095d358-1bc2-4f86-ab89-d2e42ccdf9b7",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 303,
+      "height": 53,
+      "rawWidth": 303,
+      "rawHeight": 53,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

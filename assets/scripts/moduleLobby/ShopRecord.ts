@@ -1,6 +1,6 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -26,9 +26,8 @@ export default class ShopRecord extends BaseScene {
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, function(msg) {
+            cc.log(msg)
             if (msg && msg.resultList) {
                 // for (const iterator of msg.list) {
                 //     self._exchangeRecord.push(iterator)
@@ -47,8 +46,7 @@ export default class ShopRecord extends BaseScene {
 
         let size = content.getContentSize()
         let itemSize = model.getContentSize()
-        if (DataManager.Instance.isTesting)
-            console.log(this._shopRecord)   
+        cc.log(this._shopRecord)   
         content.setContentSize(size.width, (itemSize.height + 20) * this._shopRecord.length > 7 ? 7 : this._shopRecord.length)
 
         let nowRecord = content.childrenCount

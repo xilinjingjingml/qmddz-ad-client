@@ -1,64 +1,139 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
-import { iMessageBox, showAwardResultPop } from "../base/BaseFuncTs"
-import { getADDraw, sendReloadUserData } from "../moduleLobby/LobbyFunc"
+import DataManager from "../base/baseData/DataManager"
+import { ITEM, ITEM_NAME } from "../base/baseData/ItemConfig"
+import { czcEvent, iMessageBox, playADBanner, showAwardResultPop } from "../base/BaseFuncTs"
+import NetManager from "../base/baseNet/NetManager"
+import { checkAdCanReceive, receiveAdAward, sendReloadUserData } from "../moduleLobby/LobbyFunc"
+import AudioManager from "./AudioManager.rpddz"
 import GameLogic from "./GameLogic.rpddz"
-import * as proto from "./proto/client.rpddz"
 
-const { ccclass, property } = cc._decorator
+const { ccclass } = cc._decorator
 
 @ccclass
 export default class RegainLosePop extends BaseComponent {
-    tips1: cc.Node
-    tips2: cc.Node
+    tips: cc.Node
     label_money: cc.Node
-    btn_text_ad: cc.Node
-    btn_text_free: cc.Node
     label_time: cc.Node
-    label2: cc.Node
-    regainLose: proto.Iproto_gc_regain_lose_score_ack
+    btnClose: cc.Node
+    btn_get: cc.Node
+    regainLose: Iproto_gc_regain_lose_score_ack
+    nState = 0
+    itemId: number = 0
+    itemNum: number = 0
 
     onLoad() {
+        if (DataManager.Instance.getOnlineParamSwitch("game_mask")) {
+            this.node.getChildByName("mask").getComponent(cc.Button).interactable = false
+        }
+        if (DataManager.Instance.getOnlineParamSwitch("RegainLoseCloseABTest")) {
+            this.node.runAction(cc.sequence([cc.callFunc(() => { this.btnClose.active = false }), cc.delayTime(3), cc.callFunc(() => { this.btnClose.active = true })]))
+        }
+
         this.regainLose = GameLogic.Instance().gamescene.regainLose
 
         let money = 0
         this.regainLose.nValue.forEach(n => money += n)
-        if (money > 10000) {
-            this.label_money.getComponent(cc.Label).string = "" + Math.floor(money / 1000) / 10
+        if (money > 100000) {
+            this.label_money.getComponent(cc.Label).string = Math.floor(money / 10000) + "w"
         } else {
-            this.label_money.getComponent(cc.Label).string = "" + money
-            this.label2.getComponent(cc.Label).string = "金豆"
+            this.label_money.getComponent(cc.Label).string = money + ""
         }
 
-        this.tips1.active = this.regainLose.nValue.length <= 1
-        this.tips2.active = this.regainLose.nValue.length > 1
-        this.btn_text_ad.active = true
-        this.btn_text_free.active = false
-        this.refreshTime()
+        this.tips.active = this.regainLose.nValue.length > 1
+        this.label_time.active = this.regainLose.nRet == 0 && this.regainLose.nValue.length > 1
+        this.label_time.getComponent(cc.Label).string = `  ${(this.regainLose.nCurCount + 1)}/${this.regainLose.nValue.length}`
+
+        let t = 0.8
+        this.label_money.runAction(cc.repeatForever(cc.sequence([
+            cc.scaleTo(t, 1.1).easing(cc.easeSineIn()),
+            cc.scaleTo(t, 1).easing(cc.easeSineIn()),
+        ])))
+
+        t = 0.05
+        this.btn_get.runAction(cc.repeatForever(cc.sequence([
+            cc.rotateTo(t, -3).easing(cc.easeCircleActionOut()),
+            cc.rotateTo(t * 2, 3).easing(cc.easeCircleActionOut()),
+            cc.rotateTo(t * 2, -3).easing(cc.easeCircleActionOut()),
+            cc.rotateTo(t * 2, 3).easing(cc.easeCircleActionOut()),
+            cc.rotateTo(t, 0).easing(cc.easeCircleActionOut()),
+            cc.delayTime(1),
+        ])))
+
+        if (DataManager.Instance.getOnlineParamSwitch("RegainLose_bonuns", 1)) {
+            const level = DataManager.Instance.onlineParam.RegainLose_bonuns_level || 2
+            if (GameLogic.Instance().serverInfo.level <= level) {
+                if (checkAdCanReceive(AdsConfig.taskAdsMap.RegainLoseBonus)) {
+                    const itemIds = [ITEM.CARD_RECORD, ITEM.LOOK_LORDCARD, ITEM.SUPER_JIABEI].sort((a, b) => DataManager.UserData.getItemNum(a) - DataManager.UserData.getItemNum(b))
+                    if (GameLogic.Instance().gamescene.lastExchangeItemId != null) {
+                        itemIds.unshift(GameLogic.Instance().gamescene.lastExchangeItemId)
+                    }
+                    for (const itemId of itemIds) {
+                        if (DataManager.UserData.getItemNum(itemId) <= 3) {
+                            this.itemId = itemId
+                            this.itemNum = 3
+                            this.$("tips_pop").active = true
+                            this.$("label_bonus", cc.Label).string = `额外得${ITEM_NAME[this.itemId]}x${this.itemNum}`
+                            break
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    refreshTime() {
-        const regainLose = GameLogic.Instance().gamescene.regainLose
-        this.label_time.active = regainLose.nValue.length > 1
-        this.label_time.getComponent(cc.Label).string = (regainLose.nCurCount + 1) + "/" + regainLose.nValue.length
+    start() {
+        czcEvent("斗地主", "对局免输", "打开")
+        playADBanner(true, AdsConfig.banner.RegainLose)
     }
 
     onPressGet() {
-        getADDraw(AdsConfig.taskAdsMap.Exemption, () => {
-            GameLogic.Instance().sendMessage({
-                opcode: 'proto_cg_regain_lose_score_req',
-                nOp: 1,
-            })
+        AudioManager.playButtonSound()
+        this.nState = 1
+        if (GameLogic.Instance().gamescene.regainLose.nRet == 2) {
+            this.proto_cg_regain_lose_score_req()
+            return
+        }
+        receiveAdAward(AdsConfig.taskAdsMap.Exemption, () => {
+            receiveAdAward(AdsConfig.taskAdsMap.RegainLoseBonus, null, null, false, 0)
+            this.proto_cg_regain_lose_score_req()
+        })
+    }
+
+    onBannerResize(msg) {
+        cc.log("RegainLosePop.onBannerResize", msg.rect.height)
+        const box = cc.find("nodePop/btn_get", this.node).getBoundingBoxToWorld()
+        const diff = msg.rect.height - box.y
+        if (diff > 0) {
+            cc.find("nodePop", this.node).y += diff
+        }
+    }
+
+    proto_cg_regain_lose_score_req() {
+        this.nState = 2
+        GameLogic.Instance().sendMessage<Iproto_cg_regain_lose_score_req>({
+            opcode: 'proto_cg_regain_lose_score_req',
+            nOp: 1,
+            nItemIndex: this.itemId,
+            nItemNum: this.itemNum
         })
     }
 
     proto_gc_regain_lose_score_ack(event) {
-        const message: proto.Iproto_gc_regain_lose_score_ack = event.packet
+        const message: Iproto_gc_regain_lose_score_ack = event.packet
         cc.log(message)
         if (message.nRet == 0) {
             cc.log("倒计时剩余", message.nTime)
         } else if (message.nRet == 1) {
-            showAwardResultPop([{ index: GameLogic.Instance().HONGBAO_GOLD_MONEY, num: this.regainLose.nValue[this.regainLose.nCurCount] }])
+            const awards = [{ index: ITEM.GOLD_COIN, num: this.regainLose.nValue[this.regainLose.nCurCount] }]
+            if (message.nItemIndex >= 0 && message.nItemIndex < 10000 && message.nItemNum > 0) {
+                if (message.nItemIndex == awards[0].index) {
+                    awards[0].num += message.nItemNum
+                } else {
+                    awards.push({ index: message.nItemIndex, num: message.nItemNum })
+                }
+            }
+            showAwardResultPop(awards)
             sendReloadUserData()
             this.closeSelf()
         } else if (message.nRet < 0) {
@@ -94,5 +169,14 @@ export default class RegainLosePop extends BaseComponent {
             iMessageBox(msg)
             this.closeSelf()
         }
+    }
+
+    onCloseScene() {
+        NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager" })
+        czcEvent("斗地主", "对局免输", ["直接关闭", "关闭广告", "领取"][this.nState])
+    }
+
+    onDestroy() {
+        playADBanner(false, AdsConfig.banner.RegainLose)
     }
 }

@@ -17,6 +17,4 @@ export default class FlushAniControl extends BaseControl {
     start () {
         this.node.runAction(cc.repeatForever(cc.sequence(cc.fadeOut(this.saddenDuration), cc.fadeIn(this.lightDuration), cc.delayTime(this.delayTime))))
     }
-
-    // update (dt) {}
 }

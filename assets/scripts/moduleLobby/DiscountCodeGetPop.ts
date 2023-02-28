@@ -1,8 +1,9 @@
 import BaseComponent from "../base/BaseComponent";
 import DataManager from "../base/baseData/DataManager";
 import BaseFunc = require("../base/BaseFunc")
-import { getMD5, iMessageBox, showAwardMutipleResultPop, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
+import { getMD5, iMessageBox, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 @ccclass
@@ -76,9 +77,8 @@ export default class DiscountCodeGetPop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
                     // 领取成功         
@@ -103,9 +103,8 @@ export default class DiscountCodeGetPop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.vipDiscountCode) {
                 this.vipDiscountCodeList = msg.vipDiscountCode
                 this.updateDiscountView()
@@ -125,8 +124,7 @@ export default class DiscountCodeGetPop extends BaseComponent {
                     {index: this.vipDiscountCodeList[k].dv_item_index, num: this.vipDiscountCodeList[k].dv_item_num},
                     {index: -1, num: this.vipDiscountCodeList[k].db_rate},
                 ]
-                
-                // showAwardMutipleResultPop(awards)
+
                 showAwardResultPop(awards)
                 // this.showAwardPop(this.vipDiscountCodeList[k])
 

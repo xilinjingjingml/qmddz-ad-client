@@ -1,9 +1,8 @@
 import BaseScene from "../base/baseScene/BaseScene";
-import { getUserRole, checkFirstBox, showAwardResultPop, payOrder, MsgBox, iMessageBox, openQttTaskFrame, showTokenGrowPop, getShopBox } from "../base/BaseFuncTs";
+import { checkFirstBox, showAwardResultPop, payOrder, MsgBox, iMessageBox, getShopBox } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
 import { sendReloadUserData } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -39,44 +38,25 @@ export default class OneYuanActivePop extends BaseScene {
         }
     }
 
-    onCloseScene() {
-        
-        // , {
-        //     closeCallback: () => {
-        //         let now = new Date().getTime() / 1000
-        //         if (now >= 1568736000 && now <= 1569859200) 
-        //             SceneManager.Instance.popScene("moduleLobby", "VipActivePop")
-        //     }
-        // })
-    }
-
-    update (dt) {
-        // this._delayTime += dt
-        // if (this._delayTime >= 60) {
-        //     this.getBuyCount()
-        //     this._delayTime = 0
-        // }
-    }
-
     onPressBuy() {
         let box = checkFirstBox(1, 1)
         let self = this
         if (null != box) 
-            payOrder(box, ()=> {openQttTaskFrame(); self.closeSelf()})
+            payOrder(box, ()=> {self.closeSelf()})
     }
 
     onPressBuy3() {
         let box = checkFirstBox(3, 1)
         let self = this
         if (null != box) 
-            payOrder(box, ()=> {openQttTaskFrame();self.closeSelf()})
+            payOrder(box, ()=> {elf.closeSelf()})
     }
 
     onPressBuy6() {
         let box = checkFirstBox(6, 1)
         let self = this
         if (null != box) 
-            payOrder(box, ()=> {openQttTaskFrame(); self.closeSelf()})
+            payOrder(box, ()=> {self.closeSelf()})
     }
 
     onPressGetAward() {
@@ -144,9 +124,8 @@ export default class OneYuanActivePop extends BaseScene {
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, function(msg) {
+            cc.log(msg)
 
             if (msg) {
 
@@ -219,9 +198,8 @@ export default class OneYuanActivePop extends BaseScene {
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, function(msg) {
+            cc.log(msg)
 
             let PayCount = payCount
             let AwardCount = awardCount
@@ -234,10 +212,6 @@ export default class OneYuanActivePop extends BaseScene {
 
             if (msg ) {
                 if (msg.ret == 0) {
-                    // let awards = []
-                    // awards[0] = {index: 367, num: msg.getReward}
-                    // showAwardResultPop(awards)
-                    showTokenGrowPop(msg.getReward) 
                     sendReloadUserData()
 
                     self._finishReward = msg.reward == AwardCount[0] ? 1 : 
@@ -254,8 +228,6 @@ export default class OneYuanActivePop extends BaseScene {
                             child.getChildByName("get").active = self._finishReward >= parseInt(child.name.substring(idx + 5))
                         }
                     }
-
-                    // cc.find("nodePop/nodeProgress/btnGetAward", self.node).getComponent(cc.Button).interactable = false
                 }
                 else{
                     if (self._finishReward == 5) {

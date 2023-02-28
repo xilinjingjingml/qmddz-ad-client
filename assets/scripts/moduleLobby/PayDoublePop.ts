@@ -149,8 +149,7 @@ export default class PayDouble extends cc.Component {
                 buy.interactable = false
                 buy.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(() => buy.interactable = true)))
                 content.getPosition()
-                if (DataManager.Instance.isTesting)
-                    console.log(box.serino)
+                cc.log(box.serino)
                 this._oldGold = DataManager.UserData.money
                 this._lastBoxMoney = iter.content[0].num
                 payOrder(box)

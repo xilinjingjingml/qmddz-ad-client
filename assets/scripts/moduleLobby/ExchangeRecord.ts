@@ -1,6 +1,6 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -23,13 +23,13 @@ export default class ExchangeRecord extends BaseScene {
             pn: DataManager.Instance.packetName,
             gameid: DataManager.Instance.gameId,
             pageNow: this._curPage,
-            pageSize: 20
+            pageSize: 20,
+            isAd: 0
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, function(msg) {
+            cc.log(msg)
             if (msg.ret == 0) {
                 // for (const iterator of msg.list) {
                 //     self._exchangeRecord.push(iterator)
@@ -48,8 +48,7 @@ export default class ExchangeRecord extends BaseScene {
 
         let size = content.getContentSize()
         let itemSize = model.getContentSize()
-        if (DataManager.Instance.isTesting)
-            console.log(this._exchangeRecord)
+        cc.log(this._exchangeRecord)
         content.setContentSize(size.width, (itemSize.height + 20) * this._exchangeRecord.length)
 
         this._exchangeRecord.sort((a, b) => a["order"] > b["order"] ? 1 : (

@@ -1,10 +1,7 @@
-import { IMatchInfo } from './../base/baseData/DataManager';
-import BaseScene from "../base/baseScene/BaseScene";
 import BaseFunc = require("../base/BaseFunc")
-import { sToTime, iMessageBox, gobackToMain, MsgBox, getHttpSpriteFrame, getNowTimeUnix, goBackToMatch } from "../base/BaseFuncTs";
 import BaseComponent from "../base/BaseComponent";
 import DataManager from "../base/baseData/DataManager";
-import NetManager from '../base/baseNet/NetManager';
+import { goBackToMatch, iMessageBox, sToTime } from "../base/BaseFuncTs";
 import SceneManager from '../base/baseScene/SceneManager';
 const { ccclass, property } = cc._decorator;
 
@@ -231,7 +228,7 @@ export default class MatchReady extends BaseComponent {
     }
 
     proto_lc_quit_sign_match_ack(event) {
-        console.log("proto_lc_quit_sign_match_ack", event)
+        cc.log("proto_lc_quit_sign_match_ack", event)
         const message = event.packet
         if (message.ret == 0 || message.ret == -1) {
             this.matchInfo.isSign = false
@@ -243,7 +240,7 @@ export default class MatchReady extends BaseComponent {
     }
 
     proto_bc_play_quit_flow_match_ack(event) {
-        console.log("proto_bc_play_quit_flow_match_ack", event)
+        cc.log("proto_bc_play_quit_flow_match_ack", event)
         const message = event.packet
         if (message.ret == 0) {
             this.matchInfo.isSign = false

@@ -14,7 +14,7 @@ export default class FirstPayPop extends BaseScene {
     firstBox = null
 
     onOpenScene() {
-        czcEvent("大厅", "首充礼包1", "打开首充礼包 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "首充礼包1", "打开首充礼包 " + DataManager.Instance.userTag)
         this.firstBox = checkFirstBox()
         if (null == this.firstBox){
             // this.closeSelf()
@@ -34,7 +34,7 @@ export default class FirstPayPop extends BaseScene {
     }
 
     onPressPay() {
-        czcEvent("大厅", "首充礼包2", "购买首充礼包 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "首充礼包2", "购买首充礼包 " + DataManager.Instance.userTag)
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         // if (this.initParam) {
             let self = this
@@ -52,7 +52,7 @@ export default class FirstPayPop extends BaseScene {
     }
 
     onCloseScene() {
-        czcEvent("大厅", "首充礼包3", "关闭首充礼包 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "首充礼包3", "关闭首充礼包 " + DataManager.Instance.userTag)
     }
 
 }

@@ -1,10 +1,10 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { payOrder, iMessageBox, MsgBox, czcEvent, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
-import { sendReloadUserData, getExchangeConfig, exchangeAward, exchangeQttCoin, getMonthCardStatus, getMonthCardAward } from "./LobbyFunc";
+import { sendReloadUserData, getExchangeConfig, exchangeAward, getMonthCardStatus, getMonthCardAward } from "./LobbyFunc";
 import SceneManager from "../base/baseScene/SceneManager";
 import RollAni from "./component/RollAni";
-import BaseFunc = require("../base/BaseFunc")
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -151,9 +151,8 @@ export default class BackSignScene extends BaseScene {
         }
     
         let self = this;
-        BaseFunc.HTTPGetRequest(url, param, function(msg){
-            if (DataManager.Instance.isTesting)
-                console.log(url)
+        http.open(url, param, function(msg){
+            cc.log(url)
             
             if (msg){
                 // msg.ratioTotal
@@ -252,9 +251,8 @@ export default class BackSignScene extends BaseScene {
         }
     
         let self = this
-        BaseFunc.HTTPGetRequest(url, param, function(msg){
-            if (DataManager.Instance.isTesting)
-                console.log(url)
+        http.open(url, param, function(msg){
+            cc.log(url)
 
             if (msg && msg.ret == 0) {
                 if (self._curDay == 6) {
@@ -287,7 +285,6 @@ export default class BackSignScene extends BaseScene {
                             }
                         ]
                         showAwardResultPop(awards)
-                        exchangeQttCoin(true)
                         sendReloadUserData()
                     }
                 }
@@ -321,7 +318,7 @@ export default class BackSignScene extends BaseScene {
             item.parent = content
 
             let snum = info["gainItemList"][0]["gainNum"] + (info["gainItemList"][0]["gainItem"] == 0 ? "金豆" : 
-                                                            info["gainItemList"][0]["gainItem"] == 365 ? "红包券" :
+                                                            info["gainItemList"][0]["gainItem"] == 365 ? "福卡" :
                                                             "趣金币")
             item.getChildByName("itemName").getComponent(cc.Label).string = snum
             cc.find("item_icon_bg/gold", item).active = info["gainItemList"][0]["gainItem"] == 0
@@ -354,9 +351,9 @@ export default class BackSignScene extends BaseScene {
                     return
                 }
                 
-                czcEvent("大厅", "积分兑换金豆", "请求兑换金豆 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                czcEvent("大厅", "积分兑换金豆", "请求兑换金豆 " + DataManager.Instance.userTag)
                 exchangeAward(info["goodsId"], () => {
-                    czcEvent("大厅", "积分兑换金豆", "兑换金豆成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                    czcEvent("大厅", "积分兑换金豆", "兑换金豆成功 " + DataManager.Instance.userTag)
                 })
             }          
 

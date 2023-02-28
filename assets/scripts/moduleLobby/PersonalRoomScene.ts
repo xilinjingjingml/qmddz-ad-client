@@ -1,6 +1,5 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
 import { MsgBox, enterPrivateGame, numberFormat } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
 

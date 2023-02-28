@@ -1,4 +1,4 @@
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
+import DataManager from "../base/baseData/DataManager";
 import NetManager from "../base/baseNet/NetManager";
 import BaseScene from "../base/baseScene/BaseScene";
 

@@ -1294,7 +1294,6 @@
       "__id__": 1
     },
     "_enabled": true,
-    "_eventListener": [],
     "sceneName": null,
     "curScene": null,
     "lastScene": null,
@@ -1302,15 +1301,11 @@
     "isProtrait": false,
     "socketName": "",
     "initParam": [],
-    "_tabRegister": [],
     "_skipBinding": false,
-    "mNValue": 0,
-    "mNColor": 0,
     "cardType": 1,
     "pukeatlas": {
       "__uuid__": "0d63b525-df92-47e4-93e0-a30c002ff5d2"
     },
-    "m_bSelected": false,
     "_id": ""
   },
   {

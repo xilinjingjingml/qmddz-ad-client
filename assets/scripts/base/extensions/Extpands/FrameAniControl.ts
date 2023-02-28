@@ -1,7 +1,6 @@
-import CommonData from "../../baseData/CommonData";
-import BaseControl from "./BaseControl";
+import BaseControl from "./BaseControl"
 
-const {ccclass, property, executeInEditMode} = cc._decorator;
+const {ccclass, property, executeInEditMode} = cc._decorator
 
 let FRAME_ANI_TYPE = cc.Enum({
     CONTINUOUS_ANI: 0 ,
@@ -97,7 +96,6 @@ export default class FrameAniControl extends BaseControl {
             return
 
         this._curDelay += dt
-        // console.log(this._curDelay, this.duration / 1000)
         if (this._curDelay >= this.duration / 1000) {
             if (this.frameAniType == FRAME_ANI_TYPE.CONTINUOUS_ANI)
                 this.updateContinue()
@@ -110,7 +108,6 @@ export default class FrameAniControl extends BaseControl {
         if (null == this._sprite.spriteFrame || this.frameCount <= 1) 
             return
 
-            // console.log("update frame", this._curDelay, dt)
         let rowNum = Math.floor(this._sprite.spriteFrame.getOriginalSize().width /  this.frameSize.width)
         let x = this._curFrame % rowNum * this.frameSize.width + this.offset.x
         let y = Math.floor(this._curFrame / rowNum) * this.frameSize.height + this.offset.y

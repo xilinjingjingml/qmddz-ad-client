@@ -2,10 +2,12 @@ import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import { getExchangeConfig } from "./LobbyFunc";
-import { numberFormat, iMessageBox, checkPhoneBinding, MsgBox, czcEvent, getHttpSpriteFrame, findStringIndexs } from "../base/BaseFuncTs";
-import QttPluginWrapper from "../base/QttPluginWrapper";
+import { numberFormat, checkPhoneBinding, MsgBox, czcEvent, findStringIndexs } from "../base/BaseFuncTs";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
+
+const EXCHAGE_HUAFEI = true
 
 @ccclass
 export default class ExchangePop extends BaseScene {
@@ -16,8 +18,6 @@ export default class ExchangePop extends BaseScene {
         this.updateUserInfo()
         this.addListener("updateUserData", this.updateUserInfo.bind(this))
 
-        if (this.node.name === "ExchangeScene") {
-        }
         this._type = 0;
 
         if (this.initParam["type"] == null && this.initParam["sceneParam"] != null) {
@@ -32,19 +32,19 @@ export default class ExchangePop extends BaseScene {
         // else
         //     this.updateExchangeInfo()
 
-        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).active = !cc.sys.isBrowser
-        cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).active = cc.sys.isBrowser
+        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).active = EXCHAGE_HUAFEI
+        cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).active = !EXCHAGE_HUAFEI
         
         cc.find("nodeContent/nodeTab/nodeMask/tab2", this.node).active = false
 
         cc.find("nodeContent/nodeTab/nodeMask/tab0", this.node).getComponent(cc.Toggle).isChecked = this._type === 0
-        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && !cc.sys.isBrowser
-        cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && cc.sys.isBrowser
+        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && EXCHAGE_HUAFEI
+        cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && !EXCHAGE_HUAFEI
         cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).getComponent(cc.Toggle).isChecked = this._type === 2
 
         this.onPressExchange(null, this._type)
         
-        czcEvent("大厅", "兑换红包", "打开红包界面 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "兑换红包", "打开红包界面 " + DataManager.Instance.userTag)
     }
 
     updateUserInfo() {
@@ -82,10 +82,12 @@ export default class ExchangePop extends BaseScene {
                    item["exchangeItemList"][0]["exchangeItem"] != -7 &&
                    item["exchangeItemList"][0]["exchangeItem"] != 400 &&
                    item["exchangeItemList"][0]["exchangeItem"] !== 372 &&
+                   item["exchangeItemList"][0]["exchangeItem"] !== 376 &&
+                   item["exchangeItemList"][0]["exchangeItem"] !== 377 &&
                    ((this._type == -1 && item["gainItemList"][0]["itemType"] != 0) ||
                     (this._type == 0 && item["gainItemList"][0]["gainItem"] >= 0 && item["gainItemList"][0]["gainItem"] !== 331 && item["gainItemList"][0]["gainItem"] !== 332) ||
                     // (this._type == 1 && (item["gainItemList"][0]["gainItem"] == 331 || item["gainItemList"][0]["gainItem"] == 332)) ||
-                    (this._type == 1 && (item["gainItemList"][0]["gainItem"] == -7)) || 
+                    (this._type == 1 && (item["gainItemList"][0]["gainItem"] == -3)) || 
                     (this._type == 2 && item["gainItemList"][0]["gainItem"] != 0 && item["gainItemList"][0]["gainItem"] !== 331 && item["gainItemList"][0]["gainItem"] !== 332))
         })
 
@@ -141,13 +143,14 @@ export default class ExchangePop extends BaseScene {
             item.position = cc.v2(idx % rowsNum * interval - (size.width / 2 - interval / 2), -Math.floor(idx / rowsNum) * (itemSize.height + 20) - (itemSize.height + 20) / 2)
 
             let isGold = iterator["gainItemList"][0]["gainItem"] == 0 
-            let isQTTGold = iterator["gainItemList"][0]["gainItem"] == 367
+            let isHuafei = iterator["gainItemList"][0]["gainItem"] == -3 
             let isSubstance = iterator["gainItemList"][0]["gainItem"] != 0 && 
                               iterator["gainItemList"][0]["gainItem"] != 331 && 
                               iterator["gainItemList"][0]["gainItem"] != 332 &&
                               iterator["gainItemList"][0]["gainItem"] != 2 &&
                               iterator["gainItemList"][0]["gainItem"] != 373 &&
-                              iterator["gainItemList"][0]["gainItem"] != -7
+                              iterator["gainItemList"][0]["gainItem"] != -7 &&
+                              iterator["gainItemList"][0]["gainItem"] != 375
 
             item.getChildByName("receive_tip_bg").active = isGold
             // let icon = item.getChildByName("icon")
@@ -179,7 +182,7 @@ export default class ExchangePop extends BaseScene {
 
             let limitVip = iterator["limitVip"]
             let flag = item.getChildByName("redpacket_flag")
-            flag.active = limitVip >= 1
+            flag.active = !EXCHAGE_HUAFEI && limitVip >= 1
 
             if (false) {                
                 let newUserFlag = item.getChildByName("newUserFlag")
@@ -195,7 +198,7 @@ export default class ExchangePop extends BaseScene {
             }
 
             let limitCount = iterator["limitCount"]
-            if (limitCount > 0) {
+            if (!EXCHAGE_HUAFEI && limitCount > 0) {
                 // if (DataManager.CommonData["VipData"].vipLevel >= limitVip)
                     // item.getChildByName("labelTIp").getComponent(cc.Label).string = "您当前可兑换" + limitCount + "次"
                 // else
@@ -208,20 +211,7 @@ export default class ExchangePop extends BaseScene {
                     item.getChildByName("labelTIp").getComponent(cc.Label).string = "VIP等级≥" + limitVip + ", 每日可兑换" + limitCount + "次"
             }
             
-            let self = this
-            cc.loader.load({ url: iterator["goodsImg"], type: "png" }, (err, texture) => {
-                if (err) {
-                    console.log(err)
-                    return
-                }
-
-                if (!item)
-                    return
-                    
-                let icon = item.getChildByName("icon").getChildByName("sprite")
-                if (icon)
-                    icon.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-            })
+            NodeExtends.setNodeSpriteNet({ node: item.getChildByName("icon").getChildByName("sprite"), url: iterator["goodsImg"] })
 
             let btnExchange = item.getChildByName("btnExchange")
             let price = iterator["exchangeItemList"][0]["exchangeNum"]
@@ -257,21 +247,10 @@ export default class ExchangePop extends BaseScene {
                     }
                 }
 
-                // if (false == isGold && false == checkPhoneBinding()) {
-                //     return
-                // }
+                if (isHuafei && false == checkPhoneBinding()) {
+                    return
+                }
 
-                // if (iterator["goodsName"] == "0.3元微信红包" && DataManager.CommonData["morrow"] == 0)  {
-                //     let initParam = {
-                //         title: "提示",
-                //         content: "新手0.3元红包需要第二天登录才可进行领取!",
-                //         buttonNum: 1,
-                //         confirmClose: true,
-                //     }                
-                //     MsgBox(initParam)
-                //     return
-                // }
-                
                 if (iterator["limitVip"] > DataManager.CommonData["VipData"].vipLevel) {
                     // iMessageBox("您当前的VIP等级低于购买等级")
                     let initParam = {
@@ -297,6 +276,11 @@ export default class ExchangePop extends BaseScene {
                     let content = "<color=#874612><size=30><b>您今日的兑换次数已用完</b></size></color>\n\r\n\r" +  
                                     "<color=#a07f61><size=24>" + iterator["goodsName"] + "每日限兑换" + iterator["limitCount"] + "次</size></color>"
 
+                    if (iterator["limitType"] == 1) {
+                        content = "<color=#874612><size=30><b>此道具兑换次数已用完</b></size></color>\n\r\n\r" +  
+                                    "<color=#a07f61><size=24>" + iterator["goodsName"] + "累计限兑换" + iterator["limitCount"] + "次</size></color>"
+                    }
+
                     if (iterator["limitVip"] == 0 && DataManager.CommonData["VipData"].vipLevel == 0){
                         content = "<color=#874612><size=30><b>VIP0玩家累计仅能兑换1次</b></size></color>\n\r\n\r" + 
                                     "<color=#a07f61><size=24>请充值提升VIP等级后再来兑换</size></color>"
@@ -318,11 +302,8 @@ export default class ExchangePop extends BaseScene {
                     MsgBox(initParam)
                     return
                 }
-                
-                if (isGold || isQTTGold){
-                //     let copyItem = []
-                //     Object.assign(copyItem, iterator)
-                    // copyItem["goodsId"] = goldGoodsId
+
+                if (isGold){
                     SceneManager.Instance.popScene("moduleLobby", "ExchangeConfirm2Pop", iterator)
                 }
                 else if (isSubstance) {
@@ -348,30 +329,13 @@ export default class ExchangePop extends BaseScene {
         let tab0 = cc.find("nodeTop/exchange_tab_0", this.node)
         if (tab0) tab0.active = this._type === 0
         let tab1 = cc.find("nodeTop/exchange_tab_1", this.node)
-        if (tab1) tab1.active = this._type === 1 && !cc.sys.isBrowser
+        if (tab1) tab1.active = this._type === 1 && EXCHAGE_HUAFEI
         let tab3 = cc.find("nodeTop/exchange_tab_3", this.node)
-        if (tab3) tab3.active = this._type === 1 && cc.sys.isBrowser
+        if (tab3) tab3.active = this._type === 1 && !EXCHAGE_HUAFEI
         let tab2 = cc.find("nodeTop/exchange_tab_2", this.node)
         if (tab2) tab2.active = this._type === 2
         this.updateExchangeInfo()
     }
 
-    // onPressRP() {
-    //     this._type = 0;
-    //     this.updateExchangeInfo()
-    // }
-
-    // onPressGold() {
-    //     this._type = 1;
-    //     this.updateExchangeInfo()
-    // }
-
-    // onPressSubstance() {
-    //     this._type = 2;
-    //     this.updateExchangeInfo()
-    // }
-
-    onPressExchangePop() {
-        QttPluginWrapper.openWithDrawPage()
-    }
+    onPressExchangePop() { }
 }

@@ -1,0 +1,34 @@
+
+dianji-2.png
+size: 512,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+kuosanguangquanhuang
+  rotate: false
+  xy: 287, 48
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+liangquan
+  rotate: false
+  xy: 2, 3
+  size: 95, 93
+  orig: 95, 93
+  offset: 0, 0
+  index: -1
+quanquan_douzi_00000
+  rotate: false
+  xy: 99, 2
+  size: 94, 94
+  orig: 94, 94
+  offset: 0, 0
+  index: -1
+ss
+  rotate: false
+  xy: 195, 12
+  size: 90, 84
+  orig: 90, 84
+  offset: 0, 0
+  index: -1

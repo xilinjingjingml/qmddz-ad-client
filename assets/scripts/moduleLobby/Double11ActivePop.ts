@@ -1,14 +1,14 @@
-import BaseComponent from "../base/BaseComponent";
-import { sToTime, showAwardMutipleResultPop, setGray, getMD5, getHttpSpriteFrame, playAD, unenoughGuidPop, iMessageBox, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
+import BaseComponent from "../base/BaseComponent"
+import { AdsConfig } from "../base/baseData/AdsConfig"
+import DataManager from "../base/baseData/DataManager"
+import { getMD5, getNowTimeUnix, iMessageBox, setGray, showAwardMutipleResultPop, showAwardResultPop, sToTime } from "../base/BaseFuncTs"
+import SceneManager from "../base/baseScene/SceneManager"
+import { receiveAdAward } from "./LobbyFunc"
 import BaseFunc = require("../base/BaseFunc")
-import DataManager from "../base/baseData/DataManager";
-import { getADAward, exchangeQttCoin } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
-import { AdsConfig } from "../base/baseData/AdsConfig";
+import { http } from "../base/utils/http"
+import { math } from "../base/utils/math"
 
 const {ccclass, property} = cc._decorator;
-
-const AD_AREA = 8
 
 @ccclass
 export default class Double11ActivePop extends BaseComponent {
@@ -87,23 +87,23 @@ export default class Double11ActivePop extends BaseComponent {
             }
             sptMotion.active = true
             sptMotion.opacity = 1
-            sptMotion.setPosition((BaseFunc.Random(2)*2-1) * BaseFunc.Random(50), 20)   
+            sptMotion.setPosition((math.random(2)*2-1) * math.random(50), 20)   
             this["nodeMotionAni"].addChild(sptMotion)
             
-            sptMotion.scale = BaseFunc.Random(3, 9)/10
+            sptMotion.scale = math.random(3, 9)/10
 
-            let left = BaseFunc.Random(2)*2-1
+            let left = math.random(2)*2-1
             
             let bezierCfg = []
-            bezierCfg[bezierCfg.length] = cc.v2(left*BaseFunc.Random(20, 310), BaseFunc.Random(30, 500))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), -BaseFunc.Random(80, 150))
-            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(left*math.random(20, 310), math.random(30, 500))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), -math.random(80, 150))
+            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
 
 
 
             let actionList = []
-            actionList[actionList.length] = cc.delayTime(delayTime + BaseFunc.Random(40)/100)
+            actionList[actionList.length] = cc.delayTime(delayTime + math.random(40)/100)
             actionList[actionList.length] = cc.fadeIn(0.01)
             // actionList[actionList.length] = cc.delayTime(0.01)
             actionList[actionList.length] = cc.bezierTo(0.6, bezierCfg)
@@ -312,11 +312,7 @@ export default class Double11ActivePop extends BaseComponent {
     onPressConfirm1() {
         cc.log("onPressConfirm1")
 
-        playAD(AdsConfig.video.Double11ActivePop, this.adSucess.bind(this))
-    }
-
-    adSucess() {   
-        getADAward(AD_AREA, () => {            
+        receiveAdAward(AdsConfig.taskAdsMap.Double11ActivePop, () => {
             this.http_double11_draw(1, true)
         })
     }
@@ -389,10 +385,9 @@ export default class Double11ActivePop extends BaseComponent {
         // execute task
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             this.drawLock = false
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
                     this.drawStatus.luckValue = msg.luckValue
@@ -433,9 +428,8 @@ export default class Double11ActivePop extends BaseComponent {
         }
 
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
 
@@ -476,9 +470,8 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.list) {
                 this.previewItems = msg.list  
                 this.refreshPreviewItem() 
@@ -504,9 +497,8 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.ret == 0) {
                 this.drawStatus.luckValue = msg.luckValue
                 this.drawStatus.freeValue = msg.freeValue
@@ -542,9 +534,8 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.result) {
                 this.awardList = msg.result  
                 this.refreshAwardList() 
@@ -590,21 +581,6 @@ export default class Double11ActivePop extends BaseComponent {
             let scale = Math.min(scaleX, scaleY)
             previewItem.getChildByName("sptPrevItemIcon").scale = scale 
 
-            // getHttpSpriteFrame(url, (spriteFrame) => {
-            //     if (!previewItem.isValid) {
-            //         return
-            //     }
-                
-            //     let size = previewItem.getChildByName("sptPrevItemIcon").getContentSize()
-            //     previewItem.getChildByName("sptPrevItemIcon").getComponent(cc.Sprite).spriteFrame = spriteFrame                
-            //     previewItem.getChildByName("sptPrevItemIcon").width = spriteFrame.getOriginalSize().width
-            //     previewItem.getChildByName("sptPrevItemIcon").height = spriteFrame.getOriginalSize().height
-            //     let scaleX = size.width / previewItem.getChildByName("sptPrevItemIcon").getContentSize().width
-            //     let scaleY = size.height / previewItem.getChildByName("sptPrevItemIcon").getContentSize().height
-            //     let scale = Math.min(scaleX, scaleY)
-            //     previewItem.getChildByName("sptPrevItemIcon").scale = scale
-            // })
-
             // element.acItemIndex
             previewItem.getChildByName("labelNum").getComponent(cc.Label).string = element.acItemNum
             this["nodePreviewContent"].addChild(previewItem)  
@@ -617,7 +593,6 @@ export default class Double11ActivePop extends BaseComponent {
     }
 
     close() {
-        exchangeQttCoin(true)
         this.closeSelf()
     }
     

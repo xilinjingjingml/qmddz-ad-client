@@ -1,17 +1,10 @@
-
-const {ccclass, property, executeInEditMode} = cc._decorator;
+const {ccclass} = cc._decorator
 
 @ccclass
 export default class BaseMessage extends cc.Component {
-    
-    @property({
-        type: [String, Function]
-    })
     _eventListener = []
 
-    // event listener
     addListener(messageName, func: (message) => void) {
-        //this._eventListener[messageName] = func
         if (null == this._eventListener[messageName])
             this._eventListener[messageName] = []
 
@@ -19,7 +12,6 @@ export default class BaseMessage extends cc.Component {
     }
 
     getMessage(message) {
-            // console.log("baseMessage" + message)
         if (typeof message == "string"){
             if (this[message] && typeof this[message] == "function")
                 this[message]()

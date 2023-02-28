@@ -1,18 +1,20 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
-import { iMessageBox, copyToClipBoard } from "../base/BaseFuncTs";
-import { getVipConfig, getMobileCode, getMobileState } from "./LobbyFunc";
+import DataManager from "../base/baseData/DataManager"
+import { copyToClipBoard, iMessageBox, updateUserInfo } from "../base/BaseFuncTs"
+import BaseScene from "../base/baseScene/BaseScene"
+import WxWrapper from "../base/WxWrapper"
+import { getMobileState, getVipConfig } from "./LobbyFunc"
+import PluginManager from "../base/PluginManager";
+import { kickout, MsgBox } from "../base/BaseFuncTs";
+import { NodeExtends } from "../base/extends/NodeExtends"
+import { http } from "../base/utils/http"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass } = cc._decorator
 
 @ccclass
 export default class PersionScene extends BaseScene {
 
     onOpenScene() {
         cc.find("nodePop/nodeTop/nickname", this.node).getComponent(cc.Label).string = DataManager.UserData.nickname
-        cc.find("nodePop/nodeTop/editNickname", this.node).getComponent(cc.EditBox).string = DataManager.UserData.nickname
-
         cc.find("nodePop/nodeTop/labelGuid", this.node).getComponent(cc.Label).string = "ID:" + DataManager.UserData.guid
 
         if (DataManager.UserData.sex == 0)
@@ -20,121 +22,176 @@ export default class PersionScene extends BaseScene {
         else
             cc.find("nodePop/nodeTop/labelSex/btnWoman", this.node).getComponent(cc.Toggle).isChecked = true
 
-        let self = this
-        DataManager.UserData.face = DataManager.UserData.face.replace("http://", "https://")
-        if (-1 != DataManager.UserData.face.indexOf("https://")){
-            cc.loader.load({url: DataManager.UserData.face, type: 'png'}, (err, texture) => {
-                if (err) {
-                    console.log(err)
-                    return
-                }
 
-                if (null == self.node)
-                    return
-
-                let face = cc.find("nodePop/nodeTop/nodeFace/nodeMask/face", self.node)
-                if (null != face) {
-                    let size = face.getContentSize()
-                    face.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-                    face.setContentSize(size)
-                }
-            })
-        }
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeTop/nodeFace/nodeMask/face", this.node), url: DataManager.UserData.face, fixSizeBySize: cc.size(84, 84) })
 
         if (null == DataManager.CommonData["VipInfo"])
-            getVipConfig(this.updateVipInfo.bind(this))        
+            getVipConfig(this.updateVipInfo.bind(this))
         else
-            this.updateVipInfo()  
+            this.updateVipInfo()
 
         if (null == DataManager.CommonData["bindPhone"].hasBindMoble)
             getMobileState(this.updateBindPhone.bind(this))
         else
             this.updateBindPhone()
-        
-        this.node.on("copyguid", () => { copyToClipBoard(DataManager.UserData.guid) })
+    }
 
-        let btnMan = cc.find("nodePop/nodeTop/labelSex/btnMan", this.node).getComponent(cc.Toggle)
-        btnMan.clickEvents = []
-
-        let clickEventHandler1 = new cc.Component.EventHandler();
-        clickEventHandler1.target = this.node; 
-        clickEventHandler1.component = "PersionScene";
-        clickEventHandler1.handler = "onSexMan"; 
-
-        this["onSexMan"] = (sender) => {       
-            this.onPressSex(null, 0)      
-        }
-                
-        btnMan.clickEvents.push(clickEventHandler1);
-
-        let btnWoman = cc.find("nodePop/nodeTop/labelSex/btnWoman", this.node).getComponent(cc.Toggle)
-        btnWoman.clickEvents = []
-
-        let clickEventHandler2 = new cc.Component.EventHandler();
-        clickEventHandler2.target = this.node; 
-        clickEventHandler2.component = "PersionScene";
-        clickEventHandler2.handler = "onSexWoman"; 
-
-        this["onSexWoman"] = (sender) => {       
-            this.onPressSex(null, 1)      
-        }
-                
-        btnWoman.clickEvents.push(clickEventHandler2);
+    onAfterOpen() {
+        this.updateBindWeiXin()
+        return
+        WxWrapper.checkUserScope("userInfo", (canUse) => {
+            if (this.isValid && !canUse) {
+                const box = cc.find("nodePop/nodeTop/btnSync", this.node).getBoundingBoxToWorld()
+                WxWrapper.showUserInfoButton(box, updateUserInfo)
+            }
+        })
     }
 
     onCloseScene() {
-        this.node.off("copyguid")
+        WxWrapper.hideUserInfoButton()
+    }
+
+    onPressWxUserInfo() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        WxWrapper.getUserInfo((err, uinfo) => {
+            uinfo ? updateUserInfo() : iMessageBox("同步数据失败 请打开用户信息授权")
+        })
+    }
+
+    onUserInfoUpdate() {
+        cc.find("nodePop/nodeTop/nickname", this.node).getComponent(cc.Label).string = DataManager.UserData.nickname
+
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeTop/nodeFace/nodeMask/face", this.node), url: DataManager.UserData.face, fixSizeBySize: cc.size(84, 84) })
     }
 
     updateVipInfo() {
         // VIP信息
         let nextNeed = 0
-        if (null == DataManager.CommonData["VipData"]) 
+        if (null == DataManager.CommonData["VipData"])
             return
 
         for (const iterator of DataManager.CommonData["VipInfo"]) {
-            if (iterator["vipLv"] == (DataManager.CommonData["VipData"].vipLevel + 1)){
+            if (iterator["vipLv"] == (DataManager.CommonData["VipData"].vipLevel + 1)) {
                 nextNeed = iterator["payMoney"]
-                break;
+                break
             }
         }
 
-        let lv = DataManager.CommonData["VipData"].vipLevel || 0
-        cc.find("nodePop/nodeTop/VIP/labelLv", this.node).getComponent(cc.Label).string = "" + lv
-        cc.find("nodePop/nodeTop/progressLv/labelLv", this.node).getComponent(cc.Label).string = "LV." + lv        
-        cc.find("nodePop/nodeTop/progressLv", this.node).getComponent(cc.ProgressBar).progress = (nextNeed - DataManager.CommonData["VipData"].nextVipneedMoney) / nextNeed   
+        const lv = "" + (DataManager.CommonData["VipData"].vipLevel || 0)
+        cc.find("nodePop/nodeTop/VIP/labelLv", this.node).getComponent(cc.Label).string = lv
+        cc.find("nodePop/nodeTop/progressLv/labelLv", this.node).getComponent(cc.Label).string = lv
+        cc.find("nodePop/nodeTop/progressLv", this.node).getComponent(cc.ProgressBar).progress = (nextNeed - DataManager.CommonData["VipData"].nextVipneedMoney) / nextNeed
     }
 
     updateBindPhone() {
+        cc.find("nodePop/nodeBottom/btnBind", this.node).active = true
+        cc.find("nodePop/nodeBottom/phoneBind", this.node).active = true
         if (DataManager.CommonData["bindPhone"] && DataManager.CommonData["bindPhone"].hasBindMoble == 1) {
             cc.find("nodePop/nodeBottom/btnBind", this.node).active = false
+            cc.find("nodePop/nodeBottom/phoneBind", this.node).active = true
             let phone = "" + DataManager.CommonData["bindPhone"].BindPhone
-            phone = phone.substr(0,3) + "****" + phone.substring(7)
+            phone = phone.substr(0, 3) + "****" + phone.substring(7)
             cc.find("nodePop/nodeBottom/phoneBind/labelPhone", this.node).getComponent(cc.Label).string = phone
+        } else {
+            cc.find("nodePop/nodeBottom/phoneBind", this.node).active = false
         }
+    }
+
+    onPressCopy() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        copyToClipBoard(DataManager.UserData.guid)
     }
 
     onPressSex(event, sex) {
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        if (sex == DataManager.UserData.sex)
-            return
 
-        let url = DataManager.getURL("SEXCOMMIT")
-        let param = {
-            pid: DataManager.UserData.guid,
-            ticket: DataManager.UserData.ticket,
-            sex: sex
+        if (DataManager.UserData.sex != sex) {
+            const param = {
+                pid: DataManager.UserData.guid,
+                ticket: DataManager.UserData.ticket,
+                sex: sex
+            }
+
+            http.open(DataManager.getURL("SEXCOMMIT"), param, function (msg) {
+                if (msg && msg.ret == 0) {
+                    DataManager.UserData.sex = parseInt(sex)
+                    iMessageBox("修改性别成功")
+                }
+            })
         }
+    }
 
-        let self = this
-        BaseFunc.HTTPGetRequest(url, param, function(msg) {
-            if (msg && msg.ret==0){
-                DataManager.UserData.sex = parseInt(sex)
-                // cc.find("nodePop/nodeTop/labelSex/btnMan", self.node).getComponent(cc.Toggle).isChecked = DataManager.UserData.sex == 0
-                // cc.find("nodePop/nodeTop/labelSex/btnWoman", self.node).getComponent(cc.Toggle).isChecked = DataManager.UserData.sex == 1
-                iMessageBox("修改性别成功","温馨提示")
+    /**
+     * 切换登陆方式
+     */
+    onPressChange() {
+        cc.log("[PersionScene.onPressChange]")
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this.closeSelf()
+        kickout()
+    }
+
+    /**
+     * 绑定微信
+     */
+    onPressBindWeiXin() {
+        cc.log("[PersionScene.onPressBindWeiXin]")
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        DataManager.CommonData['isBindingWX'] = true
+        PluginManager.login({ sessionType: "SessionWeiXin" })
+    }
+
+    updateBindWeiXin() {
+        cc.find("nodePop/nodeBottom/BindWeiXin", this.node).active = false
+        cc.find("nodePop/nodeBottom/btnBindWeiXin", this.node).active = false
+        if (DataManager.CommonData["ifBindWeixin"]) {
+            cc.find("nodePop/nodeBottom/BindWeiXin", this.node).active = true
+        } else if (PluginManager.hasPluginByName('SessionWeiXin')) {
+            cc.find("nodePop/nodeBottom/btnBindWeiXin", this.node).active = true
+        }
+    }
+
+    PluginSessionCallBack(message: any): void {
+        cc.log("[PersionScene.PluginSessionCallBack] data", message.data)
+        if (DataManager.CommonData['isBindingWX']) {
+            DataManager.CommonData['isBindingWX'] = false
+            const data: { SessionResultCode: number, msg: string, sessionInfo: any } = JSON.parse(message.data)
+            if (data.SessionResultCode == 0) {
+                this.bindWeixin(data.sessionInfo)
+            }
+        }
+    }
+
+    bindWeixin(sessionInfo: any) {
+        const url = DataManager.getURL("BIND_WEIXIN")
+        const param = {
+            visitorUid: DataManager.UserData.guid,
+            ticket: DataManager.UserData.ticket,
+            gameid: DataManager.Instance.gameId,
+            weixinUid: sessionInfo.pid,
+            openId: sessionInfo.openId,
+            type: 0,
+        }
+        http.open(url, param, (event: any) => {
+            if (event) {
+                if (event.ret == 1) {
+                    MsgBox({
+                        content: "该微信账号已存在，请先更换其他微信号，再进行绑定。",
+                        buttonNum: 1,
+                        confirmClose: true,
+                    })
+                    return
+                }
+
+                if (event.ret > 1) {
+                    DataManager.CommonData["ifBindWeixin"] = true
+                    this.updateBindWeiXin()
+                }
+                iMessageBox(event.msg)
+                PluginManager.login({ sessionType: DataManager.load("last_login_type") })
+            } else {
+                iMessageBox("绑定失败，请稍后再试！")
             }
         })
     }
-
 }

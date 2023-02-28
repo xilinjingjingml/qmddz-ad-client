@@ -1,10 +1,10 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import { iMessageBox, czcEvent } from "../base/BaseFuncTs";
-import BaseFunc = require("../base/BaseFunc")
 import DataManager from "../base/baseData/DataManager";
 import { getMobileCode } from "./LobbyFunc";
 import md5 = require("../base/extensions/md5.min")
 import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -20,12 +20,13 @@ export default class BindPhonePop extends BaseScene {
 
     _curInput: cc.EditBox = null
     _bInput: boolean = false
+    _isRelated: boolean = false
 
     onOpenScene() {
         this._phoneEditbox = cc.find("nodePop/nodePhone/editPhone", this.node).getComponent(cc.EditBox)
         this._phoneCodeEditbox = cc.find("nodePop/nodePhone/editDuanxin", this.node).getComponent(cc.EditBox)
 
-        czcEvent("大厅", "绑定手机", "请求绑定手机 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+        czcEvent("大厅", "绑定手机", "请求绑定手机 " + DataManager.Instance.userTag)
     }
 
     onPressGetDuanxin() {
@@ -43,8 +44,7 @@ export default class BindPhonePop extends BaseScene {
 
         let self = this
         getMobileCode(this._phoneEditbox.string, "bind", (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+            cc.log(msg)
             if (msg.ret == 0){
                 let btn = cc.find("nodePop/nodePhone/btnDuanxin", self.node)
                 btn.getComponent(cc.Button).interactable = false
@@ -62,6 +62,8 @@ export default class BindPhonePop extends BaseScene {
                 })), 60))
 
                 iMessageBox("验证码已通过短信发送到您的手机")
+            } else if (msg.ret == -5) {
+                this.onPressGetDuanxinRelated()
             }
             else {
                 iMessageBox(msg.msg)
@@ -87,6 +89,11 @@ export default class BindPhonePop extends BaseScene {
             return
         }
 
+        if (this._isRelated) {
+            this.onPressBindonRelated()
+            return
+        }
+
         let time = new Date().getTime()
         
         let sign = md5("pid=" +DataManager.UserData.guid + "&ticket=" + DataManager.UserData.ticket + 
@@ -109,44 +116,24 @@ export default class BindPhonePop extends BaseScene {
 
         let phone = this._phoneEditbox.string
         let self = this
-        BaseFunc.HTTPGetRequest(DataManager.getURL("MOBILE_BIND_USER"), params, function(msg) {
+        http.open(DataManager.getURL("MOBILE_BIND_USER"), params, function(msg) {
             if (msg.ret == 0) {
-                czcEvent("大厅", "绑定手机", "绑定成功 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                DataManager.CommonData["bindPhone"] = []
+                czcEvent("大厅", "绑定手机", "绑定成功 " + DataManager.Instance.userTag)
+                DataManager.CommonData["bindPhone"] = {}
                 DataManager.CommonData["bindPhone"].hasBindMoble = 1,
                 DataManager.CommonData["bindPhone"].BindPhone = phone
                 iMessageBox("绑定成功")
                 self.closeSelf()
             }
             else if (msg.ret == 1) {
-                czcEvent("大厅", "绑定手机", "手机已绑定过 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                czcEvent("大厅", "绑定手机", "手机已绑定过 " + DataManager.Instance.userTag)
                 iMessageBox("该手机已绑定过，可以直接使用手机号登录")
             }
             else {
-                czcEvent("大厅", "绑定手机", "绑定失败 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
+                czcEvent("大厅", "绑定手机", "绑定失败 " + DataManager.Instance.userTag)
                 iMessageBox("绑定失败")
             }
         }) 
-    }
-
-    update(dt) {
-        // if (this._waitTime < 0) 
-        //     return
-
-        // this._countDown += dt
-
-        // if (this._countDown < 1) 
-        //     return
-
-        // this._waitTime -= dt
-        
-        // if (this._waitTime >= 0) {
-        //     this._btnLabel.string = "(" + Math.ceil(this._waitTime) + ")"
-        // }
-        // else{
-        //     this._btnLabel.string = "获取验证码"
-        //     cc.find("nodePop/nodePhone/btnDuanxin", this.node).getComponent(cc.Button).interactable = true
-        // }
     }
 
     onInputPhone() {
@@ -194,5 +181,58 @@ export default class BindPhonePop extends BaseScene {
 
     onCloseScene() {
         SceneManager.Instance.closeScene("KeyboardPop")
+    }
+
+    onAfterOpen() {
+        const nodePhone = cc.find("nodePop/nodePhone", this.node)
+        cc.find("editPhone/New Button", nodePhone).active = false
+        cc.find("editDuanxin/New Button", nodePhone).active = false
+    }
+
+    onPressGetDuanxinRelated() {
+        this._isRelated = true
+        let params = {
+            uid: DataManager.UserData.guid,
+            ticket: DataManager.UserData.ticket,
+            phone: this._phoneEditbox.string,
+        };
+        http.open(DataManager.getURL("SEND_PHONE_CODE"), params, (msg) => {
+            if (msg.ret == 0) {
+                let btn = cc.find("nodePop/nodePhone/btnDuanxin", this.node)
+                btn.getComponent(cc.Button).interactable = false
+                this._btnLabel = btn.getChildByName("labelDuanxin").getComponent(cc.Label)
+                this._waitTime = 60
+                this._btnLabel.string = "(" + this._waitTime + ")"
+
+                this.node.runAction(cc.repeat(cc.sequence(cc.delayTime(1), cc.callFunc(() => {
+                    this._waitTime--
+                    this._btnLabel.string = "(" + this._waitTime + ")"
+                    if (this._waitTime == 0) {
+                        this._btnLabel.string = "获取验证码";
+                        btn.getComponent(cc.Button).interactable = true
+                    }
+                })), 60))
+
+                iMessageBox("验证码已通过短信发送到您的手机")
+            } else {
+                iMessageBox(msg.msg)
+            }
+        })
+    }
+
+    onPressBindonRelated() {
+        let params = {
+            uid: DataManager.UserData.guid,
+            phone: this._phoneEditbox.string,
+            code: this._phoneCodeEditbox.string,
+        };
+        http.open(DataManager.getURL("LOAD_USERINFO"), params, (msg) => {
+            if (msg.ret == 1) {
+                this.closeSelf()
+                SceneManager.Instance.popScene("moduleLobby", "RelatedPop", { phone: params.phone, code: params.code, bindUserInfo: msg.msg.bindUserInfo })
+            } else {
+                iMessageBox(msg.msg)
+            }
+        })
     }
 }

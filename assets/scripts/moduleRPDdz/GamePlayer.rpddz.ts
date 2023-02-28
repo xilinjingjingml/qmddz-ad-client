@@ -1,11 +1,15 @@
 import BaseFunc = require("../base/BaseFunc")
 import DataManager from "../base/baseData/DataManager";
-import GamePlayerStateController from "./GamePlayerStateController.rpddz"
-import GameRule from "./GameRule.rpddz"
-import {CCard, CCardsType} from "./CCard.rpddz"
-import GameLogic from "./GameLogic.rpddz"
-import { getHttpSpriteFrame, getNewBieRoundLimit } from "../base/BaseFuncTs";
 import GameClock from "./GameClock.rpddz";
+import GameLogic from "./GameLogic.rpddz";
+import GamePlayerStateController from "./GamePlayerStateController.rpddz";
+import GameRule from "./GameRule.rpddz";
+import AudioManager from "./AudioManager.rpddz";
+import { CombinedConfig } from "../moduleLobby/combined/CombinedConfig";
+import { ITEM } from "../base/baseData/ItemConfig";
+import { UserExtends } from "../base/extends/UserExtends";
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { math } from "../base/utils/math";
 
 const {ccclass, property} = cc._decorator;
 
@@ -31,18 +35,14 @@ export default class GamePlayer extends GamePlayerStateController {
     @property()
     chairid:number = null
 
-    @property(GameRule)
-    gameRule:GameRule = null
-    
-    @property(CCard)
-	handCardsVec:CCard[] = []
+	handCardsVec:ICard[] = []
 	
     @property()
 	isAuto:boolean = false
 	isLord:boolean = false
 	bSendNoCard:boolean = false
 	dealCardFlag:boolean = true
-	userData = []
+	userData: { headimage?: string, money?: number, plyGuid?: number, sex?: number, nickname?: string, chairId?: number } = {}
 
 	stopRefreshRedPacket:boolean = false
 
@@ -64,7 +64,16 @@ export default class GamePlayer extends GamePlayerStateController {
 	spine_dizhu: cc.Node;
 	spine_nongmin: cc.Node;
 	spine_role: cc.Node;
-        
+	node_spine_role: cc.Node;
+	spine_nan: cc.Node;
+	spine_nv: cc.Node;
+	spine_head: cc.Node;
+	node_spine_head: cc.Node;
+	doStateChangeStay: Function;
+	nodeBet: cc.Node;
+	bet_label: cc.Node;
+	nodeAuto: cc.Node;
+	sptAuto: cc.Node;
 	
 	
 
@@ -97,6 +106,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			return			
 		}
 		
+		AudioManager.playButtonSound()
         let initParam = {
 			avatarFrame: this.sptAvatar.getComponent(cc.Sprite).spriteFrame,
 			repacketValue: this.labelRedPacket.getComponent(cc.Label).string,
@@ -118,11 +128,14 @@ export default class GamePlayer extends GamePlayerStateController {
     setChairId(chairid, param) {
         cc.log("setData" + chairid)
         this.chairid = chairid;
-        this.gameRule = new GameRule();
         
         this.labelRedPacket.getComponent(cc.Label).string = 0
-        this.labelMoney.getComponent(cc.Label).string = 0
+		this.labelMoney.getComponent(cc.Label).string = 0
 
+		// 合成游戏头衔
+		cc.find("nodeInfo/nodeTitle/title", this.node).getComponent(cc.Sprite).spriteFrame = null
+		cc.find("nodeInfo/nodeTitle/honourBg", this.node).getComponent(cc.Sprite).spriteFrame = null
+		
         this.clock = this.GameClock.getComponent(GameClock)
         this.clock.init(this)
         
@@ -147,10 +160,13 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.nodeCallScore.active = false
 
 		if (this.chairid == 0) {
-			this.spine_dizhu.scale = 0.2
-			this.spine_nongmin.scale = 0.4
+			for (const node of [this.node_spine_role, this.node_spine_head]) {
+				for (const child of node.children) {
+					child.scale *= 4 / 3
+				}
+			}
 		} else if (this.chairid == 1) {
-			this.node_spine_role.scaleX *= -1
+			this.nodeRole.scaleX = 1
 		}
         
         this.GameClock.setPosition(this["nodeCallScorePos" + this.chairid].getPosition());
@@ -161,6 +177,8 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.nodeRemainCard.setPosition(this["nodeRemainCardPos" + this.chairid].getPosition());
 
 		this.nodePutOverAni.setPosition(this["nodePutOverPos" + this.chairid].getPosition());
+		this.nodeBet.setPosition(this["nodeBetPos" + this.chairid].getPosition());
+		this.nodeAuto.setPosition(this["nodeTuoGuanPos" + this.chairid].getPosition());
 		this.sptPutOver.active = false
 
 
@@ -168,6 +186,12 @@ export default class GamePlayer extends GamePlayerStateController {
 
 	setUserData(data) {
 		this.userData = data
+		const isnan = this.userData.sex == 0
+		this.spine_nan.active = isnan
+		this.spine_nv.active = !isnan
+		this.spine_head = isnan ? this.spine_nan : this.spine_nv
+		this.playHeadSpineAnimation("daiji1")
+		this.playHeadSpineAnimation("ythn", true, 30)
         
 		this.show()
 
@@ -178,10 +202,36 @@ export default class GamePlayer extends GamePlayerStateController {
         this.initHeadIcon()
 		
 		if(this.userData.plyGuid > 0) {
+			// 未能正常结束游戏
+			if (this.state == "startGame") {
+				this.doStateChangeEndGame()
+			}
 			this.doStateChangeStay()    
 		}
 		if (this.isMe()) {
 			// cc.error("ERROR:\t", (new Date()).toLocaleString(), this.userData)
+		}
+
+		// 合成游戏头衔
+		if (DataManager.Instance.onlineParam.combinedTitle != 0) {
+			CombinedConfig.getTitle(data.plyGuid, (msg) => {
+				if (!this || !this.node || !this.node.isValid) {
+					return
+				}
+				if (msg == null || msg.titles == null) {
+                    return
+                }
+				let lv = msg.titles[data.plyGuid]
+				lv = Math.min(Math.max(!!lv ? lv : 1, 0), 30)
+				NodeExtends.setNodeSprite({ node: cc.find("nodeInfo/nodeTitle/title", this.node), url: CombinedConfig.getTitleByLevel(lv) })
+				let honourBg = "honour_bg" + Math.ceil(lv / 5)
+				NodeExtends.setNodeSprite({ node: cc.find("nodeInfo/nodeTitle/honourBg", this.node), url: "moduleLobby/texture/combined/" + honourBg })
+
+				if (("" + data.plyGuid) !== DataManager.UserData.guid) {
+					cc.find("nodeInfo/nodeTitle", this.node).scale = .8
+					cc.find("nodeInfo/nodeTitle", this.node).position = cc.v2(0, -10)
+				}
+			})
 		}
     }
     
@@ -194,19 +244,11 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.bSendNoCard = false		
 		if (time && time > 0) {
 			// this.nodeGameTip.active = false
-			let delayTime = 0
-			if (time > 20) {
-				delayTime = 1
-			}
-			this.clock.startTime(time, delayTime)
-			if (this.spine_role && this.spine_role.activeInHierarchy) {
-				this.spine_role.stopAllActions()
-				this.spine_role.runAction(cc.sequence([
-					cc.delayTime(5),
-					cc.callFunc(() => {
-						this.playRoleAction("sikao", true)
-					})
-				]))
+			this.clock.startTime(time)
+			if (this.spine_role) {
+				this.playRoleSpineAnimation("sikao", true, 5)
+			} else {
+				this.playHeadSpineAnimation("ythn", true, 10)
 			}
 		} else {
 			this.clock.stopTime()
@@ -253,6 +295,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.clock.stopTime()
 
 		this.hideCardAlarm()
+		this.setBet(0)
     }
 
     onEnterLeave() {
@@ -270,10 +313,15 @@ export default class GamePlayer extends GamePlayerStateController {
     removePlayer() {
 		this.userData.money = 0
 		this.userData.plyGuid = 0
+		this.nodeBet.active = false
+		this.showAuto(false)
 
 		this.labelMoney.getComponent(cc.Label).string = 0
 		this.labelRedPacket.getComponent(cc.Label).string = 0
-		
+
+		// 合成游戏头衔
+		cc.find("nodeInfo/nodeTitle/title", this.node).getComponent(cc.Sprite).spriteFrame = null
+		cc.find("nodeInfo/nodeTitle/honourBg", this.node).getComponent(cc.Sprite).spriteFrame = null		
         
 		this.initHeadIcon(true)
 		
@@ -330,16 +378,34 @@ export default class GamePlayer extends GamePlayerStateController {
 
     hideReady() {
 
-    }
+	}
 
-    showAuto(flag) {
-        cc.log("TODO showAuto")
-    }
+	showAuto(auto) {
+		this.sptAuto.stopAllActions()
+		this.nodeAuto.active = auto
+		if (auto) {
+			const count = 3
+			const diss = this.sptAuto.width / count
+			const sprite = this.sptAuto.getComponent(cc.Sprite)
+			sprite.fillRange = 1 / count
+			const setFrame = function (index: number) {
+				sprite.fillStart = index / 3
+				this.sptAuto.x = ((count - 1) / 2 - index) * diss
+			}
+			this.sptAuto.runAction(cc.repeatForever(cc.sequence([
+				cc.callFunc(setFrame.bind(this, 0)),
+				cc.delayTime(0.5),
+				cc.callFunc(setFrame.bind(this, 1)),
+				cc.delayTime(0.15),
+				cc.callFunc(setFrame.bind(this, 2)),
+				cc.delayTime(0.15),
+			])))
+		}
+	}
 
-	
 	hideRole() {
-		this.nodeHead.active = true
-		this.nodeRole.active = false
+		this.node_spine_head.active = true
+		this.node_spine_role.active = false
 		this.isLord = false
 	}
 
@@ -364,7 +430,6 @@ export default class GamePlayer extends GamePlayerStateController {
 			actions_label_1[actions_label_1.length] = cc.callFunc(() => {
 				this.nodeCallScore.active = false
 				this.CallScoreAniStar.active = false
-				// callscore_star.removeFromParent()
 			})
 
 
@@ -462,20 +527,20 @@ export default class GamePlayer extends GamePlayerStateController {
 		
 	}
 
-	showRole(isLord: boolean) {
+	showRole(isLord: boolean, vecCards: ICard[]) {
 		this.isLord = isLord
 		this.spine_dizhu.active = isLord
 		this.spine_nongmin.active = !isLord
 		this.spine_role = isLord ? this.spine_dizhu : this.spine_nongmin
-		this.playRoleAction("daiji", true)
+		this.playRoleSpineAnimation("daiji", true)
 
-		this.nodeRole.active = true
-		this.nodeHead.active = false
+		this.node_spine_role.active = true
+		this.node_spine_head.active = false
 
-		this.nodeRole.opacity = 0
-		this.nodeRole.setScale(1.5)
-		this.nodeRole.stopAllActions()
-		this.nodeRole.runAction(cc.sequence([
+		this.node_spine_role.opacity = 0
+		this.node_spine_role.setScale(1.5)
+		this.node_spine_role.stopAllActions()
+		this.node_spine_role.runAction(cc.sequence([
 			cc.spawn([
 				cc.fadeIn(0.3),
 				cc.scaleTo(0.6, 1)
@@ -484,6 +549,16 @@ export default class GamePlayer extends GamePlayerStateController {
 				this.showRoleAni()
 			})
 		]))
+
+		// 地主牌插入到手牌动画 20200908 顾俊需求
+		if (isLord && this.isMe() && !GameLogic.Instance().gamescene.isReconnecte) {
+			const handLordCardUp = DataManager.Instance.getOnlineParamSwitch("handLordCardUp", 1)
+			if (handLordCardUp) {
+				const handLordCardUpTime = DataManager.Instance.onlineParam.handLordCardUpTime || 1
+				this.seleteCards(vecCards)
+				this.handCard.node.runAction(cc.sequence(cc.delayTime(handLordCardUpTime), cc.callFunc(this.seleteCards.bind(this, []))))
+			}
+		}
 	}
 
 	showCardAlarm() {
@@ -493,7 +568,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.nodeAniAlarm.playInThisRound = true
 		
 		this.nodeAniAlarm.active = true
-		GameLogic.Instance().playSound("audio_alarm");
+		AudioManager.playSound("audio_alarm");
 
 		var animation = this.sptAlarm.getComponent(cc.Animation)
 		animation.once('stop', function(){
@@ -519,7 +594,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if(this.dealCardFlag) {
-			if (this.handCardsVec[0].mNValue > 0) {
+			if (this.handCardsVec.length > 0 && this.handCardsVec[0].mNValue > 0) {
 				this.setShowCard()
 			}
 			this.labelRemainCard.dstNum = num
@@ -586,9 +661,9 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (this.isMe()) {
 			GameLogic.Instance().userProperties[index_] = value_
 		}
-		if(index_ == GameLogic.Instance().HONGBAO_GOLD_MONEY) {
+		if(index_ == ITEM.GOLD_COIN) {
 			this.setMoneyNum(value_)
-		}else if(index_ == GameLogic.Instance().HONGBAO_GOLD_TICKET) {
+		}else if(index_ == ITEM.REDPACKET_TICKET) {
 			this.setRedPacketNum(value_)
 		}
 	}
@@ -604,7 +679,7 @@ export default class GamePlayer extends GamePlayerStateController {
 
     setRedPacketNum(num = 0) {
 		if (this.isMe()) {
-			DataManager.UserData.setItemNum(GameLogic.Instance().HONGBAO_GOLD_TICKET, num)
+			DataManager.UserData.setItemNum(ITEM.REDPACKET_TICKET, num)
 		}
 		if (this.stopRefreshRedPacket) {
 			return
@@ -645,7 +720,7 @@ export default class GamePlayer extends GamePlayerStateController {
     
 	initHeadIcon(clearFlag = false) {
 		if(clearFlag){
-			this.sptAvatar.getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("GameDDZ_2", "pic_touxiang")
+			NodeExtends.setNodeSprite({ node: this.sptAvatar, url: "moduleRPDdzRes/images/GamePlayer/pic_touxiang" })
 			return
 		}
         
@@ -653,71 +728,62 @@ export default class GamePlayer extends GamePlayerStateController {
 			return
 		}
 
-        let url = DataManager.getURL("USERBATCH")		
-		
-		
-		let setSprite = (spriteFrame) => {
-			if (this.sptAvatar == null || !this.sptAvatar.isValid) {
-				return
-			}
-			this.sptAvatar.getComponent(cc.Sprite).spriteFrame = spriteFrame
-			this.sptAvatar.scale = Math.min(this.maskAvatar.width / this.sptAvatar.width, this.maskAvatar.height / this.sptAvatar.height)
-		}
-
-		// cc.log("initHeadIcon1", this.userData)
 		if (!!this.userData.headimage && this.userData.headimage != "" && this.userData.headimage.lastIndexOf("http", 0) === 0) {
-			getHttpSpriteFrame(this.userData.headimage, setSprite)			
+			NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
 		}else{
-			BaseFunc.HTTPGetRequest(url, {
-				uids: this.userData.plyGuid
-			}, (event) => {
-				if (event && event.list && event.list.length > 0) {
-					this.userData.headimage = event.list[0].face
-					// cc.log("initHeadIcon2", this.userData)
-					getHttpSpriteFrame(event.list[0].face, setSprite)
+			UserExtends.getUserInfos([this.userData.plyGuid], infos => {
+				if (this.node.isValid && this.userData && infos.length > 0) {
+					this.userData.headimage = infos[0].face
+					NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
 				}
 			})
 		}
 	}
 
-	playAni(cardType: CCardsType) {
+	playAni(cardType: ICardsType) {
 		if (cardType.mNTypeBomb > 0) {
 			if (cardType.mNTypeValue == 16) {
 				this.playAniAction(EANI.ANI_HUOJIAN) //火箭
 			} else {
 				this.playAniAction(EANI.ANI_ZHADAN) //炸弹
 			}
-		} else if (this.gameRule.checkShunZi(cardType.mNTypeNum)) {
+		} else if (GameRule.checkShunZi(cardType.mNTypeNum)) {
 			if (cardType.mNTypeNum == 12) {				
 				this.playAniAction(EANI.ANI_SHUNZI2) //顺子
 			}else {
 				this.playAniAction(EANI.ANI_SHUNZI) //顺子
 			}
-		} else if (this.gameRule.checkLianDui(cardType.mNTypeNum)) {
+		} else if (GameRule.checkLianDui(cardType.mNTypeNum)) {
 			this.playAniAction(EANI.ANI_LIANDUI) //连队
-		} else if (this.gameRule.checkFeiJi(cardType.mNTypeNum)) {
+		} else if (GameRule.checkFeiJi(cardType.mNTypeNum)) {
 			this.playAniAction(EANI.ANI_FEIJI) //飞机
 		}
+		if (!this.spine_role) {
+			return
+		}
 		if (this.handCardsVec.length == 0) {
-			this.playRoleAction("shengli")
+			this.playRoleSpineAnimation("shengli")
 		} else if (cardType.mNTypeBomb > 0) {
-			this.playRoleAction("zhadan")
+			this.playRoleSpineAnimation("zhadan")
 		} else if (cardType.mNTypeNum > 0) {
-			this.playRoleAction("chupai")
+			this.playRoleSpineAnimation("chupai")
 		} else {
-			this.playRoleAction("daiji", true)
+			this.playRoleSpineAnimation("daiji", true)
 		}
 	}
 
 	playAniAction(id: EANI) {
+		if (GameLogic.Instance().gamescene == null) {
+			return
+		}
 		if (id == EANI.ANI_HUOJIAN) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("huojian", this.chairid)
-			GameLogic.Instance().playSound("audio_rocket");
+			AudioManager.playSound("audio_rocket");
 		} else if (id == EANI.ANI_ZHADAN) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", this.chairid, () => {
 				GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", -1)
 			})
-			GameLogic.Instance().playSound("audio_bomb");
+			AudioManager.playSound("audio_bomb");
 		} else if (id == EANI.ANI_SHUNZI) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("shunzi", this.chairid)
 		} else if (id == EANI.ANI_SHUNZI2) {
@@ -726,7 +792,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			GameLogic.Instance().gamescene.play_game_spine_ani("liandui", this.chairid)
 		} else if (id == EANI.ANI_FEIJI) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("feiji", this.chairid)
-			GameLogic.Instance().playSound("audio_plane");
+			AudioManager.playSound("audio_plane");
 		}
 	}
 
@@ -736,7 +802,6 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.handCardsVec = vecCards
 
 		if (this.isMe()) {
-			this.gameRule.setHandCards(vecCards)
 			this.handCard.set_card_value(vecCards, !this.dealCardFlag, undefined, this.isShowCard)
 			if(this.dealCardFlag) {
 				GameLogic.Instance().gamescene.play_game_ani_dealcard()
@@ -775,32 +840,16 @@ export default class GamePlayer extends GamePlayerStateController {
 	}
 
 	getChooseCards() {
-		return this.gameRule.chooseCards
+		return this.handCard.get_select_cards()
 	}	
 	
-	checkChooseCards(cardType) {
-		var vecCards = this.handCard.get_select_cards()
-
-		// 检测牌的完整性
-		if (!this.gameRule.checkCardsIntact(vecCards)) {
-			cc.log('GamePlayer checkChooseCards 检测牌的完整性 失败')
-			return false
-		}
-
-		// 检测出牌是否成型
-		if (!this.gameRule.checkCardsType(vecCards, cardType.mNTypeNum)) {
-			cc.log('GamePlayer checkChooseCards 检测出牌是否成型 失败')
-			return false
-		}
-
-		// 比较大小
-		if (!this.gameRule.compareCardsType(cardType)) {
-			cc.log('GamePlayer checkChooseCards 比较大小 失败')
+	checkChooseCards(vecCards, cardType) {
+		if (!GameRule.checkChooseCardsType(vecCards, this.handCardsVec, cardType)) {
 			return false
 		}
 
 		// 播放动画
-		// this.playAni(this.gameRule.chooseCardType)
+		// this.playAni(GameRule.m_chooseCardType)
 
 		return true
 	}
@@ -813,7 +862,7 @@ export default class GamePlayer extends GamePlayerStateController {
 	playPutCard(message, noAni = false) {
 		// 音效
 		if (!noAni && message.cType) {
-			GameLogic.Instance().playSoundByCardType(message.cType, this.userData.sex)
+			this.playSoundByCardType(message.cType, this.userData.sex)
 		}
 
 		if (this.isMe()) {
@@ -824,17 +873,16 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.hideGameTip()
 
 		//提前移除手牌中出掉的牌
-		let prevCalcHandCard = 	this.handCardsVec	
-		if (prevCalcHandCard && prevCalcHandCard.length > 0) {
-			message.vecCards.forEach(putcard => {
-				prevCalcHandCard.forEach((handcard, k) => {
-					if(putcard == handcard) {
-						prevCalcHandCard.splice(k)
+		if (this.handCardsVec && this.handCardsVec.length > 0) {
+			for (const putcard of message.vecCards) {
+				for (let i = this.handCardsVec.length - 1; i >= 0; i--) {
+					const handcard = this.handCardsVec[i]
+					if (putcard.mNValue == handcard.mNValue && putcard.mNColor == handcard.mNColor) {
+						this.handCardsVec.splice(i, 1)
 					}
-				});
-			});
-
-			this.refresh_handCards(prevCalcHandCard)
+				}
+			}
+			this.refresh_handCards(this.handCardsVec)
 		}
 
 		
@@ -853,6 +901,40 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (!noAni && message.cType) {
 			// cc.warn("message.cType", message.cType)
 			this.playAni(message.cType)
+		}
+	}
+
+	playSoundByCardType(cardtype, sex) {
+		if (!cardtype) {
+			return
+		}
+		if (cardtype.mNTypeNum) {
+			AudioManager.playSound('audio_putcard')
+		}
+
+		if (cardtype.mNTypeNum == 1) {
+			AudioManager.playSound('audio_' + cardtype.mNTypeValue, sex)
+		} else if (cardtype.mNTypeNum == 2) {
+			AudioManager.playSound('audio_2_' + cardtype.mNTypeValue, sex)
+		} else if (cardtype.mNTypeNum == 3) {
+			AudioManager.playSound('audio_3_0', sex)
+			this.scheduleOnce(()=> {
+				AudioManager.playSound('audio_' + cardtype.mNTypeValue, sex)
+			}, 0.4)
+		} else if (cardtype.mNTypeNum == 31) {
+			AudioManager.playSound('audio_3_1', sex)
+		} else if (cardtype.mNTypeNum == 32) {
+			AudioManager.playSound('audio_3_2', sex)
+		} else if (cardtype.mNTypeNum == 411 || cardtype.mNTypeNum == 422) {
+			AudioManager.playSound('audio_4_2', sex)
+		} else if (cardtype.mNTypeNum == 4) {
+			AudioManager.playSound('audio_bomb_0', sex)
+		} else if (GameRule.checkShunZi(cardtype.mNTypeNum)) {
+			AudioManager.playSound('audio_danshun', sex)
+		} else if (GameRule.checkLianDui(cardtype.mNTypeNum)) {
+			AudioManager.playSound('audio_duiduishun', sex)
+		} else if (GameRule.checkFeiJi(cardtype.mNTypeNum)) {
+			AudioManager.playSound("audio_feiji", sex)
 		}
 	}
 
@@ -923,11 +1005,11 @@ export default class GamePlayer extends GamePlayerStateController {
 		} else if (nOp == 9) { //过
 			tipfile = 'gs_tip_buchu'
 			// soundname = 'audio_pass'
-			let type = BaseFunc.Random(1, 4)
+			let type = math.random(1, 4)
 			soundname = "audio_pass_type_" + type
 		} else if (nOp == 10) { //明牌
 			this.setShowCard()
-			this.isMe() && this.showSpineAnimation(GameLogic.Instance().gamescene.ani_spine_mingpai)
+			this.isMe() && this.playFlashSpineAnimation(GameLogic.Instance().gamescene.ani_spine_mingpai)
 			soundname = 'audio_show'
 		} else if (nOp == 12) { //准备
 			tipfile = 'gs_tip_ready'
@@ -949,7 +1031,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			tipfile = 'gs_tip_jiabei'
 		} else if (nOp == 27) { //超级加倍
 			if (this.isMe()) {
-				this.showSpineAnimation(GameLogic.Instance().gamescene.ani_spine_super_jiabei)
+				this.playFlashSpineAnimation(GameLogic.Instance().gamescene.ani_spine_super_jiabei)
 			} else {
 				tipfile = 'gs_tip_chaojijiabei'
 			}
@@ -961,10 +1043,12 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (nOp != 10) {
 			this.clock.stopTime()
 		}
+		if (nOp && [9, 10].indexOf(nOp) == -1) {
+			nOp && this.playHeadSpineAnimation("daiji1")
+		}
 
 		if (tipfile) {
-			
-			this.nodeGameTip.getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("GameDDZ_2", tipfile)
+			NodeExtends.setNodeSprite({ node: this.nodeGameTip, url: "moduleRPDdzRes/images/GamePlayer/" + tipfile })
 
 			this.nodeGameTip.active = true
 
@@ -982,12 +1066,12 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if (soundname) {
-			GameLogic.Instance().playSound(soundname, this.userData.sex)
+			AudioManager.playSound(soundname, this.userData.sex)
 		}
 	}
 
-	hideGameTip() {
-		if (this.nodeGameTip.active) {
+	hideGameTip(now: boolean = false) {
+		if (this.nodeGameTip.active && !now) {
 			const rate = this.isMe() ? 1.4 : 1.2;
 			const t = rate * 1000 + this.tipsTimestamp - new Date().getTime()
 			if (t > 0) {
@@ -998,15 +1082,6 @@ export default class GamePlayer extends GamePlayerStateController {
 			}
 		}
 		this.nodeGameTip.active = false
-	}
-
-	showSpineAnimation(node: cc.Node, name: string = "animation") {
-		node.active = true
-		const skeleton = node.getComponent(sp.Skeleton)
-		skeleton.setAnimation(0, name, false)
-		skeleton.setCompleteListener(() => {
-			node.active = false
-		})
 	}
 
 	destory() {
@@ -1040,18 +1115,79 @@ export default class GamePlayer extends GamePlayerStateController {
 	}
 
 	/**
+	 * 播放 播放完自动消失的动画
+	 */
+	playFlashSpineAnimation(node: cc.Node, name: string = "animation") {
+		node.active = true
+		this.playSpineAnimation(node, name, false, () => {
+			node.active = false
+		})
+	}
+
+	/**
 	 * 播放人物动画
 	 */
-	playRoleAction(name: "daiji" | "chupai" | "shengli" | "sikao" | "zhadan", loop = false) {
-		cc.log("playRoleAction", this.chairid, name)
-		if (!this.spine_role) {
+	playRoleSpineAnimation(name: "daiji" | "chupai" | "shengli" | "sikao" | "zhadan", loop = false, delayTime?: number) {
+		this.spine_role.stopAllActions()
+
+		if (delayTime) {
+			this.spine_role.runAction(cc.sequence([
+				cc.delayTime(delayTime),
+				cc.callFunc(() => {
+					this.playRoleSpineAnimation(name, loop)
+				})
+			]))
 			return
 		}
-		this.spine_role.stopAllActions()
-		const skeleton = this.spine_role.getComponent(sp.Skeleton)
-		skeleton.setAnimation(0, name, loop)
-		skeleton.setCompleteListener(loop ? null : () => {
-			this.playRoleAction("daiji", true)
+
+		this.playSpineAnimation(this.spine_role, name, loop, () => {
+			this.playSpineAnimation(this.spine_role, "daiji", true)
 		})
+	}
+
+	/**
+	 * 播放人物动画
+	 */
+	playHeadSpineAnimation(name: "daiji" | "daiji1" | "ythn", loop = false, delayTime: number = 0, stop: boolean = true) {
+		if (stop) {
+			this.spine_head.stopAllActions()
+		}
+
+		if (delayTime) {
+			this.spine_head.runAction(cc.sequence([
+				cc.delayTime(delayTime),
+				cc.callFunc(() => {
+					this.playHeadSpineAnimation(name, loop)
+				})
+			]))
+			return
+		}
+
+		this.playSpineAnimation(this.spine_head, name, loop, () => {
+			name = name == "daiji" ? "daiji1" : (Math.random() < 0.5 ? "daiji" : "daiji1")
+			this.playHeadSpineAnimation(name, loop, 0, false)
+		})
+	}
+
+	/**
+	 * 播放动画
+	 */
+	playSpineAnimation(node: cc.Node, name: string, loop: boolean, callback?: Function) {
+		const skeleton = node.getComponent(sp.Skeleton)
+		skeleton.setAnimation(0, name, loop)
+		skeleton.setCompleteListener(() => {
+			if (!loop) {
+				callback && callback()
+			}
+		})
+	}
+
+	setBet(beishu: number) {
+		this.nodeBet.active = beishu > 1
+		if (beishu > 1) {
+			// this.bet_label.getComponent(cc.Label).string = beishu == 4 ? "超级加倍" : "加倍"
+			cc.find("nodeInfo/nodeBet/betx2", this.node).active = beishu !== 4 
+			cc.find("nodeInfo/nodeBet/betx4", this.node).active = beishu === 4
+		}
 	}
 }

@@ -1,9 +1,11 @@
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
-import { checkWaterMatchTime, gotoMatchSvr, iMessageBox, leftMatchTime, numberFormat, setNodeSpriteLocal, setNodeSpriteNet, getSpritePathByItemId, getLeadTime, getSpriteByItemId } from "../base/BaseFuncTs";
+import DataManager from "../base/baseData/DataManager";
+import { checkWaterMatchTime, getLeadTime, getSpriteByItemId, gotoMatchSvr, iMessageBox, leftMatchTime } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import BaseScene from "../base/baseScene/BaseScene";
 import SceneManager from "../base/baseScene/SceneManager";
 import BaseFunc = require("../base/BaseFunc")
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { time } from "../base/utils/time";
 
 const { ccclass, property } = cc._decorator;
 
@@ -35,7 +37,7 @@ export default class MatchScene extends BaseScene {
         let matchTypes: IMatchType[] = []
         matchTypes.push({
             eMatch: EMatch.Red_Packet,
-            check: (match: IMatchInfo) => { return match.matchFlag == 1 },
+            check: (match: IMatchInfo) => match.matchFlag == 1,
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_small", this.node),
             menuIconPath1: "iconRp",
@@ -46,7 +48,7 @@ export default class MatchScene extends BaseScene {
         })
         matchTypes.push({
             eMatch: EMatch.Big_Award,
-            check: (match: IMatchInfo) => { return match.matchFlag == 2 },
+            check: (match: IMatchInfo) => match.matchFlag == 2,
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_small", this.node),
             menuIconPath1: "iconBig",
@@ -57,7 +59,7 @@ export default class MatchScene extends BaseScene {
         })
         matchTypes.push({
             eMatch: EMatch.Gold_Bean,
-            check: (match: IMatchInfo) => { return match.matchFlag == 4 },
+            check: (match: IMatchInfo) => match.matchFlag == 4,
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_long", this.node),
             menuIconPath1: "iconGold",
@@ -69,7 +71,7 @@ export default class MatchScene extends BaseScene {
         /**
         matchTypes.push({
             eMatch: EMatch.Challenge,
-            check: (match: IMatchInfo) => { return match.matchFlag == 8 },
+            check: (match: IMatchInfo) => match.matchFlag == 8,
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_long", this.node),
             menuIconPath1: "iconChallenge",
@@ -102,8 +104,8 @@ export default class MatchScene extends BaseScene {
 
             buttons[matchType.eMatch] = node
 
-            // setNodeSpriteLocal({ node: cc.find("checkmark/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath1, delayShow: true })
-            // setNodeSpriteLocal({ node: cc.find("Background/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath2, delayShow: true })
+            // NodeExtends.setNodeSprite({ node: cc.find("checkmark/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath1, delayShow: true })
+            // NodeExtends.setNodeSprite({ node: cc.find("Background/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath2, delayShow: true })
 
             cc.find("checkmark/" + matchType.menuIconPath1, node).active = true
             cc.find("Background/" + matchType.menuIconPath2, node).active = true
@@ -175,7 +177,7 @@ export default class MatchScene extends BaseScene {
             node.active = true
 
             // icon
-            setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
+            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
 
             //比赛名字
             cc.find("lbl_name", node).getComponent(cc.Label).string = v.matchName
@@ -186,11 +188,11 @@ export default class MatchScene extends BaseScene {
             cc.find("nodePerson/spt_person", node).color = matchType.color.clone()
 
             // bg
-            // setNodeSpriteLocal({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
 
-            // setNodeSpriteLocal({ node: cc.find("nodeTime1/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
-            // setNodeSpriteLocal({ node: cc.find("nodeTime2/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
-            // setNodeSpriteLocal({ node: cc.find("nodeTime2/person_bg2", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime1/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime2/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime2/person_bg2", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
 
             cc.find("btn_bg/" + matchType.itemBgPath, node).active = true
             cc.find("nodeTime1/person_bg1", node).color = matchType.personBgPath
@@ -241,14 +243,14 @@ export default class MatchScene extends BaseScene {
                         } else if (v.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                             cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()]
                         } else {
-                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("mm-dd", v.begin)
+                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = time.format("mm-dd", v.begin)
                         }
                         cc.find("nodeTime2/person_bg1", node).active = true
                         cc.find("nodeTime2/label2", node).active = true
                         cc.find("nodeTime2/person_bg2", node).active = true
-                        cc.find("nodeTime2/person_bg1/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("HH", v.begin)
+                        cc.find("nodeTime2/person_bg1/label", node).getComponent(cc.Label).string = time.format("HH", v.begin)
                         cc.find("nodeTime2/label2", node).getComponent(cc.Label).string = ":"
-                        cc.find("nodeTime2/person_bg2/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("MM", v.begin)
+                        cc.find("nodeTime2/person_bg2/label", node).getComponent(cc.Label).string = time.format("MM", v.begin)
                     }
                     cc.find("nodePerson", node).active = nLeftTime > 0
                 }
@@ -287,7 +289,7 @@ export default class MatchScene extends BaseScene {
             node.active = true
 
             // icon
-            setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
+            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
 
             //比赛名字
             cc.find("lbl_name", node).getComponent(cc.Label).string = v.matchName
@@ -315,13 +317,12 @@ export default class MatchScene extends BaseScene {
 
             // 报名费
             cc.find("nodeSign/nodeSign/lbl_num", node).getComponent(cc.Label).string = 'x' + v.signFee[0].signItemNum
-            // setNodeSpriteLocal({ node: cc.find("nodeSign/nodeSign/spt_icon", node), url: getSpritePathByItemId(v.signFee[0].signItem), fixSize: true })
             cc.find("nodeSign/nodeSign/spt_icon", node).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(v.signFee[0].signItem)
 
             // bg
-            // setNodeSpriteLocal({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
 
-            // setNodeSpriteLocal({ node: cc.find("nodePerson/match_person_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // NodeExtends.setNodeSprite({ node: cc.find("nodePerson/match_person_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
             cc.find("btn_bg/" + matchType.itemBgPath, node).active = true
             cc.find("nodePerson/match_person_bg", node).color = matchType.personBgPath
 
@@ -369,11 +370,11 @@ export default class MatchScene extends BaseScene {
                         } else if (v.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                             cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()]
                         } else {
-                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("mm-dd", v.begin)
+                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = time.format("mm-dd", v.begin)
                         }
-                        cc.find("nodeTime2/nodeTime/person_bg1/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("HH", v.begin)
+                        cc.find("nodeTime2/nodeTime/person_bg1/label", node).getComponent(cc.Label).string = time.format("HH", v.begin)
                         cc.find("nodeTime2/nodeTime/label2", node).getComponent(cc.Label).string = ":"
-                        cc.find("nodeTime2/nodeTime/person_bg2/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("MM", v.begin)
+                        cc.find("nodeTime2/nodeTime/person_bg2/label", node).getComponent(cc.Label).string = time.format("MM", v.begin)
                     }
                     cc.find("nodePerson", node).active = nLeftTime > 0
                 }
@@ -410,7 +411,7 @@ export default class MatchScene extends BaseScene {
                 btn_sign.getChildByName("btn_sign_2").active = false
                 btn_sign.getChildByName("btn_sign_3").active = false
                 btn_sign.getChildByName(bg_sign).active = true
-                // setNodeSpriteLocal({ node: btn_sign, url: "moduleLobby/texture/matchScene/" + bg_sign })
+                // NodeExtends.setNodeSprite({ node: btn_sign, url: "moduleLobby/texture/matchScene/" + bg_sign })
             }
             this[name]()
             this.registeMatchList.push(name)

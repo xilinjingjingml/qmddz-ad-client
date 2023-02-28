@@ -1,11 +1,11 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
-import { playAD, iMessageBox, showAwardResultPop } from "../base/BaseFuncTs";
-import { getADAward, sendReloadUserData } from "./LobbyFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig";
+import DataManager from "../base/baseData/DataManager";
+import { iMessageBox, showAwardResultPop } from "../base/BaseFuncTs";
+import BaseScene from "../base/baseScene/BaseScene";
+import { receiveAdAward, sendReloadUserData } from "./LobbyFunc";
+import { http } from "../base/utils/http";
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 const TimeConfig = [
     {
@@ -24,16 +24,16 @@ const TimeConfig = [
 
 const FaitExp = [10, 20, 40, 60, 80, 100, 120, 140, 160]
 const FaitAwards = [
-    [400, 50],
-    [500, 50],
-    [500, 70],
-    [600, 70],
-    [600, 90],
-    [700, 90],
-    [700, 110],
-    [800, 110],
-    [800, 130],
-    [900, 130],
+    [5000, 11],
+    [5500, 12],
+    [6000, 13],
+    [7000, 14],
+    [7500, 15],
+    [8000, 16],
+    [8500, 17],
+    [9000, 18],
+    [9500, 19],
+    [10000, 20],
 ]
 
 @ccclass
@@ -43,6 +43,13 @@ export default class GodOfWealthActivePop extends BaseScene {
 
     onEnable() {
         this.onInit()
+        const skeleton = cc.find("nodeMain/facaimao", this.node).getComponent(sp.Skeleton)
+        skeleton.setAnimation(0, 'xialuo', false)
+        skeleton.setCompleteListener(() => {
+            cc.find("nodeMain/nodeAwards", this.node).active = true
+            skeleton.setCompleteListener(null)
+            skeleton.setAnimation(0, 'daiji', true)
+        })
     }
 
     onInit() {
@@ -54,7 +61,7 @@ export default class GodOfWealthActivePop extends BaseScene {
         if (null == fait || null == level)
             return
 
-        cc.find("nodeMain/lblLv", this.node).getComponent(cc.Label).string = level
+        cc.find("nodeMain/nodeLv/lblLv", this.node).getComponent(cc.Label).string = "信仰等级：" + level
         if (FaitExp.length >= level) {
             cc.find("nodeMain/lvProgress", this.node).getComponent(cc.ProgressBar).progress = fait / FaitExp[level - 1]
             cc.find("nodeMain/lvProgress/lblExp", this.node).getComponent(cc.Label).string = fait + "/" + FaitExp[level - 1]
@@ -69,8 +76,9 @@ export default class GodOfWealthActivePop extends BaseScene {
         cc.find("nodeMain/nodeAwards/award2/lblNum", this.node).getComponent(cc.Label).string = "" + award[1]
     }
 
-    initAwardStatus(signNum = 0, signTime = 0) {                
+    initAwardStatus(signNum = 0, signTime = 0) {
         cc.find("nodeMain/btnGetAward", this.node).getComponent(cc.Button).interactable = false
+        cc.find("nodeMain/btnGetAwardDouble", this.node).getComponent(cc.Button).interactable = false
 
         let time = new Date()
         let hours = time.getHours()
@@ -88,12 +96,13 @@ export default class GodOfWealthActivePop extends BaseScene {
 
             if (checkSign > 0 && new Date(signTime * 1000).getHours() >= TimeConfig[k].start) {
                 nodeTime.getChildByName("status3").active = true
-                checkSign --;
+                checkSign--;
             }
             else if (TimeConfig[k].start <= hours && hours < TimeConfig[k].end) {
                 nodeTime.getChildByName("status1").active = true
                 this._isDouble = false
                 cc.find("nodeMain/btnGetAward", this.node).getComponent(cc.Button).interactable = true
+                cc.find("nodeMain/btnGetAwardDouble", this.node).getComponent(cc.Button).interactable = true
             }
             else {
                 nodeTime.getChildByName("status2").active = TimeConfig[k].end <= hours
@@ -102,39 +111,46 @@ export default class GodOfWealthActivePop extends BaseScene {
         }
     }
 
-    onPressGetAward() {
-        this.node.getChildByName("nodeAwardDialog").active = true                
-    }
-
     onPressNormal() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this._isDouble = false
         this.getTimeClockAward()
     }
 
     onPressDouble() {
-        let self = this
-        playAD(AdsConfig.video.GodOfWealth, () => {
-            self._isDouble = true
-            getADAward(AdsConfig.taskAdsMap["GodOfWealth"], self.getTimeClockAward.bind(self))            
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        receiveAdAward(AdsConfig.taskAdsMap.GodOfWealth, () => {
+            if (this.isValid) {
+                this._isDouble = true
+                this.getTimeClockAward()
+            }
         })
     }
 
     loadTimeClockConfig() {
-        let url = DataManager.getURL("LOAD_TIME_CLOCK")
-        let params = {
+        const params = {
             uid: DataManager.UserData.guid,
             ticket: DataManager.UserData.ticket,
             gameId: DataManager.Instance.gameId
-        };
+        }
 
-        let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
-            if (null == msg)
-                return
-        
-            self.initProgress(msg.flFaith, msg.flLevel)
-            self.initAwardStatus(msg.signNum, msg.signTime)
+        http.open(DataManager.getURL("LOAD_TIME_CLOCK"), params, (msg) => {
+            if (msg && msg.list) {
+                FaitAwards.length = 0
+                for (const config of msg.list) {
+                    if (!FaitAwards[config.signCount - 1]) {
+                        FaitAwards[config.signCount - 1] = []
+                    }
+                    FaitAwards[config.signCount - 1][config.itemIndex == 0 ? 0 : 1] = config.itemNum
+                }
+
+                if (this.isValid) {
+                    this.initProgress(msg.flFaith, msg.flLevel)
+                    this.initAwardStatus(msg.signNum, msg.signTime)
+                }
+            }
         })
-    }     
+    }
 
     getTimeClockAward() {
         let url = DataManager.getURL("GET_TIME_CLOCK")
@@ -142,24 +158,26 @@ export default class GodOfWealthActivePop extends BaseScene {
             uid: DataManager.UserData.guid,
             ticket: DataManager.UserData.ticket,
             gameId: DataManager.Instance.gameId,
-            isAd: this._isDouble ? 1 : 0
+            isAd: this._isDouble ? 2 : 0
         };
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function (msg) {
             if (null == msg)
                 return
-        
+
             if (msg.ret == 0) {
                 let awards = []
-                awards[0] = {
-                    index: msg.itemIndex,
-                    num: msg.itemNum,
+                if (msg.awardList) {
+                    msg.awardList.forEach(award => {
+                        awards.push({ index: award.itemIndex, num: award.itemNum })
+                    })
+                } else {
+                    awards.push({ index: msg.itemIndex, num: msg.itemNum })
                 }
                 showAwardResultPop(awards)
                 sendReloadUserData()
                 if (self.node) {
-                    self.node.getChildByName("nodeAwardDialog").active = false
                     self.loadTimeClockConfig()
                 }
             }

@@ -490,9 +490,10 @@ setOpcode("proto_cl_get_activity_rewards_list_req",20203)
 setOpcode("proto_lc_get_activity_rewards_list_ack",20204)
 setOpcode("proto_cl_get_activity_reward_req",20205)
 setOpcode("proto_lc_get_activity_reward_ack",20206)
+setOpcode("proto_cl_get_newbie_reward_req",20207)
+setOpcode("proto_lc_get_newbie_reward_ack",20208)
 setOpcode("proto_cb_play_quit_flow_match_req",21337)
 setOpcode("proto_bc_play_quit_flow_match_ack",21338)
-// console.log(opcodeDefine)
 
 export default function opcodeConfig(obj : String | Number) {   
     if (typeof obj == "string")

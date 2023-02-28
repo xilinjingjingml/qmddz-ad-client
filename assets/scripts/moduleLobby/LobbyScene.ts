@@ -1,604 +1,314 @@
-import BaseScene from "../base/baseScene/BaseScene";
-import DataManager from "../base/baseData/DataManager";
-import SceneManager from "../base/baseScene/SceneManager";
-import { TimeFormat, iMessageBox, enterGame, checkServerMoneyLimit, showTrumpet, MsgBox, numberFormat, unenoughGold, checkFirstBox, showAwardResultPop, czcEvent, oncePayBox, getLowMoneyRoom, getShopBox, getNewBieServer, playAD, PostInfomation, showTokenGrowPop, getNowTimeUnix, checkOneYuanBox, showQttSuspendWin, showDouble11ActivePop, showActivityPortalPop, getClipBoard, QttReportData, getGameServers, findStringIndexs } from "../base/BaseFuncTs";
-import { getMobileState, exchangeQttCoin, getNewUserSignAward, getServerList, getADConfig, getADAward, sendReloadUserData, check03ExchangeGoods, getExchangeConfig, checkADNum, getFlyBackAward, getMailInfo, getVipConfig, getADDraw } from "./LobbyFunc";
-import BaseTrigger from "../base/extensions/Trigger/BaseTrigger";
-import NetManager from "../base/baseNet/NetManager";
+import BaseComponent from "../base/BaseComponent"
+import { AdsConfig } from "../base/baseData/AdsConfig"
+import DataManager from "../base/baseData/DataManager"
+import { checkFirstBox, czcEvent, enterGame, getGameServers, getLowMoneyRoom, getShopBox, getUserRole, iMessageBox, playADInter, showDouble11ActivePop, showNoticePop, showTrumpet, TimeFormat, unenoughGold } from "../base/BaseFuncTs"
+import NetManager from "../base/baseNet/NetManager"
+import WebSocketWrapper from "../base/baseNet/WebSocketWrapper"
+import SceneManager from "../base/baseScene/SceneManager"
+import GameManager from "../base/GameManager"
+import PopupQueue from "../base/utils/PopupQueue"
+import WxWrapper from "../base/WxWrapper"
+import { getChangCiName, getGameConfig, isSmallGame } from "../gameConfig"
+import { checkAdCanReceive, getAdLeftTimes, getExchangeConfig, getMailInfo, getNextAdMethod, getServerList, getVipConfig, loadAdConfig, loadShareMoney, loadTomorrowConfig, loadTomorrowStatus, receiveAdAward } from "./LobbyFunc"
+import opcodeConfig from "./proto/opcode"
 import proto = require("../moduleLobby/proto/lobbyproto")
-import opcodeConfig from "./proto/opcode";
-import GameManager from "../base/GameManager";
-import WebSocketWrapper from "../base/baseNet/WebSocketWrapper";
-import { getGameConfig, isSmallGame, getGameBaseLevel, GAME_TYPE, getGameName, getChangCiName } from "../gameConfig";
-import BaseComponent from "../base/BaseComponent";
-import { AdsConfig } from "../base/baseData/AdsConfig";
-import QttPluginWrapper from "../base/QttPluginWrapper";
+import { CombinedConfig } from "./combined/CombinedConfig"
+import { NodeExtends } from "../base/extends/NodeExtends"
+import { time } from "../base/utils/time"
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator
 
-const AD_QTT_AREA = 5
-const AD_FREE_GOLD = 6
-
-const POP_SCENE = cc.Enum({
-    NONE: 0,
-    NEW_USER_SIGN: 1,
-    USER_RELOGIN: 2,
-    SIGN_POP: 3,
-    ONE_YUAN_ACTIVE: 4,
-    VIP_ACTIVE: 5,
-    ONE_YUAN_POP: 6,
-    FREE_DRAW: 7,
-    
-    POP_END: -1
-})
+let tomorrow_valid = false
 
 @ccclass
 export default class LobbyScene extends BaseComponent {
 
-    _isLogin: boolean = false
+    isLogin: boolean = false
+    willStartGame: boolean = false
+    isGuideToCash: boolean = false
+    intoDouble11Active: boolean = false
+    taskData: any = {}
+    popupQuene: PopupQueue // 顺序弹窗
+    countPopup: number
+    countAllConfig: number
+    countAllConfig2: number = 0
+    skipPopUp:boolean = false
 
-    _bInit: boolean = false
-
-    _firstJumpGame: boolean = false
-
-    _intoDouble11Active: boolean = false
-
-    _showRoom: boolean = false
-
-    
-    @property({
-        type: cc.AudioClip
-    })
-    backgroundMusic = null
+    @property({ type: cc.AudioClip })
+    backgroundMusic: cc.AudioClip = null
 
     onLoad() {
-
+        cc.director.once(cc.Director.EVENT_AFTER_DRAW, this.onAfterDraw, this)
     }
 
     onFixLongScreen() {
-        this["nodeLeft"].scale = 1.15
-        // this["nodeRight"].scale = 1.15
-        this["nodeTop"].scale = 1.15        
+        this["nodeTop"].scale = 1.15
     }
 
     onOpenScene() {
-        czcEvent("大厅", "登录9", "进入大厅 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-                
+        czcEvent("大厅", "登录9", "进入大厅 " + DataManager.Instance.userTag)
+        this.socketName = "lobby"
+
+        this.willStartGame = DataManager.CommonData["morrow"] == 0 && DataManager.Instance.getOnlineParamSwitch("jump2game")
+        if (DataManager.Instance.getOnlineParamSwitch("GuideToCashABTest")) {
+            this.isGuideToCash = true
+        }
+
         this.audio_play()
 
-        this._firstJumpGame = DataManager.Instance.onlineParam && null != DataManager.Instance.onlineParam.jump2game ? (DataManager.Instance.onlineParam.jump2game == 1) : this._firstJumpGame
-
-        this.socketName = "lobby"
-        showTrumpet()    
+        showTrumpet()
         this.updateUserData()
+        this.updateTitle()
+        this.updateBadge()
 
-        if (DataManager.CommonData["morrow"] == 0) {
-            let ddz = cc.find("nodeMain/nodeGame/ddzEntrance", this.node)
-            if (null != ddz)
-                ddz.getChildByName("fingerAni").active = true
+        this.setSideBtnActive("tomorrow", false)
+        this.setSideBtnActive("inviteFriend", false)
+        this.setSideBtnActive("newbieGift", false)
+        this.setSideBtnActive("shareMoney", false)
+
+        if (!DataManager.CommonData.roleCfg || !DataManager.CommonData.roleCfg.weekCardABTest) {
+            cc.find("nodePlayer/monthCard", this.node).active = false
         }
-        
-        let nodeServers = cc.find("nodeServers/nodeSize", this.node)
-        if (null !!= nodeServers) {
-            let path = null != nodeServers.getComponent(cc.ScrollView) ? "view/content/" : ""
-            let have88 = DataManager.Instance.GameType === GAME_TYPE.QMDDZ && DataManager.CommonData["regtime"] < 1578412800
-
-            cc.find("nodeServers/nodeSize/" + path + "btnServer3/50yuanflag", this.node).active = !have88
-            cc.find("nodeServers/nodeSize/" + path + "btnServer3/88yuanflag", this.node).active = have88
-            cc.find("nodeServers/nodeSize/" + path + "btnServer15/50yuanflag", this.node).active = !have88
-            cc.find("nodeServers/nodeSize/" + path + "btnServer15/88yuanflag", this.node).active = have88
-        }
-        
-        this.setSideBtnActive("btnNewGift", false)
-        this.setSideBtnActive("btnSixBox", false)
-        this.setSideBtnActive("btnOneYuan", false)
-        this.setSideBtnActive("btnOneYuanActive", false)
-        this.setSideBtnActive("btnOneYuanActive2", false)
-        this.setSideBtnActive("btnVipActive", false)
-        this.setSideBtnActive("10wRp", false)
-
-        this.setSideBtnActive("btnBackActive", DataManager.CommonData["flyBack"])
 
         this.getAllConfig()
 
-        // let tips = cc.find("nodeMain/nodeGame/moreEntrance/tipPop/nodeGameList", this.node)
-        // if (tips) {
-        //     for (let i = 0 ; i < tips.childrenCount ; i ++) {
-        //         tips.children[i].position = cc.v2(0, -93)
-        //         this.node.runAction(cc.sequence(cc.delayTime(2.3 * i), cc.callFunc(() => {
-        //             tips.children[i].runAction(
-        //                 cc.repeatForever(
-        //                     cc.sequence(
-        //                         cc.moveTo(.8, cc.v2(0, 0)), 
-        //                         cc.delayTime(1), 
-        //                         cc.moveTo(.5, cc.v2(0, 31)), 
-        //                         cc.moveTo(0, cc.v2(0, -93)), 
-        //                         cc.delayTime(2.0 * (tips.childrenCount - 1)))))
-        //         })))
-        //     }
-        // }        
-
-        if (DataManager.Instance.GameType === GAME_TYPE.QMDDZMD) {
-            this.setSideBtnActive("btnShuang11", false)
-            this.setSideBtnActive("btnNationalDay", false)
-
-            // cc.find("nodeMain/ermjEntrance", this.node).active = false
-            // cc.find("nodeMain/moreEntrance", this.node).active = false
-
-            // cc.find("nodeMain/ermjEntrance2", this.node).active = true
-            // cc.find("nodeMain/moreEntrance2", this.node).active = true
-        }
-        
-        // let size = window['winSize'] || cc.winSize.width
-        // this.node.getChildByName("nodePrivateRoom").width = size.width
-
         if (null == DataManager.CommonData["VipInfo"])
-            getVipConfig(this.updateVipInfo.bind(this))                     
-        
-        let games = cc.find("nodeMain/nodeGame", this.node)
-        for (let btn of games.children) {
-            if (btn.getChildByName("ani")) 
-                this.playIconAnimation(btn.getChildByName("ani").getComponent(sp.Skeleton))
+            getVipConfig(this.updateVipInfo.bind(this))
+
+        this.initTip()
+        this.initRole()
+        this.initGame()
+        this.initFastGame()
+
+        WxWrapper.checkUserScope("userInfo", (canUse) => {
+            if (this.isValid && !canUse) {
+                cc.find("nodePlayer/nodeFace/badge", this.node).active = true
+            }
+        })
+        cc.find("nodePlayer/nodeFace/badge", this.node).active = !(DataManager.CommonData["bindPhone"] && DataManager.CommonData["bindPhone"].hasBindMoble == 1)
+
+        if (WxWrapper.checkAppQuery()) {
+            this.willStartGame = false
+            this.skipPopUp = true
         }
 
+        // 获取特殊商品
+        getShopBox(7)
 
-        this.initTipPopAni(cc.find("nodeBottom/btnTreasureHunt/tips_pop", this.node))
-        this.initTipPopAni(cc.find("nodeBottom/btnShop/tips_pop", this.node))
-        this.initTipPopAni(cc.find("nodeMain/nodeMid/drawVip/tips_pop", this.node))
-        // this.mianfei1yuan()
-
-        this.initFastGameName()
+        // 合成按钮控制
+        this.setSideBtnActive("btnCombined", DataManager.Instance.onlineParam.combinedGame != 0)
     }
 
     onCloseScene() {
         cc.audioEngine.stopMusic()
     }
 
-    update () {
-        if (this._isLogin || DataManager.CommonData["isLogin"] != true || DataManager.CommonData["configFinish"] != true)
+    update() {
+        if (this.isLogin || DataManager.CommonData["isLogin"] != true || DataManager.CommonData["configFinish"] != true)
             return
-                
-        this._isLogin = true
+
+        this.isLogin = true
         if (null == NetManager.Instance.getSocketState("lobby")) {
             NetManager.Instance.login("lobby", DataManager.Instance.SocketAddress, proto, opcodeConfig, (socket) => this.sendVerifyTicketReq(socket))
-            if (null == DataManager.CommonData["firstLoad"]) {
-                QttReportData("load")
-                DataManager.CommonData["firstLoad"] = true
+        } else {
+            if (this.isGuideToCash || false == this.willStartGame || DataManager.load(DataManager.UserData.guid + "lastGameId") > 0) {
+                GameManager.hideFace()
             }
         }
-        else {
-            this.updateUserData()
-            if (false == this._firstJumpGame || DataManager.CommonData["morrow"] != 0 || DataManager.load(DataManager.UserData.guid + "lastGameId") > 0) {
-                GameManager.hideFace()                
+    }
+
+    checkAllConfig2() {
+        this.countAllConfig2++
+        if (this.countAllConfig2 == 2) {
+            this.updateExchangeInfo()
+            if (DataManager.CommonData["first"] == 1 && this.isGuideToCash && this.getSideBtn("newbieGift").active) {
+                NetManager.Instance.send("lobby", { opcode: "proto_cl_get_newbie_reward_req" })
+            } else if (this.willStartGame && this.isLogin && DataManager.load(DataManager.UserData.guid + "lastGameId") == null) {
+                this.onPressFastStart()
             }
-        }        
+        }
     }
 
     updateServerStatus() {
-        if (this._firstJumpGame && this._isLogin && 0 == DataManager.CommonData["morrow"] && 
-            null == DataManager.load(DataManager.UserData.guid + "lastGameId")){
+        cc.log("updateServerStatus", DataManager.CommonData["first"], this.isGuideToCash, this.getSideBtn("newbieGift").active)
+        if (DataManager.CommonData["first"] == 1 && this.isGuideToCash && !DataManager.CommonData.isGuideToCash) {
+            DataManager.CommonData.isGuideToCash = true
+            this.checkAllConfig2()
+        } else if (this.willStartGame && this.isLogin && DataManager.load(DataManager.UserData.guid + "lastGameId") == null) {
             this.onPressFastStart()
         }
 
-        this.initFastGameName()
+        this.initFastGame()
+    }
+
+    updateBadge() {
+        cc.find("nodeLeft/drawRp/badge", this.node).getComponent("Badge").updateView(getAdLeftTimes(AdsConfig.taskAdsMap.DrawRp))
+        cc.find("nodeMain/nodeMid/drawVip/badge", this.node).getComponent("Badge").updateView(getAdLeftTimes(AdsConfig.taskAdsMap.VipExp))
+        cc.find("nodeBottom/btnTreasureHunt/badge", this.node).getComponent("Badge").updateView(getAdLeftTimes(AdsConfig.taskAdsMap.TreasureHunt))
+    }
+
+    onAdConfigUpdate() {
+        this.updateBadge()
     }
 
     getAllConfig() {
-        getExchangeConfig()
-        getShopBox(2, this.updateBottonState.bind(this))
-        getShopBox(7, this.updateBottonState.bind(this))
-        null == DataManager.CommonData["adConfig"] ? getADConfig(this.updateBottonState.bind(this)) : ""
-        this.updateShowPop()        
-    }
+        this.countAllConfig = 1
 
-    updateShowPop(popName:number = POP_SCENE.NONE) {
-        if (this._firstJumpGame && 0 == DataManager.CommonData["morrow"] && null == DataManager.load(DataManager.UserData.guid + "lastGameId"))
-            return;
+        if (DataManager.CommonData["regtime"] > 1594828800) {
+            !DataManager.CommonData["TomorrowData"] && loadTomorrowConfig()
+            this.countAllConfig++
+            loadTomorrowStatus(() => {
+                if (this.isValid) {
+                    const status = DataManager.CommonData["TomorrowStatus"]
+                    let curday = status.ret == 0 ? status.list[0].signDay : 0
+                    tomorrow_valid = curday < 7 || (curday == 7 && status.tomorrowAward.length > 0)
 
-        let self = this
-        switch(popName){
-            case POP_SCENE.NONE :               
-                if (false && DataManager.CommonData["morrow"] < 7 && null == DataManager.CommonData[DataManager.UserData.guid + "newUserSign"]) {
-                    let tmp = () => {
-                        if (DataManager.CommonData["NewUserSgin"]["rows"]){
-                            let day = DataManager.CommonData["NewUserSgin"]["day"] - 1
-                            let last = DataManager.CommonData["NewUserSgin"]["rows"].length - 1
-                            if (DataManager.CommonData["NewUserSgin"]["rows"][last].code == 0 || DataManager.CommonData["NewUserSgin"]["rows"][last].code == 3){
-                                this.setSideBtnActive("10wRp", true)
-                            }
-                            if (DataManager.CommonData["NewUserSgin"]["rows"][day].code == 0 || DataManager.CommonData["NewUserSgin"]["rows"][day].code == 3){
-                                SceneManager.Instance.popScene("moduleLobby", "NewUserSignPop", {closeCallback: () => {self.updateShowPop(self._firstJumpGame ? POP_SCENE.END : POP_SCENE.NEW_USER_SIGN)}}) 
-                                return
-                            }
-                        }
-                        
-                        self.updateShowPop(POP_SCENE.USER_RELOGIN)
-                    }
-                    null == DataManager.CommonData["NewUserSgin"] || 0 == DataManager.CommonData["NewUserSgin"].length ? getNewUserSignAward(tmp) : tmp()
-                    return
-                }
-                else if (DataManager.CommonData["flyBack"] && null == DataManager.CommonData[DataManager.UserData.guid + "flyBack"]){
-                    DataManager.CommonData[DataManager.UserData.guid + "flyBack"] = true
-                    getFlyBackAward(0, (msg) => {
-                        if (msg == 0)
-                            SceneManager.Instance.popScene("moduleLobby", "BackAwardPop", {closeCallback: () => {self.updateShowPop(POP_SCENE.NEW_USER_SIGN)}})
-                        else
-                            self.updateShowPop(POP_SCENE.USER_RELOGIN)
-                            
-                    })
-                    return
-                }
-                this.updateShowPop(POP_SCENE.USER_RELOGIN)
-                break;
-            case POP_SCENE.NEW_USER_SIGN :
-                if (DataManager.CommonData["morrow"] == 0 || DataManager.CommonData["flyBack"]){
-                    DataManager.save(DataManager.UserData.guid + "lastGameId", 3892)
-                    this.onPressFastStart()
-                }
-                else
-                    this.updateShowPop(POP_SCENE.USER_RELOGIN)
-                break;
-            case POP_SCENE.USER_RELOGIN :
-                let todayDate = TimeFormat("yyyy-mm-dd")
-                
-                let signCheck = DataManager.load(DataManager.UserData.guid + "SignPop" + todayDate)
-
-                if (!signCheck && null == DataManager.CommonData[DataManager.UserData.guid + "SignPop"]) {
-                    SceneManager.Instance.popScene("moduleLobby", "SignPop", {closeCallback: () => {self.updateShowPop(POP_SCENE.SIGN_POP)}})                    
-                    return
-                }
-                this.updateShowPop(POP_SCENE.SIGN_POP)
-                break;            
-            case POP_SCENE.SIGN_POP :                            
-                // if (null == DataManager.CommonData[DataManager.UserData.guid + "OneYuanActivePop"]){
-                //     SceneManager.Instance.popScene("moduleLobby", "OneYuanOneDayActivePop", {closeCallback: () => {self.updateShowPop(POP_SCENE.ONE_YUAN_ACTIVE)}})                                
-                //     return
-                // }
-            
-                // if (null == DataManager.CommonData[DataManager.UserData.guid + "OneYuanActivePop"] && 
-                //     null == DataManager.CommonData[DataManager.UserData.guid + "OneYuanPop"]) {
-                //     if (null != DataManager.Instance.OneYuanBoxs && DataManager.Instance.OneYuanBoxs.length > 0) {
-                //         SceneManager.Instance.popScene("moduleLobby", "OneYuanPop", {closeCallback: () => {self.updateShowPop(POP_SCENE.ONE_YUAN_POP)}})
-                //         return
-                //     }
-                // }
-                this.updateShowPop(POP_SCENE.ONE_YUAN_POP)
-                break;
-            case POP_SCENE.ONE_YUAN_ACTIVE:
-                // if (null == DataManager.CommonData[DataManager.UserData.guid + "VipActivePop"] && DataManager.CommonData["morrow"] >= 3) {
-                if (null == DataManager.CommonData[DataManager.UserData.guid + "VipActivePop"]) {
-                    // let active = DataManager.Instance.onlineParam.oneYuanActive
-
-                    // if (active && active.start <= getNowTimeUnix() && (active.end + 86400) >= getNowTimeUnix()) {  
-                    if (DataManager.Instance.onlineParam.showActive == 1) {
-                        SceneManager.Instance.popScene("moduleLobby", "ActivePop", {closeCallback: () => {self.updateShowPop(POP_SCENE.VIP_ACTIVE)}})
-                        return
-                    }                                           
-                }
-                this.updateShowPop(POP_SCENE.VIP_ACTIVE)
-                break;
-            case POP_SCENE.ONE_YUAN_POP:
-            case POP_SCENE.VIP_ACTIVE: 
-                // if (null == DataManager.CommonData[DataManager.UserData.guid + "FreeDrawPop"]) {
-                //     let tmp = function() {
-                //         if (checkADNum(2))
-                //             SceneManager.Instance.popScene("moduleLobby", "FreeDrawPop", {closeCallback: () => {self.updateShowPop(POP_SCENE.POP_END)}})
-                //         else
-                //             self.updateShowPop(POP_SCENE.POP_END)            
-                //     }
-                //     null == DataManager.CommonData["adConfig"] ? getADConfig(tmp) : tmp()
-                //     return
-                // }         
-                if (getNowTimeUnix() <= 1578585600 && null == DataManager.CommonData[DataManager.UserData.guid + "ErddzActivePop"]) {
-                    SceneManager.Instance.popScene("moduleLobby", "ErddzActivePop", {closeCallback: () => {self.updateShowPop(POP_SCENE.POP_END)}})
-                    return
-                }     
-                
-                this.updateShowPop(POP_SCENE.POP_END)
-                break;
-            case POP_SCENE.POP_END:
-                if (!DataManager.loadKeyWithDate(DataManager.UserData.guid + "lobbyIdleWarn") && 
-                    2 > DataManager.CommonData["lobbyIdleWarnNum"]) {
-                    DataManager.CommonData["lobbyIdleWarnNum"] = (DataManager.CommonData["lobbyIdleWarnNum"] || 0) + 1
-                    this.scheduleOnce(() => {
-                        SceneManager.Instance.popScene("moduleLobby", "IdleWarnPop", {
-                            confirmCallback: () => {self.onPressFastStart()},
-                            closeCallback: () => {self.updateShowPop(POP_SCENE.POP_END)}
-                        })}, 60)
-                }
-            default:
-                break;
-        }
-    }
-
-    updateBottonState() {
-        this.setSideBtnActive("10wRp", false)
-        this.setSideBtnActive("btnNewGift", false)
-        this.setSideBtnActive("btnSixBox", checkFirstBox(6, 0) != null))
-
-        this.setSideBtnActive("btnOneYuan", false)
-        DataManager.Instance.OneYuanBoxs = DataManager.Instance.OneYuanBoxs || []
-        for (let box of DataManager.Instance.OneYuanBoxs) {
-            if (box.price == 1){
-                this.setSideBtnActive("btnOneYuan", checkOneYuanBox(1, 1) == null)
-                break;            
-            }
-        }
-
-        // this.getSideBtn("btnFreeDraw").getChildByName("redPoint").active = checkADNum(2)
-
-        this.setSideBtnActive("btnNationalDay", false)
-
-        // if (1569859200 <= getNowTimeUnix() && getNowTimeUnix() <= 1571760000) {
-        if (DataManager.Instance.GameType === GAME_TYPE.QMDDZ) {
-            let nationalDay = this.getSideBtn("btnNationalDay")
-            if (nationalDay) {
-                let lastSignTime = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signTime : 0
-                let now = new Date()
-                let todaySign = new Date(now.getFullYear() + "-" + now.getMonth() + "-" + now.getDate()).getTime() / 1000
-                let alreadySign = todaySign < lastSignTime
-                nationalDay.getChildByName("redPoint").active = !alreadySign
-                nationalDay.active = true
-            }
-        }
-        // }
-
-        this.setSideBtnActive("btnOneYuanActive", true) //DataManager.Instance.GameType === GAME_TYPE.QMDDZ
-        // this.getSideBtn("btnOneYuanActive2").active = DataManager.Instance.GameType === GAME_TYPE.QMDDZMD
-
-        let active = DataManager.Instance.onlineParam.oneYuanActive
-
-        if (active && active.start <= getNowTimeUnix() && active.end >= getNowTimeUnix()) {  
-            this.setSideBtnActive("btnVipActive", true)
-        }   
-
-        this.setSideBtnActive("btnMonthCard", DataManager.Instance.MonthBoxs.length > 0)
-        
-        // cc.find("nodeTop/btnMonthCard", this.node).active = false            
-        
-        // if (DataManager.Instance.MonthBoxs.length > 0) {
-        //     cc.find("nodeTop/btnMonthCard", this.node).active = true            
-        // }
-        
-        this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => showQttSuspendWin())))
-        
-    }
-
-    updateUserData() {
-        let nickname = cc.find("nodePlayer/nodeName/nickname", this.node)
-        if (null != nickname)
-            nickname.getComponent(cc.Label).string = DataManager.UserData.nickname
-
-        // let goldbean = cc.find("nodePlayer/nodeCurrency/goldbean/goldlabel", this.node)
-        // if (null != goldbean)
-        //     goldbean.getComponent(cc.Label).string = numberFormat(DataManager.UserData.money)
-
-        // let coin = DataManager.UserData.getItemNum(367)
-
-        // let qttcoin = cc.find("nodePlayer/nodeCurrency/qttCoin/coinlabel", this.node)
-        // if (null != qttcoin)
-        //     qttcoin.getComponent(cc.Label).string = numberFormat(coin)
-
-        // let rp = DataManager.UserData.getItemNum(365)
-
-        // let redpacket = cc.find("nodePlayer/nodeCurrency/redpacket/rplabel", this.node)
-        // if (null != redpacket)
-        //     redpacket.getComponent(cc.Label).string = numberFormat(rp)
-        
-        let redpacketTip = cc.find("nodeTop/nodeCurrency/item365/withdrawBg/withdrawTip", this.node)
-        if (null != redpacketTip)
-            redpacketTip.getComponent(cc.RichText).string  = 
-                "<color=#565c91>价值</c><color=#ff353f>" + Math.floor(DataManager.UserData.getItemNum(365) / 1000) / 10 + "</color><color=#565c91>元</c>"
-
-        // let diamond = cc.find("nodePlayer/nodeCurrency/dimaond_bg", this.node)
-        // if (null != diamond) {
-        //     diamond.getChildByName("labelDimaond").getComponent(cc.Label).string = numberFormat(DataManager.UserData.getItemNum(1192))
-        //     // diamond.active = false
-        // }
-
-        // let ddz = cc.find("nodeMain/ddzEntrance", this.node)
-        // if (null != ddz)
-        //     ddz.getChildByName("newUserTips").active = DataManager.CommonData["morrow"] < 3
-
-        let self = this
-        DataManager.UserData.face = DataManager.UserData.face.replace("http://", "https://")
-        if (-1 != DataManager.UserData.face.indexOf("https://")) {
-            cc.loader.load({url: DataManager.UserData.face, type: 'png'}, (err, texture) => {
-                if (err) {
-                    console.log(err)
-                    return
-                }
-    
-                if (null == self.node)
-                    return
-    
-                let face = cc.find("nodePlayer/nodeFace/nodeMask/face", self.node)
-                if (null != face) {
-                    let size = face.getContentSize()
-                    face.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-                    face.setContentSize(size)
+                    this.setSideBtnActive("tomorrow", tomorrow_valid)
+                    this.checkAllConfig()
                 }
             })
         }
 
-        // 提示红包收益
-        if (DataManager.CommonData["showMatchScene"]) {
-            this.node.runAction(cc.sequence(cc.delayTime(0.1), cc.callFunc(() => {
-                SceneManager.Instance.popScene("moduleLobby", "MatchScene", DataManager.CommonData["showMatchScene"])
-                delete DataManager.CommonData["showMatchScene"]
-            })))
-            delete DataManager.CommonData["leaveGame"]
-        } else if (DataManager.CommonData["leaveGame"] == true) {
-            if (DataManager.UserData.getItemNum(365) - DataManager.CommonData["RedpacketCount"] > 0){
-                SceneManager.Instance.popScene("moduleLobby", "ObtainRedpacketPop")
-            }
+        if (!DataManager.CommonData.AdConfig) {
+            this.countAllConfig++
+            loadAdConfig(() => { this.isValid && this.checkAllConfig() })
+        }
 
-            let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
-            if (5 == DataManager.CommonData["leaveGameLevel"] && gameId == 390)
-                gameId = 389
+        if (!DataManager.CommonData.shareMoneyData) {
+            this.countAllConfig++
+            loadShareMoney(() => { this.isValid && this.checkAllConfig() })
+        }
 
-            if (DataManager.CommonData["ddzGameType"]){
-                gameId = gameId * 10 + parseInt(DataManager.CommonData["ddzGameType"])
-                delete DataManager.CommonData["ddzGameType"]
-            }
+        if (!DataManager.CommonData.realRoleCfg) {
+            this.countAllConfig++
+            getUserRole(() => {
+                if (DataManager.CommonData.roleCfg && DataManager.CommonData.roleCfg.weekCardABTest) {
+                    cc.find("nodePlayer/monthCard", this.node).active = true
+                }
+                this.isValid && this.checkAllConfig()
+            })
+        }
 
-            if (DataManager.CommonData["leaveGameIsPrivate"])
-                gameId = -3
-            if (gameId < 0 || false == isSmallGame(gameId)) {
-                let self = this
-                this.node.runAction(cc.sequence(cc.delayTime(0.1), cc.callFunc(() => {self.onPressGameRoom(null, gameId)})))
-                this._showRoom = true
-                // this.onTeachMain2Server()
-            }
-            delete DataManager.CommonData["leaveGame"]
-        }        
+        if (!DataManager.CommonData.AdConfig) {
+            this.countAllConfig++
+            loadAdConfig(() => { this.isValid && this.checkAllConfig() })
+        }
 
-        // if (DataManager.load(DataManager.UserData.guid + "qttTip") != true && DataManager.UserData.getItemNum(367) > 0) 
-        //     cc.find("nodePlayer/nodeCurrency/qttCoin/tips_pop", this.node).active = true        
-        // else
-        //     cc.find("nodePlayer/nodeCurrency/qttCoin/tips_pop", this.node).active = false
-        
-        this.updateExchangeInfo()
+        if (!DataManager.CommonData.ExchangeInfo) {
+            this.countAllConfig++
+            getExchangeConfig(() => {
+                if (this.isValid) {
+                    this.checkAllConfig2()
+                    this.checkAllConfig()
+                }
+            })
+        } else {
+            getExchangeConfig()
+        }
 
-        let vip2 = DataManager.CommonData["VipData"] && DataManager.CommonData["morrow"] >= 3
-        let xxl = cc.find("nodeMain/xxlEntrance", this.node)
-        // if (null != xxl) {
-        //     xxl.getChildByName("new_game_flag").active = vip2
-        //     xxl.getChildByName("little_pop_bg").active = !vip2
-        // }
+        this.checkAllConfig()
+    }
 
-        let carnival = DataManager.Instance.onlineParam.carnivalActive
-        if (carnival && carnival.start <= getNowTimeUnix() && (carnival.end + 86400) >= getNowTimeUnix()) 
-            this.setSideBtnActive("btnShuang11", true)                    
-        else
-            this.setSideBtnActive("btnShuang11", false)
+    checkAllConfig() {
+        this.countAllConfig--
+        if (this.countAllConfig == 0) {
+            this.showPopups()
+        }
+    }
+
+    updateExchangeInfo() {
+        if (this.isGuideToCash) {
+            const configs = DataManager.Instance.onlineParam.GuideToCashConfigs || [{ gain: { id: -6, num: 3 } }, { gain: { id: -4, num: 1 } }]
+            const find = DataManager.CommonData.ExchangeInfo.some(info => {
+                const gainItem = info.gainItemList[0]
+                if (gainItem && info.exchangeCount == 0) {
+                    return configs.some(config => config.gain && config.gain.id == gainItem.gainItem && config.gain.num == gainItem.gainNum)
+                }
+                return false
+            })
+            this.setSideBtnActive("newbieGift", find)
+        }
+    }
+
+    updateUserData(onlyUpdateInfo = false) {
+        cc.find("nodePlayer/nickname", this.node).getComponent(cc.Label).string = DataManager.UserData.nickname
+
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePlayer/nodeFace/nodeMask/face", this.node), url: DataManager.UserData.face, fixSizeBySize: cc.size(70, 70) })
+
+        if (onlyUpdateInfo) {
+            return
+        }
 
         getMailInfo()
 
-        // if (0 == SceneManager.Instance.findSceneByName("SideRankPop").length && DataManager.UserData.isGray()){                    
-        //     // let isHide = false
-        //     // if ( DataManager.CommonData["leaveGame"] == true) {
-        //     //     let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
-        //     //     isHide = (false == isSmallGame(gameId))
-        //     // }
-        //     // let self = this
-        //     // let hideRank = function(baseScene) {
-        //     //     baseScene.node.active = !self._showRoom
-        //     // }
-            
-        //     // SceneManager.Instance.popScene("moduleLobby", "SideRankPop", null, cc.Vec2.ZERO, hideRank)
-        //     SceneManager.Instance.popScene("moduleLobby", "SideRankPop")
-        // }                        
-        // this.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(() => {SceneManager.Instance.popScene("moduleLobby", "SideRankPop")})))        
-
-        if (DataManager.Instance.onlineParam.shiming == 1) {
-            // this.getSideBtn("btnAutonym").active = DataManager.CommonData["roleCfg"].isBinding == 0
-            // this.getSideBtn("btnAutonymFinish").active = DataManager.CommonData["roleCfg"].isBinding == 1
-        }
-        else {
-            // this.getSideBtn("btnAutonym").active = false
-            // this.getSideBtn("btnAutonymFinish").active = false
-        }
-        
         this.updateVipInfo()
+
+        cc.find("nodeLeft/lottery/badge", this.node).getComponent("Badge").updateView(DataManager.UserData.getItemNum(366))        
+    }
+    
+    updateTitle() {
+         // 合成游戏头衔
+         if (DataManager.Instance.onlineParam.combinedTitle != 0) {
+            CombinedConfig.getTitle(DataManager.UserData.guid, (msg) => {
+                if (!this || !this.node || !this.node.isValid) {
+					return
+				}
+                if (msg == null || msg.titles == null) {
+                    return
+                }
+                let lv = msg.titles[DataManager.UserData.guid]
+                lv = Math.min(Math.max(!!lv ? lv : 1, 0), 30)
+                NodeExtends.setNodeSprite({ node: cc.find("nodePlayer/nodeTitle/title", this.node), url: CombinedConfig.getTitleByLevel(lv) })
+                let honourBg = "honour_bg" + Math.ceil(lv / 5)
+                NodeExtends.setNodeSprite({ node: cc.find("nodePlayer/nodeTitle/honourBg", this.node), url: "moduleLobby/texture/combined/" + honourBg })
+            })
+        }
     }
 
     updateVipInfo() {
-        let vip = cc.find("nodePlayer/nodeVip", this.node)
-        if (null == vip || null == DataManager.CommonData["VipData"] || null == DataManager.CommonData["VipInfo"]) 
+        const data = DataManager.CommonData["VipData"]
+        const info = DataManager.CommonData["VipInfo"]
+        if (!data || !info) {
             return
-            
-        let viplv = DataManager.CommonData["VipData"].vipLevel || 0
-
-        vip.getChildByName("viplabel").getComponent(cc.Label).string = viplv
-        vip.getChildByName("viplabel2").getComponent(cc.Label).string = viplv + "级"
-
-        let nextNeed = 0
-        for (const iterator of DataManager.CommonData["VipInfo"]) {
-            if (iterator["vipLv"] == (viplv + 1)){
-                nextNeed = iterator["payMoney"]
-                break;
-            }
         }
 
-        let vipLvProgress = vip.getChildByName("vipProgressbar")
-        vipLvProgress.getComponent(cc.ProgressBar).progress = (nextNeed - DataManager.CommonData["VipData"].nextVipneedMoney) / nextNeed
+        const lv = data.vipLevel || 0
+        const node = cc.find("nodePlayer/nodeVip", this.node)
+
+        node.getChildByName("viplabel").getComponent(cc.Label).string = lv
+
+        const nextLv = lv + 1
+        for (const iterator of info) {
+            if (iterator["vipLv"] == nextLv) {
+                const nextLvExp = iterator.payMoney
+                const vipProgress = node.getChildByName("progress").getComponent(cc.Sprite)
+                vipProgress.fillRange = (nextLvExp - data.nextVipneedMoney) / nextLvExp
+                break
+            }
+        }
     }
 
-    updateExchangeInfo() {        
-        // 大厅红包提示
-        // let rp = cc.find("nodeMain/redpacketGuide", this.node);
-        // let rpvalue = DataManager.UserData.getItemNum(365) / 10000
-        // rp.getChildByName("labelAmount").getComponent(cc.Label).string = numberFormat(rpvalue) + "y"
-        // let prog = rp.getChildByName("progress")
-        // if (check03ExchangeGoods()) {
-        //     rp.getChildByName("desc").getComponent(cc.Label).string = "新人满0.3元可领到微信"
-        //     prog.active = rpvalue < 0.3
-        //     prog.getComponent(cc.ProgressBar).progress = rpvalue > 0.3 ? 1 : rpvalue / 0.3
-        //     prog.getChildByName("labelValue").getComponent(cc.Label).string = numberFormat(rpvalue, 2, true) + "/0.30"
-        // }
-        // else{
-        //     prog.active = rpvalue < 3
-        //     prog.getComponent(cc.ProgressBar).progress = rpvalue > 2 ? 1 : rpvalue / 2
-        //     prog.getChildByName("labelValue").getComponent(cc.Label).string = numberFormat(rpvalue, 2, true) + "/2.00"
-        // }   
-    }
-
-    onPressActive(sender) {
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        if (sender.target.name == "btnNotice")
-            SceneManager.Instance.popScene("moduleLobby", "ActivePop")
-        else
-            showActivityPortalPop()
-
-        // NetManager.Instance.onMessage({opcode: "proto_lc_login_online_data_not", packet: {msg: "防沉迷", isBind: 0, isModal: 1}})
+    onUserInfoUpdate() {
+        this.updateUserData(true)
+        cc.find("nodePlayer/nodeFace/badge", this.node).active = false
     }
 
     onPressGameRoom(sender, gameId) {
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         gameId = isNaN(parseInt(gameId)) ? (getGameConfig(gameId) || getGameConfig("module" + gameId)) : parseInt(gameId)
-        // if (gameId == 393 && DataManager.CommonData["morrow"] < 3) {
-        //     this.onTeachServer2Main()
-        //     iMessageBox("暂未开放，请稍后再试")
-        //     return
-        // }
 
-        if (null == DataManager.CommonData["ServerDatas"] || 0 == DataManager.CommonData["ServerDatas"].length){
-            // this.onTeachServer2Main()
+        if (null == DataManager.CommonData["ServerDatas"] || 0 == DataManager.CommonData["ServerDatas"].length) {
             getServerList()
-            // iMessageBox("服务器暂未开放，请稍后再试")
             return
         }
 
         let servers = getGameServers(gameId)
-        
-        if (gameId == -1) {
-            // if (DataManager.Instance.GameType === GAME_TYPE.QMDDZMD) {
-            //     iMessageBox("敬请期待")
-            //     return
-            // }
 
-            // this.node.getChildByName("nodeMoreGame").runAction(cc.moveTo(.1, cc.v2(0, 0)))
-            // cc.find("nodePlayer/sptMoreGame", this.node).active = true
-            // cc.find("nodePlayer/nodeFace", this.node).active = false
-            // cc.find("nodePlayer/nodeName", this.node).active = false
-            // cc.find("nodePlayer/nodeVIp", this.node).active = false
+        if (gameId == -1) {
             SceneManager.Instance.popScene("moduleLobby", "MiniGameScene")
         }
-        else if (gameId == -2) { 
-            // if (DataManager.CommonData["VipData"].vipLevel < 0) {
-            //     return
-            // }
-            // this.node.getChildByName("nodePrivateRoom").runAction(cc.moveTo(.1, cc.v2(0, 0)))
-            // cc.find("nodePlayer/friendsGameTitle", this.node).active = true
-            // cc.find("nodePlayer/nodeFace", this.node).active = false
-            // cc.find("nodePlayer/nodeName", this.node).active = false
-            // cc.find("nodePlayer/nodeVIp", this.node).active = false
+        else if (gameId == -2) {
 
-            // cc.find("nodePlayer/nodeCurrency/dimaond_bg", this.node).active = true
-            // this.node.getChildByName("nodeTop").active = false
-            // this.node.getChildByName("nodeBottom").active = false
-            // this.node.getChildByName("nodeBottom2").active = false
         }
         else if (gameId == -3) {
             SceneManager.Instance.popScene("moduleLobby", "PersonalRoomScene")
@@ -612,305 +322,19 @@ export default class LobbyScene extends BaseComponent {
             SceneManager.Instance.popScene("moduleLobby", "MatchScene")
             return
         }
-        else if (null == servers || 0 == servers.length){
-            // this.onTeachServer2Main()
+        else if (null == servers || 0 == servers.length) {
             getServerList()
-            // iMessageBox("服务器暂未开放，请稍后再试")
             return
-        }       
-        else {
-            SceneManager.Instance.popScene("moduleLobby", "RoomScene", {gameId: gameId, servers: servers})
-        }
-
-    }
-
-    onPressGameRoomBak(sender, data) {
-        let gameId = 0
-        if (gameId == 389 && !cc.find("nodeServers/typePage/btnType1", this.node).getComponent(cc.Toggle).isChecked) {
-            cc.find("nodeServers/typePage/btnType1", this.node).getComponent(cc.Toggle).isChecked = true
-            return
-        }
-        else if (gameId == 390 && !cc.find("nodeServers/typePage/btnType2", this.node).getComponent(cc.Toggle).isChecked) {
-            cc.find("nodeServers/typePage/btnType2", this.node).getComponent(cc.Toggle).isChecked = true
-            return
-        }
-        else{
-            this.node.getChildByName("nodeServers").runAction(cc.moveTo(.1, cc.v2(0, 0)))   
-        }
-
-        cc.find("nodePlayer/nodeFace", this.node).active = false
-        cc.find("nodePlayer/nodeName", this.node).active = false
-        cc.find("nodePlayer/nodeVIp", this.node).active = false
-        if (this.node.name == "LobbySceneNew"){
-            // cc.find("nodeServers/btnCardRecord", this.node).active = gameId == 389
-            cc.find("nodePlayer/ddzGameTitle", this.node).active = gameId == 389 || gameId == 390
-            cc.find("nodePlayer/ermjGameTitle", this.node).active = gameId == 391
-            cc.find("nodePlayer/pdkGameTitle", this.node).active = gameId == 372
-        }
-
-        // if (gameId == 389 || gameId == 390) {
-        //     cc.find("nodeServers/btnType1", this.node).active = true
-        //     cc.find("nodeServers/btnType2", this.node).active = true
-        // }
-        // else {
-        //     cc.find("nodeServers/btnType1", this.node).active = false
-        //     cc.find("nodeServers/btnType2", this.node).active = false
-        // }
-        
-        if (gameId == 389 || gameId == 390) {
-            cc.find("nodeServers/typePage", this.node).position = cc.v2(-cc.winSize.width / 2 + 80, 0)
         }
         else {
-            cc.find("nodeServers/typePage", this.node).position = cc.v2(3000, 3000)
+            SceneManager.Instance.popScene("moduleLobby", "RoomScene", { gameId: gameId, servers: servers })
         }
-
-        let sideRankPop = SceneManager.Instance.findSceneByName("SideRankPop")
-        if (sideRankPop.length > 0) 
-            sideRankPop[0].node.active = false        
-
-        // if (gameId == 372) {
-        //     cc.find("nodeServers/nodeSize/btnServer2/2yuanflag", this.node).active = true
-        //     cc.find("nodeServers/nodeSize/btnServer2/8yuanflag", this.node).active = false
-        // }
-        // else {
-        //     let newUser = DataManager.CommonData["regtime"] >= 1572451200
-        //     cc.find("nodeServers/nodeSize/btnServer2/2yuanflag", this.node).active = newUser
-        //     cc.find("nodeServers/nodeSize/btnServer2/8yuanflag", this.node).active = !newUser
-        // }
-
-        let newUser = DataManager.CommonData["regtime"] >= 1572451200
-        let nodeServers = cc.find("nodeServers/nodeSize", this.node)
-        let path = null != nodeServers.getComponent(cc.ScrollView) ? "view/content/" : ""
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2/2yuanflag", this.node).active = gameId == 372 || DataManager.Instance.GameType !== GAME_TYPE.QMDDZ || newUser
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2/8yuanflag", this.node).active = gameId != 372 && DataManager.Instance.GameType === GAME_TYPE.QMDDZ && !newUser
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2.5/10yuanflag", this.node).active = gameId == 372 || DataManager.Instance.GameType !== GAME_TYPE.QMDDZ || newUser
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2.5/28yuanflag", this.node).active = gameId != 372 && DataManager.Instance.GameType === GAME_TYPE.QMDDZ && !newUser
-
-        this.node.getChildByName("nodeMain").runAction(cc.moveTo(.1, cc.v2(-cc.winSize.width, 0)))        
-        this.node.getChildByName("nodePlayer").runAction(cc.moveTo(.1, cc.v2(-cc.winSize.width / 2 + 90, cc.winSize.height / 2)))
-
-        if (isSmallGame(gameId)) {
-            let i = Math.floor(Math.random() * 100 % servers.length)
-            let room = Object.assign(servers[i])
-            let gi = room.gameId
-            if (room.ddz_game_type)
-                gi = gi * 10 + parseInt(room.ddz_game_type)
-            DataManager.save(DataManager.UserData.guid + "lastGameId", gi)
-            if (checkServerMoneyLimit(room))
-                enterGame(room);     
-            // this.onTeachServer2Main()                     
-            return;
-        }
-
-        cc.find("nodePlayer/btnBack", this.node).active = true
-
-        this.node.getChildByName("nodeLeft").active = false
-        this.node.getChildByName("nodeRight").active = false
-
-        let levels = []
-        let roomlen = 0
-        for (const key in servers) {
-            if (servers.hasOwnProperty(key)) {
-                let level = servers[key]["level"] * 10
-                if (servers[key]["gameId"] == 390)
-                    level = (servers[key]["level"] - 1) * 7
-                if (gameId == 390 && servers[key]["level"] == 5)
-                    continue
-                if (gameId == 389 && servers[key]["level"] == 7)
-                    continue
-                if (levels[level] == null) {
-                    levels[level] = []
-                    roomlen ++
-                }
-
-                levels[level].push(servers[key])
-            }
-        }
-
-        // nodeServers.children.forEach(item => item.active = false)
-        cc.find("nodeServers/nodeSize/" + path + "btnServer1", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer2.5", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer3", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer7", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer13", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer14", this.node).active = false
-        cc.find("nodeServers/nodeSize/" + path + "btnServer15", this.node).active = false
-        
-        let size = nodeServers.getContentSize()
-        size.width = roomlen % 2 ? size.width + 100 : size.width - 80
-        let idx = 1
-        let isNewLobby = null != nodeServers.getComponent(cc.ScrollView)
-
-        if (isNewLobby) {
-            let content = cc.find("view/content", nodeServers)
-            let layout = content.getComponent(cc.Layout)
-            let size = content.getContentSize()
-            let left = 10
-            let space = 20
-            if (roomlen == 1) {
-                left = 350
-            }
-            else if (roomlen == 2) {
-                left = 100
-                space = 200
-            }
-
-            layout.paddingLeft = left
-            layout.paddingRight = left
-            layout.spacingX = space
-                
-            size.width = (300 + left * 2) * roomlen + space
-            content.setContentSize(size)
-        }
-
-
-
-        // for (let key = 1; key <= 3; key++){
-        for (let key in levels) {
-            let nKey = parseInt(key) / 10
-            // let room = nodeServers.getChildByName("btnServer" + nKey)
-            // if (isNewLobby)
-            // if (gameId == 390)
-            //     nKey += 10
-            let server = levels[key]
-            let level = server[0]["gameId"] == 390 ? server[0]["level"] + 10 : server[0]["level"]
-            let room = cc.find(path + "btnServer" + level, nodeServers)            
-
-            if (null == room)
-                continue
-
-            if (false == isNewLobby)
-                room.scale = roomlen > 3 ? .9 : 1
-            // room.zIndex = idx
-            room.active = false
-            if (levels[key] != null){
-                room.active = true
-                
-                let onlineNum = 0 
-                server.forEach(item => onlineNum += item.onlinePlayerNum)
-                room.getChildByName("onlineNum").getComponent(cc.Label).string = "" + onlineNum
-
-                
-                    if (server[0].maxmoney)
-                        room.getChildByName("limit").getComponent(cc.Label).string = " " + numberFormat(server[0].minMoney, 0) + "~" + numberFormat(server[0].maxmoney, 0)
-                    else
-                        room.getChildByName("limit").getComponent(cc.Label).string = numberFormat(server[0].minMoney, 0) + "以上"
-                // if (false == isNewLobby){
-                    // let x = idx * size.width / roomlen
-                    // room.position = cc.v2(idx * size.width / (roomlen + roomlen % 2) - size.width / 2 - ((roomlen + 1) % 2 * size.width / roomlen / 2) , room.position.y)
-                // }
-                
-                let btn = room.getComponent(cc.Button)
-                btn.clickEvents = []
-
-                let clickEventHandler = new cc.Component.EventHandler();
-                clickEventHandler.target = this.node; 
-                clickEventHandler.component = "LobbyScene";
-                clickEventHandler.handler = "onRoom" + idx; 
-
-                this["onRoom" + idx] = (sender) => {       
-                    czcEvent("大厅", "点击游戏", levels[key][0].gameId + " " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))  
-                    if (DataManager.CommonData["morrow"] <= 1) {
-                        let msg = [
-                            {
-                                action: "点击游戏",
-                                gameId: levels[key][0].gameId,
-                                guid: DataManager.UserData.guid,
-                                morrow: DataManager.CommonData["morrow"]
-                            }
-                        ]
-                        // PostInfomation(msg)
-                    }
-                    let curServers = getNewBieServer(levels[key][0].gameId);
-                    if (null == curServers || 0 == curServers.length || level != 1) {
-                        // curServers = server.filter(item => item.newbieMode != 1)
-                        curServers = server
-                    }
-
-                    if (null == curServers) {
-                        getServerList()
-                        return
-                    }
-
-                    let i = Math.floor(Math.random() * 100 % curServers.length)
-                    let room = Object.assign(curServers[i])
-                    let gi = room.gameId
-                    if (room.ddz_game_type)
-                        gi = gi * 10 + parseInt(room.ddz_game_type)
-                    DataManager.save(DataManager.UserData.guid + "lastGameId", gi)
-                    if (checkServerMoneyLimit(room))
-                        enterGame(room);                
-                }
-                
-                btn.clickEvents.push(clickEventHandler);
-                idx ++
-            }
-        }   
     }
 
-    onPressGameRoomBack() {
-        cc.find("nodePlayer/btnBack", this.node).active = false
-        cc.find("nodePlayer/sptMoreGame", this.node).active = false
-        if (this.node.name == "LobbySceneNew"){
-            cc.find("nodePlayer/ddzGameTitle", this.node).active = false
-            cc.find("nodePlayer/ermjGameTitle", this.node).active = false
-            cc.find("nodePlayer/pdkGameTitle", this.node).active = false
-            cc.find("nodePlayer/friendsGameTitle", this.node).active = false
-        }
-        cc.find("nodePlayer/nodeFace", this.node).active = true
-        cc.find("nodePlayer/nodeName", this.node).active = true
-        cc.find("nodePlayer/nodeVIp", this.node).active = true
-        this.node.getChildByName("nodeLeft").active = true
-        this.node.getChildByName("nodeRight").active = true
-        this.node.getChildByName("nodeMoreGame").runAction(cc.moveTo(.1, cc.v2(cc.winSize.width, 0)))
-        this.node.getChildByName("nodePrivateRoom").runAction(cc.moveTo(.1, cc.v2(cc.winSize.width, 0)))
-        this.node.getChildByName("nodeServers").runAction(cc.moveTo(.1, cc.v2(cc.winSize.width, 0)))   
-        this.node.getChildByName("nodeMain").runAction(cc.moveTo(.1, cc.v2(0, 0)))        
-        this.node.getChildByName("nodePlayer").runAction(cc.moveTo(.1, cc.v2(-cc.winSize.width / 2, cc.winSize.height / 2)))
-        // cc.find("nodeServers/typePage", this.node).active = false
-        cc.find("nodeServers/typePage", this.node).position = cc.v2(3000, 3000)
-
-        cc.find("nodeTop/nodeCurrency/dimaond_bg", this.node).active = false
-        this.node.getChildByName("nodeTop").active = true
-        this.node.getChildByName("nodeBottom").active = true
-        this.node.getChildByName("nodeBottom2").active = true
-        let sideRankPop = SceneManager.Instance.findSceneByName("SideRankPop")
-        if (sideRankPop.length > 0) 
-            sideRankPop[0].node.active = true
-    }
-
-    onPressGetCoin(event) {            
-        czcEvent("大厅", "兑换趣金币1", "点击领取趣金币 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        let sender = event.currentTarget
-        if (sender) 
-            sender.runAction(cc.sequence(cc.delayTime(5), cc.callFunc(() => sender.getComponent(cc.Button).interactable = true)))
-        sender.getComponent(cc.Button).interactable = false
-        exchangeQttCoin()
-    }
-
-    onPressBeWait() {
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        iMessageBox("暂未开放，敬请期待...")
-    }
-
-    onTeachMain2Server() {
-        cc.find("nodeMain/ddzEntrance", this.node).getComponent(BaseTrigger).onTrigger()
-    }
-
-    onTeachServer2Main() {
-        cc.find("nodePlayer/btnBack", this.node).getComponent(BaseTrigger).onTrigger()
-    }
-
-    sendVerifyTicketReq(socket: WebSocketWrapper){
+    sendVerifyTicketReq(socket: WebSocketWrapper) {
         GameManager.hideFace()
-        if (getNowTimeUnix() < 1587312000 && true != DataManager.CommonData["isFullSceneActive"] ) {
-            SceneManager.Instance.popScene("moduleLobby", "FullSceneActive")
-            DataManager.CommonData["isFullSceneActive"] = true
-        }
-        czcEvent("大厅", "登录7", "连接socket " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        let proto_cl_verify_ticket_req = {
+        czcEvent("大厅", "登录7", "连接socket " + DataManager.Instance.userTag)
+        const proto_cl_verify_ticket_req = {
             opcode: "proto_cl_verify_ticket_req",
             plyGuid: DataManager.Instance._userData.guid,
             plyNickname: DataManager.Instance._userData.nickname,
@@ -921,24 +345,13 @@ export default class LobbyScene extends BaseComponent {
             sex: DataManager.Instance._userData.sex,
             packetName: DataManager.Instance.packetName
         }
-        
-        socket.send(proto_cl_verify_ticket_req)
-    } 
 
-    onPressFastStart(newUser: boolean = false) {
+        socket.send(proto_cl_verify_ticket_req)
+    }
+
+    onPressFastStart() {
         let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
-        czcEvent("大厅", "快速开始", gameId + " " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        if (DataManager.CommonData["morrow"] <= 1) {
-            let msg = [
-                {
-                    action: "快速开始",
-                    gameId: gameId,
-                    guid: DataManager.UserData.guid,
-                    morrow: DataManager.CommonData["morrow"]
-                }
-            ]
-            // PostInfomation(msg)
-        }
+        czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
@@ -946,74 +359,31 @@ export default class LobbyScene extends BaseComponent {
             gameId = 3892
 
         let servers = getLowMoneyRoom(gameId)
-        if (servers.length > 0){
+        if (servers && servers.length > 0) {
             let i = Math.floor(Math.random() * 100 % servers.length)
-            enterGame(servers[i], null, newUser)
+            enterGame(servers[i])
         }
-        else if(DataManager.UserData.money < DataManager.Instance.getReliefLine()){
+        else if (DataManager.UserData.money < DataManager.Instance.getReliefLine()) {
             // 没服务器就是初级场
             unenoughGold(0, DataManager.Instance.getReliefLine())
         }
     }
 
-    onPressADQtt(event, data) {
-        let btn = event.target
+    onPressADAward(event, data) {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        const adIndex = parseInt(data)
 
-        let adNum = parseInt(data)
-        getADDraw(adNum)
-        // let adName = adNum == 5 ? "赚趣金币" : adNum == 6 ? "免费金豆" : "未知"
-        // let adsReason = 0
-        // if (adNum == 5) {
-        //     adsReason = DataManager.AdsConfig.video.FreeQttCoin
-        // }else if (adNum == 6) {
-        //     adsReason = DataManager.AdsConfig.video.FreeGoldenCoin
-        // }
-        // let adName = AdsConfig.getAdName(adNum)
-        // let adVidio = AdsConfig.getAdVideo(adNum)
+        if (!checkAdCanReceive(adIndex)) {
+            iMessageBox("您今日的奖励次数已用完，请明天再来！")
+            return
+        }
 
-        // czcEvent("大厅", "领取" + adName + "1", "点击领取 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        // let self = this
-        // let getAward = function() {
-        //     if (checkADNum(adNum)) {
-        //         czcEvent("大厅", "领取" + adName + "2", "播放广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        //         playAD(adVidio, () => {
-        //             czcEvent("大厅", "领取" + adName + "3", "看完广告 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        //             getADAward(adNum, () => {  
-        //                 czcEvent("大厅", "领取" + adName + "4", "获取奖励 " + (DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"))
-        //                 if (adNum == 5) {
-        //                     showTokenGrowPop(30) 
-        //                 }
-        //                 else if (adNum == 6) {
-        //                     let awards = [
-        //                         {
-        //                             index: 0,
-        //                             num: 1000,
-        //                         }
-        //                     ]
-        //                     showAwardResultPop(awards)
-        //                 }
-        //                 sendReloadUserData()
-        //             })        
-        //         })                
-        //     }
-        //     else {
-        //         iMessageBox("您今日的" + adName + "次数已用完，请明天再来！")
-        //     }
-        // }
-
-        // if (null == DataManager.CommonData["adConfig"]) {
-        //     getADConfig(() => {
-        //         this.updateBottonState()
-        //         getAward()
-        //     })
-        //     return 
-        // }
-
-        // getAward()
-    }
-
-    onPressOneYuanActviePop() {
-        SceneManager.Instance.popScene("moduleLobby", "OneYuanOneDayActivePop")
+        const award = AdsConfig.getAwardById(adIndex)
+        if (award && getNextAdMethod(adIndex) != 0) {
+            SceneManager.Instance.popScene("moduleLobby", "AdAwardPop", award)
+        } else {
+            receiveAdAward(adIndex)
+        }
     }
 
     getSideBtn(btnName) {
@@ -1028,64 +398,46 @@ export default class LobbyScene extends BaseComponent {
             btn = cc.find("nodeBottom2/" + btnName, this.node)
         if (null == btn)
             btn = cc.find("nodeTmp/" + btnName, this.node)
-        if (null == btn){
-            let more = this.getSideBtn("btnMoreOpen")
-            if (null != more) 
-                btn = cc.find("nodeMore/more_pop/" + btnName, more)
+        if (null == btn) {
+            const more = this.getSideBtn("btnMoreOpen")
+            more && (btn = cc.find("nodeMore/" + btnName, more))
         }
-            
-        return btn;
+
+        return btn
     }
 
     setSideBtnActive(btnName, active) {
-        let btn = cc.find("nodeLeft/" + btnName, this.node)
-        if (null == btn)
-            btn = cc.find("nodeRight/" + btnName, this.node)
-        if (null == btn)
-            btn = cc.find("nodeTop/" + btnName, this.node)
-        if (null == btn)
-            btn = cc.find("nodeBottom/" + btnName, this.node)
-        if (null == btn)
-            btn = cc.find("nodeBottom2/" + btnName, this.node)
-        if (null == btn)
-            btn = cc.find("nodeTmp/" + btnName, this.node)
-        if (null == btn){
-            let more = this.getSideBtn("btnMoreOpen")
-            if (null != more) 
-                btn = cc.find("nodeMore/more_pop/" + btnName, more)
-        }
-
-        if (btn)
-            btn.active = active
+        const button = this.getSideBtn(btnName)
+        button && (button.active = active)
     }
 
-    onPressShuang11() {        
+    onPressShuang11() {
         let socketMsg = {
             opcode: "proto_cl_store_safe_amount_req",
             plyGuid: DataManager.UserData.guid,
             amount: 0
         }
         NetManager.Instance.send("lobby", socketMsg)
-        this._intoDouble11Active = true
+        this.intoDouble11Active = true
     }
 
     proto_lc_store_safe_amount_ack(message) {
-        if (false == this._intoDouble11Active)
+        if (false == this.intoDouble11Active)
             return
 
         message = message.packet
         if (message.ret != -1)
             showDouble11ActivePop()
-        else 
+        else
             iMessageBox("您有未完成的游戏,请先完成游戏!")
-        
-        this._intoDouble11Active = false
+
+        this.intoDouble11Active = false
     }
 
     proto_lc_get_mail_info_ack(message) {
         message = message.packet
         let mails = message.mailInfo.filter(item => item.mailStatus == 0)
-        cc.find("nodeTop/btnMail/redPoint", this.node).active = mails.length > 0
+        cc.find("nodeTop/btnMail/badge", this.node).active = mails.length > 0
     }
 
     onMsgGameRoom(message) {
@@ -1098,87 +450,423 @@ export default class LobbyScene extends BaseComponent {
     msg_on_press_friends_game() {
         this.onPressGameRoom(null, -3)
     }
-    
-    // onEnable() {
-    //     let str = getClipBoard()
-    //     cc.log(str)
-    // }
-    playIconAnimation(icon) {
-        if (icon) {
-            icon.setCompleteListener(() => {
-                if (null == this.node) 
-                    return
-                let randomNum = Math.random() * 100
-                icon.setAnimation(0, randomNum > 30 ? "daiji" : "suiji", false)
-            })
-
-            icon.setAnimation(0, "daiji", false)
-        }
-    }
-
-    mianfei1yuan() {
-        let mianfei = this.getSideBtn("btnOneYuanActive")
-        let ani = mianfei.getChildByName("mianfei").getComponent(sp.Skeleton)
-        let aniFunc = function() {
-            let action = cc.sequence(
-                cc.delayTime(Math.random() * 45),
-                cc.callFunc(() => {
-                    ani.clearTrack(0)
-                    ani.setAnimation(0, "kaixiang", false)
-                    ani.setAnimation(1, "daij", true)
-                    aniFunc()
-                })                
-            )
-            mianfei.parent.runAction(action)
-        }
-        aniFunc()
-    }
 
     audio_play() {
-        if (null != this.backgroundMusic)
-           cc.audioEngine.playMusic(this.backgroundMusic, true)
+        this.backgroundMusic && cc.audioEngine.playMusic(this.backgroundMusic, true)
     }
 
-    onPressService() {
-        QttPluginWrapper.openFeedBackPage()
-    }
-
-    initFastGameName() {
-        let gameId =  DataManager.load(DataManager.UserData.guid + "lastGameId") || 3892
-        let name = {}
-        let nameFormat = ""
-        let qr = cc.find("nodeBottom/btnFast/fastLabel", this.node).getComponent(cc.Label);
-        let servers = getLowMoneyRoom(gameId)
-        if (servers && servers.length) {    
-            // 处理斗地主三种类型
-            if (gameId >= 3890) 
-                gameId = Math.floor(gameId / 10)    
-                
-            name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
-            
-            nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+    initGame() {
+        if (DataManager.CommonData["morrow"] == 0) {
+            const finger = cc.find("nodeMain/nodeGame/bxpEntrance/fingerAni", this.node)
+            finger && (finger.active = true)
         }
-        qr.string = nameFormat;
-    }
 
-    initTipPopAni(pop) {
-        if (pop) {
-            let popflush = function() {
-                if (pop) {
-                    pop.active = true
-                    pop.runAction(cc.sequence(
-                                    cc.delayTime(Math.random() * 10 + 3), 
-                                    cc.fadeOut(.5), 
-                                    cc.delayTime(Math.random() * 10 + 5),
-                                    cc.callFunc(() => {
-                                        pop.opacity = 255
-                                        pop.active = false
-                                        popflush()
-                    })))
+        const node = cc.find("nodeMain/nodeGame", this.node)
+        const games = node ? node.children : []
+        for (const game of games) {
+            const ani = game.getChildByName("ani")
+            const spine = ani ? ani.getComponent(sp.Skeleton) : null
+            if (spine) {
+                if (game.name == "qdzEntrance") {
+                    spine.setAnimation(0, "animation", true)
+                } else {
+                    spine.setAnimation(0, "daiji", false)
+                    spine.setCompleteListener(() => {
+                        spine.isValid && spine.setAnimation(0, Math.random() * 100 > 30 ? "daiji" : "suiji", false)
+                    })
                 }
             }
+        }
+    }
 
-            popflush()
+    initRole() {
+        const role = cc.find("nodeMain/shadow/role", this.node)
+        const spine = role ? role.getComponent(sp.Skeleton) : null
+        if (spine) {
+            spine.setAnimation(0, "daiji-1", false)
+            spine.setCompleteListener(() => {
+                spine.isValid && spine.setAnimation(0, Math.random() * 100 > 30 ? "daiji-1" : "daiji-2", false)
+            })
+        }
+    }
+
+    initFastGame() {
+        let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId") || 3892
+        let name = {}
+        let nameFormat = ""
+        let qr = cc.find("nodeBottom/btnFast/fastLabel", this.node).getComponent(cc.Label)
+        let servers = getLowMoneyRoom(gameId)
+        if (servers && servers.length) {
+            // 处理斗地主三种类型
+            if (gameId >= 3890)
+                gameId = Math.floor(gameId / 10)
+
+            name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
+
+            nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+        }
+        qr.string = nameFormat
+    }
+
+    initTip() {
+        const targets = []
+        targets.push(cc.find("nodeBottom/btnTreasureHunt/tips_pop", this.node))
+        targets.push(cc.find("nodeBottom/btnShop/tips_pop", this.node))
+        targets.push(cc.find("nodeLeft/piece/tips_pop", this.node))
+
+        const flash = function (node) {
+            node.active = true
+            node.runAction(cc.sequence(
+                cc.delayTime(Math.random() * 10 + 3),
+                cc.fadeOut(0.5),
+                cc.delayTime(Math.random() * 10 + 5),
+                cc.callFunc(() => {
+                    node.opacity = 255
+                    node.active = false
+                    flash(node)
+                })
+            ))
+        }
+
+        for (let i = 0, len = targets.length; i < len; i++) {
+            targets[i] && flash(targets[i])
+        }
+    }
+
+    onAfterDraw() {
+        if (!this.isValid) { return }
+        GameManager.hideFace()
+    }
+
+    updateTaskList(event: { message: { taskList: Iproto_ATAchieveData[] } }) {
+        const message = event.message
+        if (null == message.taskList || 0 == message.taskList.length) {
+            return
+        }
+
+        for (const task of message.taskList) {
+            this.taskData[task.cond] = task
+        }
+
+        let isTaskComplete = false
+
+        for (var id in this.taskData) {
+            const task = this.taskData[id]
+            if (task.status == 0 && task.value >= task.max) {
+                isTaskComplete = true
+                break
+            }
+        }
+
+        cc.find("nodeBottom/btnTask/badge", this.node).active = isTaskComplete
+    }
+
+    showPopups() {
+        if (this.willStartGame && null == DataManager.load(DataManager.UserData.guid + "lastGameId")) {
+            return
+        }
+
+        if (this.skipPopUp) {
+            return
+        }
+
+        this.countPopup = 2
+        this.popupQuene = new PopupQueue()
+
+        // 返回之前场景
+        if (DataManager.CommonData["showMatchScene"]) {
+            this.popupQuene.add(this.checkShowPopup_MatchScene.bind(this, DataManager.CommonData["showMatchScene"]))
+            delete DataManager.CommonData["showMatchScene"]
+        } else if (DataManager.CommonData["leaveGame"]) {
+            if (DataManager.Instance.getOnlineParamSwitch("back2showadABTest")) {
+                playADInter()
+            }
+
+            let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
+            if (5 == DataManager.CommonData["leaveGameLevel"] && gameId == 390) {
+                gameId = 389
+            }
+
+            if (DataManager.CommonData["ddzGameType"]) {
+                gameId = gameId * 10 + parseInt(DataManager.CommonData["ddzGameType"])
+                delete DataManager.CommonData["ddzGameType"]
+            }
+
+            if (DataManager.CommonData["leaveGameIsPrivate"]) {
+                gameId = -3
+            }
+            if (gameId < 0 || false == isSmallGame(gameId)) {
+                this.popupQuene.add(this.checkShowPopup_GameRoom.bind(this, gameId))
+            }
+        }
+
+        do {
+            const checkonlineParam = function (name: string) {
+                const params = DataManager.Instance.onlineParam[name]
+                if (params) {
+                    for (const popup of params) {
+                        this.popupQuene.add(this["checkShowPopup_" + popup].bind(this))
+                    }
+                    return true
+                }
+            }
+            if (DataManager.CommonData["leaveGame"]) {
+                if (DataManager.CommonData["first"] == 1 && !DataManager.CommonData["first_showPopups"]) {
+                    DataManager.CommonData["first_showPopups"] = true
+                    if (checkonlineParam("lobbyPopups_leaveGameFirst")) {
+                        break
+                    }
+
+                    // 新手第一次离开游戏引导到兑换去
+                    if (DataManager.Instance.getOnlineParamSwitch("LeaveGameFirstToExchange", 1)) {
+                        this.popupQuene.add(this.checkShowPopup_GuideExchangePop1.bind(this))
+                        break
+                    }
+                    this.popupQuene.add(this.checkShowPopup_TomorrowPop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
+                } else {
+                    if (checkonlineParam("lobbyPopups_leaveGame")) {
+                        break
+                    }
+                    this.popupQuene.add(this.checkShowPopup_ObtainRedpacketPop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_SignPop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
+                }
+            } else {
+                if (DataManager.Instance.getOnlineParamSwitch("ShareMoneyABTest") && DataManager.CommonData["first"] == 0 && DataManager.CommonData.shareMoneyData && DataManager.CommonData.shareMoneyData.shareMoney == "") {
+                    this.popupQuene.add(this.checkShowPopup_ShareMoneyGuidePop.bind(this))
+                } 
+                if (DataManager.CommonData["morrow"] <= 7) {
+                    if (checkonlineParam("lobbyPopups_loginNew")) {
+                        break
+                    }
+                    this.popupQuene.add(this.checkShowPopup_TomorrowPop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_ActivityPortalPop.bind(this, true))
+                } else {
+                    if (checkonlineParam("lobbyPopups_login")) {
+                        break
+                    }
+                    this.popupQuene.add(this.checkShowPopUp_NoticePop.bind(this))
+                    this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this, true))
+                    this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this, true))
+                    this.popupQuene.add(this.checkShowPopup_SignPop.bind(this, true))
+                    this.popupQuene.add(this.checkShowPopup_ActivityPortalPop.bind(this, true))
+                }
+            }
+        } while (false)
+        delete DataManager.CommonData["leaveGame"]
+        this.popupQuene.showPopup()
+    }
+
+    checkShowPopup_MatchScene(parmes: any) {
+        this.node.runAction(cc.sequence([
+            cc.delayTime(0.1),
+            cc.callFunc(() => { SceneManager.Instance.popScene("moduleLobby", "MatchScene", parmes) }),
+            cc.delayTime(0.1),
+            cc.callFunc(this.popupQuene.showPopup.bind(this.popupQuene))
+        ]))
+        return true
+    }
+
+    checkShowPopup_GameRoom(gameId: number) {
+        this.node.runAction(cc.sequence([
+            cc.delayTime(0.1),
+            cc.callFunc(() => { this.onPressGameRoom(null, gameId) }),
+            cc.delayTime(0.1),
+            cc.callFunc(this.popupQuene.showPopup.bind(this.popupQuene))
+        ]))
+        return true
+    }
+
+    /**
+     * 明日有礼
+     */
+    checkShowPopup_TomorrowPop() {
+        if (tomorrow_valid) {
+            SceneManager.Instance.popScene("moduleLobby", "TomorrowPop", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            return true
+        }
+    }
+
+    /**
+     * 送VIP
+     */
+    checkShowPopup_DrawVip(force: boolean) {
+        if ((force || this.countPopup > 0) && getAdLeftTimes(AdsConfig.taskAdsMap.VipExp) > 0) {
+            this.countPopup--
+            SceneManager.Instance.popScene("moduleLobby", "DrawVip", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            return true
+        }
+    }
+
+    /**
+     * 寻宝
+     */
+    checkShowPopup_TreasureHuntPop(force: boolean) {
+        if ((force || this.countPopup > 0) && checkAdCanReceive(AdsConfig.taskAdsMap.TreasureHunt)) {
+            this.countPopup--
+            SceneManager.Instance.popScene("moduleLobby", "TreasureHuntPop", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            return true
+        }
+    }
+
+    /**
+     * 幸运转盘
+     */
+    checkShowPopup_LotteryPop() {
+        SceneManager.Instance.popScene("moduleLobby", "LotteryPop", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+        return true
+    }
+
+    /**
+     * 福卡收益
+     */
+    checkShowPopup_ObtainRedpacketPop() {
+        const lobby_ObtainRedpacket_count = DataManager.Instance.onlineParam.lobby_ObtainRedpacket_count || 2000
+        if (DataManager.UserData.getItemNum(365) - DataManager.CommonData["RedpacketCount"] >= lobby_ObtainRedpacket_count) {
+            SceneManager.Instance.popScene("moduleLobby", "ObtainRedpacketPop", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            return true
+        }
+    }
+
+    /**
+     * 签到
+     */
+    checkShowPopup_SignPop(force: boolean) {
+        const signCheck = DataManager.load(DataManager.UserData.guid + "SignPop" + TimeFormat("yyyy-mm-dd"))
+        if ((force || this.countPopup > 0) && !signCheck && null == DataManager.CommonData[DataManager.UserData.guid + "SignPop"]) {
+            this.countPopup--
+            SceneManager.Instance.popScene("moduleLobby", "SignPop", { closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            return true
+        }
+    }
+
+    /**
+     * 精彩活动
+     */
+    checkShowPopup_ActivityPortalPop() {
+        const timeZone: { startTime: string, endTime: string } = DataManager.Instance.onlineParam.LuckyBlessTimeZone || { startTime: "20201001", endTime: "20201008" }
+        const t = Math.floor(new Date().getTime() / 1000)
+        if (t < time.toTimeStamp(timeZone.startTime) || t > time.toTimeStamp(timeZone.endTime)) {
+            return false
+        }
+        SceneManager.Instance.popScene<String>("moduleLobby", "ActivityPortalPop", { selectName: "幸运祈福", closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+        return true
+    }
+
+    // 新人引导
+    checkShowPopup_GuideNewbieGiftPop(rewards) {
+        SceneManager.Instance.popScene<String>("moduleLobby", "GuideNewbieGiftPop", { rewards: rewards, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+        return true
+    }
+
+    // 新人引导1
+    checkShowPopup_GuideBubblePop1() {
+        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
+            noSing: true,
+            name: "引导点击立即提现",
+            tips: "点击任意区域继续",
+            bubble1: {
+                title: "点击立即提现",
+                node: this.getSideBtn("newbieGift"),
+                offect: cc.v2(110, 135),
+            },
+            closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)
+        })
+        return true
+    }
+
+    checkShowPopup_GuideToCashPop() {
+        SceneManager.Instance.popScene<String>("moduleLobby", "ToCashPop", { isGuideToCash: this.isGuideToCash, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+        return true
+    }
+
+    // 新人引导5
+    checkShowPopup_GuideBubblePop5() {
+        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
+            noSing: true,
+            name: "引导快速开始",
+            tips: "点击任意区域快速开始",
+            bubble3: {
+                title: "进行游戏可快速\n获得福卡",
+                node: cc.find("nodeMain/nodeGame", this.node),
+                offect: cc.v2(-460, -25),
+            },
+            closeCallback: this.onPressFastStart.bind(this)
+        })
+        return true
+    }
+
+    proto_lc_get_newbie_reward_ack(event: { packet: proto.proto_lc_get_newbie_reward_ack }) {
+        const message = event.packet
+        if (message.ack == 0) {
+            this.popupQuene = new PopupQueue()
+            this.popupQuene.add(this.checkShowPopup_GuideNewbieGiftPop.bind(this, JSON.parse(message.rewards)))
+            this.popupQuene.add(this.checkShowPopup_GuideBubblePop1.bind(this))
+            this.popupQuene.add(this.checkShowPopup_GuideToCashPop.bind(this))
+            this.popupQuene.add(this.checkShowPopup_GuideBubblePop5.bind(this))
+            this.popupQuene.showPopup()
+        } else if (this.willStartGame) {
+            this.onPressFastStart()
+        }
+    }
+
+    /**
+     * 引导用户
+     */
+    checkShowPopUp_NoticePop() {
+        if (DataManager.CommonData.roleCfg && DataManager.CommonData.roleCfg.importUserABTest) {
+            if (DataManager.Instance.onlineParam.noticeImage) {
+                showNoticePop(DataManager.Instance.onlineParam.noticeImage, this.popupQuene.showPopup.bind(this.popupQuene))
+                return true
+            }
+        }
+    }
+
+    updateOnceBox() {
+        cc.find("nodePlayer/dayCard", this.node).active = !!checkFirstBox(1)
+    }
+
+    // 兑换引导
+    checkShowPopup_GuideExchangePop1() {
+        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
+            noSing: true,
+            name: "引导点击兑换",
+            tips: "点击任意区域继续",
+            bubble3: {
+                title: "去兑换0.3元",
+                node: cc.find("nodeTop/nodeCurrency/item365", this.node),
+                nodeRectOffect: cc.rect(-30, -10, 20, 20),
+                offect: cc.v2(110, 135),
+            },
+            closeCallback: () => {
+                SceneManager.Instance.popScene("moduleLobby", "ExchangeScene", { isGuideExchange: true })
+            }
+        })
+        return true
+    }
+
+    updateShareMoney() {
+        const shareMoney = DataManager.CommonData.shareMoneyData.shareMoney
+        this.setSideBtnActive("shareMoney", shareMoney == "" || Math.floor(new Date().getTime() / 1000) < shareMoney[0].sm_time)
+    }
+
+    // 分享赚钱引导
+    checkShowPopup_ShareMoneyGuidePop() {
+        SceneManager.Instance.popScene("moduleLobby", "ShareMoneyGuidePop")
+        return true
+    }
+
+    onPressShareMoney() {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        if (DataManager.CommonData.shareMoneyData.shareMoney == "") {
+            SceneManager.Instance.popScene("moduleLobby", "ShareMoneyGuidePop")
+        } else {
+            SceneManager.Instance.popScene("moduleLobby", "ShareMoneyPop")
         }
     }
 }

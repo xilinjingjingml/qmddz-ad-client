@@ -1,6 +1,6 @@
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -29,7 +29,7 @@ export default class GameRulePop extends BaseScene {
             gameId: gameId
         }
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             if (null == msg)
                 return
             if (null == DataManager.CommonData["GAME_RULE"])
@@ -40,7 +40,6 @@ export default class GameRulePop extends BaseScene {
                 gameRule = gameRule.replace("\\\"", "\"")
             while(-1 != gameRule.indexOf("\\\\n"))
                 gameRule = gameRule.replace("\\\\n", "\n")
-            // let rule = BaseFunc.IsJSON(msg.gameRule) ? JSON.parse(msg.gameRule) : ""
             gameRule = gameRule.substring(gameRule.indexOf("desc\":") + 7, gameRule.lastIndexOf("\"}]"))
             DataManager.CommonData["GAME_RULE"]["" + gameId] = gameRule
             self.updateRuleView(gameId)

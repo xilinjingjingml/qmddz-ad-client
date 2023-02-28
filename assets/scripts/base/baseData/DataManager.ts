@@ -1,119 +1,40 @@
-import UserData from "./UserData";
-import { PLUGIN_ENV, EnvConfig, DdzEnvConfigs, UrlConfig, UrlConfigs, MjEnvConfigs } from "../../config";
-import BaseFunc = require("../BaseFunc")
-import InitBaseData from "./InitBaseData";
-import ShopBox from "./ShopBox";
-import CommonData from "./CommonData";
-import { ParseSearch } from "../BaseFuncTs";
-import { GAME_TYPE, PacketConfig, getPacketConfig } from "../../gameConfig";
+import { DdzEnvConfigs, PLUGIN_ENV, UrlConfigs } from "../../config";
+import { getPacketConfig } from "../../gameConfig";
+import { ParseSearch, zeroDate } from "../BaseFuncTs";
 import SceneManager from "../baseScene/SceneManager";
+import UserData from "./UserData";
+import PluginManager from "../PluginManager";
+import { crypt } from "../utils/crypt";
 
-const {ccclass, property, executeInEditMode, requireComponent} = cc._decorator;
-
-export interface IMatchInfo {
-    matchId: number | null
-    begin: number | null
-    signCount: number | null
-    isSign: boolean | null
-    endSignTime: number | null
-    award: number | null
-
-    matchName: string
-    newMatchPic: string
-    matchPic: string
-    awardList: {
-        awardStr: string
-        matchRank: number
-    }[]
-    maxNum: number
-    matchSort: number
-    ddzMatchSort: number
-    matchEnd: number
-    matchType: number
-    matchShow: number
-    signFee: {
-        limitExperNum: number
-        signItem: number
-        type: number
-        openExperNum: number
-        signItemNum: number
-    }[]
-    signTime: number
-    survivalPic: string
-    awardDesc: string
-    matchFlag: number
-    matchDesc: string
-    vipFreeLimit: number
-    matchRule: string
-    competitionRules: number
-    minNum: number
-    serverid: number
-    vipLimit: number
-    achievAwardList: {}
-    matchBegin: number
-    type: number
-    gameid: number
-    achievId: number
-    scheduleList: {
-        matchInterval: number
-        matchBeginDate: number
-        matchDesc: null
-        matchEndDate: number
-    }[]
-}
+const { ccclass, property } = cc._decorator
 
 @ccclass
-@executeInEditMode
 export default class DataManager extends cc.Component {
 
     static _instance: DataManager = null
 
-    @property()
-    designSize: cc.Size = new cc.Size(1280, 720)
+    static get Instance() : DataManager {
+        return DataManager._instance
+    }
 
     @property()
-    packetName: string = "com.union.hbddz.ad.android" // "com.union.hbddz.h5"
+    packetName: string = "com.union.hbddz.wechat"
 
     @property()
     gameId: number = 1238
 
-    @property()
-    QTT_APPID = 'a3DU28NdpPFW'
+    wxAPPID: string = "wx3ea29d364a8ddd09"
 
-    @property()
-    QTT_APPKEY = 'IOffMOdkCOfopfkICBFVb4JbRBibOvSICNAOOMU7MxPOVFuANbbyLbDtKbffZCKC'
+    wxMIDASID: string = "1450017576"
 
-    @property()
     wechatPublic:string = "全民斗地主赚金版"
 
-    @property()
-    _startModule: string = "moduleLobby"
+    startModule: string = "moduleLobby"
 
-    @property({
-        type: cc.Enum(GAME_TYPE)
-    })
-    _gameType = GAME_TYPE.QMDDZ
+    @property({type: cc.Enum(PLUGIN_ENV)})
+    _curENV = PLUGIN_ENV.ENV_OFFICIAL
 
-    @property({
-        type: cc.Enum(GAME_TYPE)
-    })
-    set GameType(value) {
-        this._gameType = value
-        this.updatePacketConfig()
-        this.updateEnvConfig()
-    }
-    get GameType() {
-        return this._gameType;
-    }
-
-    @property({
-        type: cc.Enum(PLUGIN_ENV),        
-    })
-    _curENV = PLUGIN_ENV.ENV_OFFICIAL 
-
-    @property({
-        type: cc.Enum(PLUGIN_ENV),        
-    })
+    @property({type: cc.Enum(PLUGIN_ENV)})
     set CurENV(value) {
         this._curENV = value
         this.updateEnvConfig()
@@ -121,30 +42,12 @@ export default class DataManager extends cc.Component {
     get CurENV() {
         return this._curENV
     }
-    
-    @property({
-        type: EnvConfig,
-        serializable: true
-    })
-    envConfigs = DdzEnvConfigs[this._curENV]
 
-    // @property({
-    //     type: [UrlConfig],
-    //     serializable: true
-    // })
+    envConfigs = null
+
     urlConfigs = UrlConfigs
-    
-    // @property()
-    _userData: UserData;
 
-    @property()
-    set StartModule(value){
-        this._startModule = value
-    }
-    get StartModule() {
-        // return "../" + this._startModule + "/main"
-        return this._startModule
-    }
+    _userData: UserData = new UserData()
 
     @property()
     version: string = "1.0.0"
@@ -155,75 +58,6 @@ export default class DataManager extends cc.Component {
         min: 0
     })
     _soundVolume = 1.0
-
-    @property({
-        type: cc.Float,
-        max: 1,
-        min: 0
-    })
-    _effectVolume = 1
-
-    @property({
-        type: [cc.SpriteAtlas]
-    })
-    _spriteAtlas: cc.SpriteAtlas[] = []
-
-    @property({
-        type: [cc.SpriteFrame]
-    })
-    _tmpSpriteFrame: cc.SpriteFrame[] = []
-
-    @property({
-        type: [String, [cc.SpriteFrame]]
-    })
-    _spriteList = []
-
-    @property()
-    _configs = null
-
-    @property()
-    NormalBoxs: ShopBox[] = []
-
-    @property()
-    OneYuanBoxs: ShopBox[] = []
-
-    @property()
-    ActiveBoxs: ShopBox[] = []
-
-    @property()
-    MonthBoxs: ShopBox[] = []
-
-    @property()
-    OnceBoxs: ShopBox[] = []
-
-    @property()
-    ClubBoxs: ShopBox[] = []
-
-    @property()
-    DiscountBoxs: ShopBox[] = []
-
-    @property()
-    IsQTT: boolean = false
-
-    @property({
-        type: cc.AudioClip
-    })
-    menuEffect = null
-
-    @property()
-    isTesting: boolean = false
-
-    @property()
-    _commonData: CommonData = new CommonData()
-
-    onlineParam: any = {};
-
-    matchList: IMatchInfo[] = []
-    matchMap: { [key: string]: IMatchInfo } = {}
-
-    // static get AdsConfig(): AdsConfig {
-    //     return AdsConfig
-    // }
 
     static set SoundVolume(value: number) {
         DataManager._instance._soundVolume = value
@@ -236,9 +70,63 @@ export default class DataManager extends cc.Component {
     }
 
     static get SoundVolume() : number {
-        // return parseInt(this.load("sound"))
         return DataManager._instance._soundVolume
     }
+
+    @property({
+        type: cc.Float,
+        max: 1,
+        min: 0
+    })
+    _effectVolume = 1
+
+    _spriteAtlas: cc.SpriteAtlas[] = []
+    _tmpSpriteFrame: cc.SpriteFrame[] = []
+    _spriteList = []
+
+    NormalBoxs: IShopBox[] = []
+    OneYuanBoxs: IShopBox[] = []
+    ActiveBoxs: IShopBox[] = []
+    MonthBoxs: IShopBox[] = []
+    OnceBoxs: IShopBox[] = []
+    ClubBoxs: IShopBox[] = []
+    DiscountBoxs: IShopBox[] = []
+
+    @property({
+        type: cc.AudioClip
+    })
+    menuEffect = null
+
+    _commonData: ICommonData = {}
+
+    // 更新数据
+    versionupdate: { vs: string, msg: string, channel: number, ip: string, gameid: number, url: string, vn: number, ef: number, port: string }
+
+    // 分享数据
+    sharedData: {
+        sdCodePic: string,
+        sdContent: string[],
+        sdGameStr: string,
+        sdGameid: number,
+        sdId: number,
+        sdMatchPic: string,
+        sdMatchTicket: string,
+        sdPic: string,
+        sdPn: string,
+        sdPnStr: string,
+        sdTitle: string,
+        sdType: number,
+        sdUrl: string
+    }
+
+    // 全局数据
+    static GlobalData: { noAD?: boolean, noQtt?: boolean, [key: string]: any } = {}
+    onlineParam: any = {}
+
+    matchList: IMatchInfo[] = []
+    matchMap: { [key: string]: IMatchInfo } = {}
+
+    userTag: string = "未登录用户"
 
     static set EffectVolume(value: number) {
         DataManager._instance._effectVolume = value
@@ -247,66 +135,26 @@ export default class DataManager extends cc.Component {
     }
     
     static get EffectVolume() {
-        // return parseInt(this.load("effect"))
         return DataManager._instance._effectVolume
-    }
-    
-    static get Instance() : DataManager {
-        return DataManager._instance;
     }
 
     static get UserData() : UserData {
         return DataManager._instance._userData
     }
 
-    static get CommonData(): CommonData {
+    static get CommonData() {
         return DataManager.Instance._commonData
-    }
-
-    get GUID() {
-        return this._userData.guid
-    }
-
-    get Ticket() {
-        return this._userData.ticket
     }
 
     get SocketAddress() {
         return this.envConfigs.socketURL + ":" + this.envConfigs.socketPort
     }
 
-    _InitBaseData: InitBaseData = null
-
     onLoad() {
         DataManager._instance = this
-        // cc.game.addPersistRootNode(this.node);
-
-        if (null == this.node.getComponent(UserData))
-            this.node.addComponent(UserData)
-
-        // this._userData = this.node.getComponent(UserData)    
-        
-        // this.updateEnvConfig()    
-
-        // cc.Canvas.instance.designResolution = this.designSize
     }
 
-    onInit () {     
-        let path = window.location.pathname
-        path = path.substr(0, path.length - 1)
-        path = path.substring(path.lastIndexOf("/") + 1)
-        if (cc.sys.isBrowser) {
-        var args = ParseSearch(window.location.search)
-        if (path == "qmddz" || args.channel == "0")
-            this.GameType = GAME_TYPE.QMDDZ
-        else  if (path == "qmmj" || args.channel == "1")
-            this.GameType = GAME_TYPE.QMMJ
-        else if (path == "qmddzmd" || args.channel == "2")
-            this.GameType = GAME_TYPE.QMDDZMD
-        }
-
-        this._userData = this.node.getComponent(UserData)    
-
+    onInit () {
         let sound = parseInt(localStorage.getItem("sound")) 
         this._soundVolume = sound !== null && isNaN(sound) !== true ? sound : this._soundVolume
         let effect = parseInt(localStorage.getItem("effect"))
@@ -314,52 +162,43 @@ export default class DataManager extends cc.Component {
 
         cc.audioEngine.setMusicVolume(DataManager._instance._soundVolume)
         cc.audioEngine.setEffectsVolume(DataManager._instance._effectVolume)
+        this.version = DataManager.load('game_version') || "1.0.0.0"
 
         if (cc.sys.isBrowser) {
-        if (-1 != window.location.hostname.indexOf("https://t_")) {
-            this._curENV = PLUGIN_ENV.ENV_TEST
-        }
-        else if (-1 != window.location.hostname.indexOf("https://m_")) {
-            this._curENV = PLUGIN_ENV.ENV_MIRROR
+            if (-1 != window.location.hostname.indexOf("https://t_")) {
+                this._curENV = PLUGIN_ENV.ENV_TEST
+            }
+            else if (-1 != window.location.hostname.indexOf("https://m_")) {
+                this._curENV = PLUGIN_ENV.ENV_MIRROR
+            }
+
+            var args = ParseSearch(window.location.search)
+            if (args.env && args.env == "t") {
+                this._curENV = PLUGIN_ENV.ENV_TEST
+            }
+            else if (args.env && args.env == "m") {
+                this._curENV = PLUGIN_ENV.ENV_MIRROR
+            }
+            else if (args.env && args.env == "o") {
+                this._curENV = PLUGIN_ENV.ENV_OFFICIAL
+            }
         }
 
-        var args = ParseSearch(window.location.search)
-        if (args.env && args.env == "t") {
-            this._curENV = PLUGIN_ENV.ENV_TEST
-        }
-        else if (args.env && args.env == "m") {
-            this._curENV = PLUGIN_ENV.ENV_MIRROR
-        }
-        else if (args.env && args.env == "o") {
-            this._curENV = PLUGIN_ENV.ENV_OFFICIAL
-        }
+        let lastEnv = DataManager.load("LAST_PLUGIN_ENV")
+        if (lastEnv != null) {
+            this._curENV = lastEnv
         }
 
-        this.updateEnvConfig();
-
-        DataManager.CommonData["QttPoint"] = cc.v2(cc.Canvas.instance.designResolution.width / 2, cc.Canvas.instance.designResolution.height - 25)
+        this.updateEnvConfig()
 
         DataManager.CommonData["NewUserSgin"] = []
-
-        this._InitBaseData = new InitBaseData()
+        DataManager.CommonData["roleCfg"] = { roundSum: 0 }
+        DataManager.CommonData["realRoleCfg"] = false
+        DataManager.CommonData["bindPhone"] = { hasBindMoble: 0, BindPhone: undefined }
     }   
 
-    updatePacketConfig() {
-        let packet = getPacketConfig(this._gameType)
-        this.packetName = packet.pn    
-        this.gameId = packet.gameId
-        this.QTT_APPID = packet.qttAppId
-        this.QTT_APPKEY = packet.qttAppKey
-        this.wechatPublic = packet.wechatPublic
-    }
-
     updateEnvConfig() {
-        if (this._gameType == GAME_TYPE.QMDDZ)
-            this.envConfigs = DdzEnvConfigs[this._curENV];
-        else if (this._gameType == GAME_TYPE.QMMJ)
-            this.envConfigs = MjEnvConfigs[this._curENV]
-        else if (this._gameType == GAME_TYPE.QMDDZMD)
-            this.envConfigs = DdzEnvConfigs[this._curENV];
+        this.envConfigs = DdzEnvConfigs[this._curENV]
 
         UrlConfigs.forEach(element => element.flushUrl(this.envConfigs))
     }
@@ -378,42 +217,39 @@ export default class DataManager extends cc.Component {
 
     static save(name, data) {
         let str = JSON.stringify(data)
-        str = BaseFunc.encrypt(str)
-        // console.log(window.localStorage)
+        str = crypt.encrypt(str)
         window.localStorage.setItem(name, str)
     }
     
     static load(name) {
         let str = window.localStorage.getItem(name)
         if (null != str && 0 < str.length && " " != str) {
-            str = BaseFunc.decrypt(str)
-            // if (BaseFunc.IsJSON(str))
-                return JSON.parse(str)
-            // else
-                // return str
+            str = crypt.decrypt(str)
+            return JSON.parse(str)
         }
 
         return null
     }
 
-    setUserData(userData?) {
-        if (null == userData) 
-            userData = DataManager.load("USER_DATA")
-        
+    static remove(name) {
+        window.localStorage.removeItem(name)
+    }
+
+    setUserData(userData) {
         if (null != userData && userData["pid"] && userData["ticket"]) {
             this._userData.guid = userData["pid"]
             this._userData.ticket = userData["ticket"]
             this._userData.nickname = userData["nickname"]
             this._userData.face = userData["face"]
             this._userData.imei = userData["imei"]  
-            this._userData.sex = userData["sex"]      
+            this._userData.sex = Number(userData["sex"])      
+            this._userData.openId = userData["openId"]
         }
     }
 
     static addSpriteAtlas(spritAtlas: cc.SpriteAtlas) {
         if (-1 == DataManager._instance._spriteAtlas.findIndex((value) => value == spritAtlas))
             DataManager._instance._spriteAtlas.push(spritAtlas)
-        // console.log(this._spriteAtlas)
     }
 
     static addSpriteFrame(key: string, spriteFrame: cc.SpriteFrame) {
@@ -478,15 +314,73 @@ export default class DataManager extends cc.Component {
         return saveTime == curDay
     }
 
+    static saveWithDate(name: string, data: any) {
+        DataManager.save(name, { time: new Date().getTime(), data: data })
+    }
+
+    static loadWithDate(name: string) {
+        const data = DataManager.load(name)
+        if (data && data.time > zeroDate().getTime()) {
+            return data.data
+        }
+        return null
+    }
+
     getGameList() {
-        return getPacketConfig(this._gameType).gameList
+        return getPacketConfig().gameList
+    }
+
+    static getOnlineParam(name: string) {
+        const vname = name + PluginManager.getVersionCode()
+        if (vname in DataManager.Instance.onlineParam) {
+            return DataManager.Instance.onlineParam[vname]
+        }
+
+        return DataManager.Instance.onlineParam[name]
     }
 
     getGameConfig() {
-        return getPacketConfig(this._gameType)
+        return getPacketConfig()
     }
 
     getReliefLine() {
-        return 20000
+        return DataManager.CommonData["reliefStatus"] && DataManager.CommonData["reliefStatus"]["reliefAwardCount"] || 20000
+    }
+
+    isInReview() {
+        return this.onlineParam.review_version == PluginManager.getVersionCode()
+    }
+
+    /**
+     * 在线参数以abtest对用户id求余
+     * 0 => false
+     * 1 => true
+     * n > 1 => 1 % n == 0
+     * n < 1 => Math.floor(id * n) > Math.floor((id - 1) * n)
+     */
+    getOnlineParamSwitch(name: string, def?: number) {
+        let value = DataManager.Instance.onlineParam[name]
+        if (value == null) {
+            if (def == null) {
+                return false
+            }
+            value = def
+        }
+
+        if (typeof value === 'number') {
+            if (value == 0) {
+                return false
+            } else if (value == 1) {
+                return true
+            } else {
+                const guid = Number(this._userData.guid)
+                if (value > 1) {
+                    return guid % value == 0
+                } else {
+                    return Math.floor(guid * value) > Math.floor((guid - 1) * value)
+                }
+            }
+        }
+        return false
     }
 }

@@ -8427,6 +8427,13 @@ declare namespace cc {
 		LAN = 0,
 		WWAN = 0,	
 	}	
+	export namespace sys {
+		enum NetworkType {
+			NONE = 0,
+			LAN = 0,
+			WWAN = 0,
+		}
+	}
 	/** cc.view is the singleton object which represents the game window.<br/>
 	It's main task include: <br/>
 	 - Apply the design resolution policy<br/>

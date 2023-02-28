@@ -56,7 +56,6 @@ export default class FrameAniByAtlasControl extends BaseControl {
                 ani = this.node.addComponent(cc.Animation)
             ani.addClip(self.aniClip)
             ani.play(self.aniName)
-            // console.log(self.aniClip)
         })
     }
 

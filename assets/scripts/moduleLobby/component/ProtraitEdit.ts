@@ -9,7 +9,10 @@ export default class ProtraitEdit extends cc.Component {
     _oldSize: cc.Size = null
 
     onEditBegin(sender) {
-        console.log("onEditBegin")
+        if (true) {
+            return
+        }
+        cc.log("onEditBegin")
         let nodePop = this.node.getChildByName("nodePop")
         if (this._onBegin) 
             return 
@@ -69,7 +72,10 @@ export default class ProtraitEdit extends cc.Component {
     }
 
     onEditEnd() {
-        console.log("onEditEnd")
+        if (true) {
+            return
+        }
+        cc.log("onEditEnd")
         if (!this._onBegin)
             return
         

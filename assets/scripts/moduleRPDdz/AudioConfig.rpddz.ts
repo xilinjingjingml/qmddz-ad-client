@@ -1,105 +1,93 @@
-export namespace AudioConfig {
+const AudioConfig = {
+	bg_music: "background3",
 
-	export let audio_sounds_table = {}
-	audio_sounds_table['sound'] = {}
-	// audio_sounds_table['music'] = {}
+	audio_alarm: "cardalarm",
+	audio_bomb: "bomb",
+	audio_clock: "clock",
+	audio_dropcard: "dropcards",
+	audio_lose: "lose",
+	audio_menu: "menu",
 
-	// audio_sounds_table['music']['bg_music'] = 'sounds/background'
-	audio_sounds_table['sound']['bg_music'] = 'sounds/background3'
+	audio_plane: "plane",
+	audio_putcard: "putcard",
+	audio_relieves: "relieves",
+	audio_rocket: "wangzha",
+	audio_sendcard: "sendcard",
+	audio_start: "start",
 
-	audio_sounds_table["sound"]["audio_alarm"]="sounds/cardalarm";
-	audio_sounds_table["sound"]["audio_bomb"]="sounds/bomb";
-	audio_sounds_table["sound"]["audio_clock"]="sounds/clock";
-	audio_sounds_table["sound"]["audio_dropcard"]="sounds/dropcards";
-	audio_sounds_table["sound"]["audio_lose"]="sounds/lose";
-	audio_sounds_table["sound"]["audio_menu"]="sounds/menu";
-	
-	audio_sounds_table["sound"]["audio_plane"]="sounds/plane";
-	audio_sounds_table["sound"]["audio_putcard"]="sounds/putcard";
-	audio_sounds_table["sound"]["audio_relieves"]="sounds/relieves";
-	audio_sounds_table["sound"]["audio_rocket"]="sounds/wangzha";
-	audio_sounds_table["sound"]["audio_sendcard"]="sounds/sendcard";
-	audio_sounds_table["sound"]["audio_start"]="sounds/start";
-	
-	audio_sounds_table["sound"]["audio_shunzi"]="sounds/double";
-	audio_sounds_table["sound"]["audio_chat_0"]="sounds/dialogue/chat_0";
-	audio_sounds_table["sound"]["audio_chat_1"]="sounds/dialogue/chat_1";
-	audio_sounds_table["sound"]["audio_chat_2"]="sounds/dialogue/chat_2";
-	audio_sounds_table["sound"]["audio_chat_3"]="sounds/dialogue/chat_3";
-	audio_sounds_table["sound"]["audio_chat_4"]="sounds/dialogue/chat_4";
-	audio_sounds_table["sound"]["audio_chat_5"]="sounds/dialogue/chat_5";
-	audio_sounds_table["sound"]["audio_chat_6"]="sounds/dialogue/chat_6";
-	audio_sounds_table["sound"]["audio_chat_7"]="sounds/dialogue/chat_7";
-	audio_sounds_table["sound"]["audio_chat_8"]="sounds/dialogue/chat_8";
-	audio_sounds_table["sound"]["audio_chat_9"]="sounds/dialogue/chat_9";
+	audio_shunzi: "double",
+	audio_chat_0: "dialogue/chat_0",
+	audio_chat_1: "dialogue/chat_1",
+	audio_chat_2: "dialogue/chat_2",
+	audio_chat_3: "dialogue/chat_3",
+	audio_chat_4: "dialogue/chat_4",
+	audio_chat_5: "dialogue/chat_5",
+	audio_chat_6: "dialogue/chat_6",
+	audio_chat_7: "dialogue/chat_7",
+	audio_chat_8: "dialogue/chat_8",
+	audio_chat_9: "dialogue/chat_9",
 
-		
-	audio_sounds_table["sound"]["audio_out_card"]="sounds/Audio_Out_Card";
-	audio_sounds_table["sound"]["audio_drop_money"]="sounds/effect_dropmoney_1";
-	audio_sounds_table["sound"]["audio_win"]="sounds/effect_win";
-	audio_sounds_table["sound"]["audio_select_card"]="sounds/lord_select_card";
-	audio_sounds_table["sound"]["audio_dispatch"]="sounds/Special_Dispatch";
-	audio_sounds_table["sound"]["audio_remind"]="sounds/Special_Remind";
+	audio_out_card: "Audio_Out_Card",
+	audio_drop_money: "effect_dropmoney_1",
+	audio_win: "effect_win",
+	audio_select_card: "lord_select_card",
+	audio_dispatch: "Special_Dispatch",
+	audio_remind: "Special_Remind",
 
-	
-	audio_sounds_table["sound"]["audio_pass_type_1"]="sounds/buyao1";
-	audio_sounds_table["sound"]["audio_pass_type_2"]="sounds/buyao2";
-	audio_sounds_table["sound"]["audio_pass_type_3"]="sounds/buyao3";
-		
-
-	// 出牌人声
-	var soundSex = ['man', 'woman']
-	for (var sexType of soundSex) {
-			
-		audio_sounds_table["sound"]["audio_pass" + sexType]="sounds/mandarin/" + sexType + "/pass" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_score0" + sexType]="sounds/mandarin/" + sexType + "/score0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_score1" + sexType]="sounds/mandarin/" + sexType + "/score1" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_score2" + sexType]="sounds/mandarin/" + sexType + "/score2" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_score3" + sexType]="sounds/mandarin/" + sexType + "/score3" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_call_lord" + sexType]="sounds/mandarin/" + sexType + "/call_lord" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_show" + sexType]="sounds/mandarin/" + sexType + "/show_card" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_rob" + sexType]="sounds/mandarin/" + sexType + "/rob" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_no_rob" + sexType]="sounds/mandarin/" + sexType + "/no_rob" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_duiduishun" + sexType]="sounds/mandarin/" + sexType + "/duiduishun" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_feiji" + sexType]="sounds/mandarin/" + sexType + "/feiji" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_danshun" + sexType]="sounds/mandarin/" + sexType + "/danshun" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_jiabei" + sexType]="sounds/mandarin/" + sexType + "/jiabei" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_superdouble" + sexType]="sounds/mandarin/" + sexType + "/superdouble" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_3" + sexType]="sounds/mandarin/" + sexType + "/3_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_4" + sexType]="sounds/mandarin/" + sexType + "/4_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_5" + sexType]="sounds/mandarin/" + sexType + "/5_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_6" + sexType]="sounds/mandarin/" + sexType + "/6_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_7" + sexType]="sounds/mandarin/" + sexType + "/7_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_8" + sexType]="sounds/mandarin/" + sexType + "/8_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_9" + sexType]="sounds/mandarin/" + sexType + "/9_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_10" + sexType]="sounds/mandarin/" + sexType + "/10_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_11" + sexType]="sounds/mandarin/" + sexType + "/11_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_12" + sexType]="sounds/mandarin/" + sexType + "/12_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_13" + sexType]="sounds/mandarin/" + sexType + "/13_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_14" + sexType]="sounds/mandarin/" + sexType + "/14_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_15" + sexType]="sounds/mandarin/" + sexType + "/15_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_16" + sexType]="sounds/mandarin/" + sexType + "/16_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_17" + sexType]="sounds/mandarin/" + sexType + "/17_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_3" + sexType]="sounds/mandarin/" + sexType + "/33_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_4" + sexType]="sounds/mandarin/" + sexType + "/44_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_5" + sexType]="sounds/mandarin/" + sexType + "/55_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_6" + sexType]="sounds/mandarin/" + sexType + "/66_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_7" + sexType]="sounds/mandarin/" + sexType + "/77_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_8" + sexType]="sounds/mandarin/" + sexType + "/88_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_9" + sexType]="sounds/mandarin/" + sexType + "/99_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_10" + sexType]="sounds/mandarin/" + sexType + "/1010_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_11" + sexType]="sounds/mandarin/" + sexType + "/1111_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_12" + sexType]="sounds/mandarin/" + sexType + "/1212_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_13" + sexType]="sounds/mandarin/" + sexType + "/1313_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_14" + sexType]="sounds/mandarin/" + sexType + "/1414_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_2_15" + sexType]="sounds/mandarin/" + sexType + "/1515_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_3_0" + sexType]="sounds/mandarin/" + sexType + "/333_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_3_2" + sexType]="sounds/mandarin/" + sexType + "/332_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_3_1" + sexType]="sounds/mandarin/" + sexType + "/331_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_4_2" + sexType]="sounds/mandarin/" + sexType + "/411_0_0" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_plane_0" + sexType]="sounds/mandarin/" + sexType + "/plane" + "_" + sexType + "";
-		audio_sounds_table["sound"]["audio_bomb_0" + sexType]="sounds/mandarin/" + sexType + "/bomb" + "_" + sexType + "";
-		
-
-	}
+	audio_pass_type_1: "buyao1",
+	audio_pass_type_2: "buyao2",
+	audio_pass_type_3: "buyao3",
 }
+
+// 出牌人声
+for (const sex of ["man", "woman"]) {
+	AudioConfig["audio_pass" + sex] = `mandarin/${sex}/pass_${sex}`
+	AudioConfig["audio_score0" + sex] = `mandarin/${sex}/score0_${sex}`
+	AudioConfig["audio_score1" + sex] = `mandarin/${sex}/score1_${sex}`
+	AudioConfig["audio_score2" + sex] = `mandarin/${sex}/score2_${sex}`
+	AudioConfig["audio_score3" + sex] = `mandarin/${sex}/score3_${sex}`
+	AudioConfig["audio_call_lord" + sex] = `mandarin/${sex}/call_lord_${sex}`
+	AudioConfig["audio_show" + sex] = `mandarin/${sex}/show_card_${sex}`
+	AudioConfig["audio_rob" + sex] = `mandarin/${sex}/rob_${sex}`
+	AudioConfig["audio_no_rob" + sex] = `mandarin/${sex}/no_rob_${sex}`
+	AudioConfig["audio_duiduishun" + sex] = `mandarin/${sex}/duiduishun_${sex}`
+	AudioConfig["audio_feiji" + sex] = `mandarin/${sex}/feiji_${sex}`
+	AudioConfig["audio_danshun" + sex] = `mandarin/${sex}/danshun_${sex}`
+	AudioConfig["audio_jiabei" + sex] = `mandarin/${sex}/jiabei_${sex}`
+	AudioConfig["audio_superdouble" + sex] = `mandarin/${sex}/superdouble_${sex}`
+	AudioConfig["audio_3" + sex] = `mandarin/${sex}/3_0_0_${sex}`
+	AudioConfig["audio_4" + sex] = `mandarin/${sex}/4_0_0_${sex}`
+	AudioConfig["audio_5" + sex] = `mandarin/${sex}/5_0_0_${sex}`
+	AudioConfig["audio_6" + sex] = `mandarin/${sex}/6_0_0_${sex}`
+	AudioConfig["audio_7" + sex] = `mandarin/${sex}/7_0_0_${sex}`
+	AudioConfig["audio_8" + sex] = `mandarin/${sex}/8_0_0_${sex}`
+	AudioConfig["audio_9" + sex] = `mandarin/${sex}/9_0_0_${sex}`
+	AudioConfig["audio_10" + sex] = `mandarin/${sex}/10_0_0_${sex}`
+	AudioConfig["audio_11" + sex] = `mandarin/${sex}/11_0_0_${sex}`
+	AudioConfig["audio_12" + sex] = `mandarin/${sex}/12_0_0_${sex}`
+	AudioConfig["audio_13" + sex] = `mandarin/${sex}/13_0_0_${sex}`
+	AudioConfig["audio_14" + sex] = `mandarin/${sex}/14_0_0_${sex}`
+	AudioConfig["audio_15" + sex] = `mandarin/${sex}/15_0_0_${sex}`
+	AudioConfig["audio_16" + sex] = `mandarin/${sex}/16_0_0_${sex}`
+	AudioConfig["audio_17" + sex] = `mandarin/${sex}/17_0_0_${sex}`
+	AudioConfig["audio_2_3" + sex] = `mandarin/${sex}/33_0_0_${sex}`
+	AudioConfig["audio_2_4" + sex] = `mandarin/${sex}/44_0_0_${sex}`
+	AudioConfig["audio_2_5" + sex] = `mandarin/${sex}/55_0_0_${sex}`
+	AudioConfig["audio_2_6" + sex] = `mandarin/${sex}/66_0_0_${sex}`
+	AudioConfig["audio_2_7" + sex] = `mandarin/${sex}/77_0_0_${sex}`
+	AudioConfig["audio_2_8" + sex] = `mandarin/${sex}/88_0_0_${sex}`
+	AudioConfig["audio_2_9" + sex] = `mandarin/${sex}/99_0_0_${sex}`
+	AudioConfig["audio_2_10" + sex] = `mandarin/${sex}/1010_0_0_${sex}`
+	AudioConfig["audio_2_11" + sex] = `mandarin/${sex}/1111_0_0_${sex}`
+	AudioConfig["audio_2_12" + sex] = `mandarin/${sex}/1212_0_0_${sex}`
+	AudioConfig["audio_2_13" + sex] = `mandarin/${sex}/1313_0_0_${sex}`
+	AudioConfig["audio_2_14" + sex] = `mandarin/${sex}/1414_0_0_${sex}`
+	AudioConfig["audio_2_15" + sex] = `mandarin/${sex}/1515_0_0_${sex}`
+	AudioConfig["audio_3_0" + sex] = `mandarin/${sex}/333_0_0_${sex}`
+	AudioConfig["audio_3_2" + sex] = `mandarin/${sex}/332_0_0_${sex}`
+	AudioConfig["audio_3_1" + sex] = `mandarin/${sex}/331_0_0_${sex}`
+	AudioConfig["audio_4_2" + sex] = `mandarin/${sex}/411_0_0_${sex}`
+	AudioConfig["audio_plane_0" + sex] = `mandarin/${sex}/plane_${sex}`
+	AudioConfig["audio_bomb_0" + sex] = `mandarin/${sex}/bomb_${sex}`
+}
+export default AudioConfig

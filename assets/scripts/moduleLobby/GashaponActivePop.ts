@@ -1,16 +1,18 @@
 import BaseComponent from "../base/BaseComponent";
-import { sToTime, showAwardMutipleResultPop, setGray, getMD5, getHttpSpriteFrame, playAD, unenoughGuidPop, iMessageBox, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
-import BaseFunc = require("../base/BaseFunc")
+import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
-import { getADAward, exchangeQttCoin } from "./LobbyFunc";
+import { getMD5, getNowTimeUnix, iMessageBox, setGray, showAwardMutipleResultPop, sToTime } from "../base/BaseFuncTs";
+import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import GashaponBall from "./GashaponBall";
-import NetManager from "../base/baseNet/NetManager";
-import { AdsConfig } from "../base/baseData/AdsConfig";
+import { receiveAdAward } from "./LobbyFunc";
+import BaseFunc = require("../base/BaseFunc")
+import { UserExtends } from "../base/extends/UserExtends";
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { http } from "../base/utils/http";
+import { math } from "../base/utils/math";
 
 const {ccclass, property} = cc._decorator;
-
-const AD_AREA = 8
 
 @ccclass
 export default class GashaponActivePop extends BaseComponent {
@@ -136,23 +138,23 @@ export default class GashaponActivePop extends BaseComponent {
             }
             sptMotion.active = true
             sptMotion.opacity = 1
-            sptMotion.setPosition((BaseFunc.Random(2)*2-1) * BaseFunc.Random(10), 20)   
+            sptMotion.setPosition((math.random(2)*2-1) * math.random(10), 20)   
             this["nodeMotionAni"].addChild(sptMotion)
             
-            sptMotion.scale = BaseFunc.Random(3, 9)/10
+            sptMotion.scale = math.random(3, 9)/10
 
-            let left = BaseFunc.Random(2)*2-1
+            let left = math.random(2)*2-1
             
             let bezierCfg = []
-            bezierCfg[bezierCfg.length] = cc.v2(left*BaseFunc.Random(20, 250), BaseFunc.Random(30, 300))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(160), bezierCfg[bezierCfg.length-1].y+BaseFunc.Random(0, 150))
-            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y+BaseFunc.Random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(left*math.random(20, 250), math.random(30, 300))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(160), bezierCfg[bezierCfg.length-1].y+math.random(0, 150))
+            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y+math.random(0, 150))
 
 
 
             let actionList = []
-            actionList[actionList.length] = cc.delayTime(delayTime + BaseFunc.Random(40)/100)
+            actionList[actionList.length] = cc.delayTime(delayTime + math.random(40)/100)
             actionList[actionList.length] = cc.fadeIn(0.01)
             // actionList[actionList.length] = cc.delayTime(0.01)
             actionList[actionList.length] = cc.bezierTo(0.6, bezierCfg)
@@ -331,25 +333,19 @@ export default class GashaponActivePop extends BaseComponent {
 
 
     http_getUserDetail() {
-        
-        let url = DataManager.getURL("USERBATCH")
-        let uids = Object.keys(this.RankPopRankList).toString()
+        UserExtends.getUserInfos(Object.keys(this.RankPopRankList), infos => {
+            if (!this.node.isValid) {
+                return
+            }
 
-		BaseFunc.HTTPGetRequest(url, {
-			uids: uids
-		}, (event) => {
-			if (event && event.list && event.list.length > 0) {
-                
-                for (const iterator of event.list) {
-                    if(!!this.RankPopRankList[iterator.uid]) {
-                        this.RankPopRankList[iterator.uid].nickname = iterator.nickname
-                        this.RankPopRankList[iterator.uid].face = iterator.face
-                    }
+            infos.forEach(info => {
+                if (!!this.RankPopRankList[info.uid]) {
+                    this.RankPopRankList[info.uid].nickname = info.nickname
+                    this.RankPopRankList[info.uid].face = info.face
                 }
-                        
-                this.updateRankPopRankList()
-			}
-		})
+            })
+            this.updateRankPopRankList()
+        })
     }
     updateRankPopRankList() {
         
@@ -389,15 +385,7 @@ export default class GashaponActivePop extends BaseComponent {
             previewItem.getChildByName("labelNickname").getComponent(cc.Label).string = strName
             previewItem.getChildByName("labelGuns").getComponent(cc.Label).string = iter.alValue + "次"
             
-            let nodeFace = previewItem.getChildByName("nodeFace")
-            if (null != nodeFace && iter.face) {
-                getHttpSpriteFrame(iter.face, (sprite) => {
-                    let face = cc.find("nodeMask/rank_face", nodeFace).getComponent(cc.Sprite)
-                    let size = face.node.getContentSize()
-                    face.spriteFrame = sprite
-                    face.node.setContentSize(size)
-                })
-            }
+            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", previewItem), url: iter.face, fixSize: true })
      
             previewItem.getChildByName("item_self_bg").active = iter.alPlyGuid == DataManager.UserData.guid
         }
@@ -473,21 +461,6 @@ export default class GashaponActivePop extends BaseComponent {
             let scale = Math.min(scaleX, scaleY)
             previewItem.getChildByName("sptPrevItemIcon").scale = scale 
 
-            // getHttpSpriteFrame(url, (spriteFrame) => {
-            //     if (!previewItem.isValid) {
-            //         return
-            //     }
-                
-            //     let size = previewItem.getChildByName("sptPrevItemIcon").getContentSize()
-            //     previewItem.getChildByName("sptPrevItemIcon").getComponent(cc.Sprite).spriteFrame = spriteFrame                
-            //     previewItem.getChildByName("sptPrevItemIcon").width = spriteFrame.getOriginalSize().width
-            //     previewItem.getChildByName("sptPrevItemIcon").height = spriteFrame.getOriginalSize().height
-            //     let scaleX = size.width / previewItem.getChildByName("sptPrevItemIcon").getContentSize().width
-            //     let scaleY = size.height / previewItem.getChildByName("sptPrevItemIcon").getContentSize().height
-            //     let scale = Math.min(scaleX, scaleY)
-            //     previewItem.getChildByName("sptPrevItemIcon").scale = scale
-            // })
-
             // element.acItemIndex
             previewItem.getChildByName("labelNum").getComponent(cc.Label).string = element.acItemNum
             if(element.acItemIndex == 368) {
@@ -507,7 +480,7 @@ export default class GashaponActivePop extends BaseComponent {
         cc.log("onPressRank")
         this["nodeRankPop"].active = true;
 
-        let putIndex = BaseFunc.Random(10)%2
+        let putIndex = math.random(10)%2
         this["btnRankMenu" + putIndex].getComponent(cc.Toggle).isChecked = true
         this.onPressRankMenu(null, putIndex)
 
@@ -544,15 +517,11 @@ export default class GashaponActivePop extends BaseComponent {
         cc.log("onPressConfirm1")
 
         this.ConfirmFunction = () => {
-            playAD(AdsConfig.video.Double11ActivePop, this.adSucess.bind(this))
+            receiveAdAward(AdsConfig.taskAdsMap.Double11ActivePop, () => {
+                this.http_double11_draw(1, true)
+            })
         }
         this.checkIsInGame()
-    }
-
-    adSucess() {   
-        getADAward(AD_AREA, () => {            
-            this.http_double11_draw(1, true)
-        })
     }
 
     onPressConfirm2() {
@@ -644,10 +613,9 @@ export default class GashaponActivePop extends BaseComponent {
         // execute task
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
                     this.drawStatus.luckValue = msg.luckValue
@@ -685,9 +653,8 @@ export default class GashaponActivePop extends BaseComponent {
         }
 
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
 
@@ -722,9 +689,8 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.list) {
                 // cc.log(msg.list)          
                 this.RankPopRankList = {}
@@ -755,9 +721,8 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.list) {
                 this.previewItems = msg.list  
                 this.initGiftPop()
@@ -783,9 +748,8 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.ret == 0) {
                 this.drawStatus.luckValue = msg.luckValue
                 this.drawStatus.freeValue = msg.freeValue
@@ -821,9 +785,8 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
-            if (DataManager.Instance.isTesting)
-                console.log(msg)
+        http.open(url, params, (msg) => {
+            cc.log(msg)
             if (msg && msg.result) {
                 this.awardList = msg.result  
                 this.refreshAwardList() 
@@ -936,28 +899,28 @@ export default class GashaponActivePop extends BaseComponent {
                 "rotationSpeed":1,
                 "acItemIndex":i%4
             }
-            initparam.dir.x = BaseFunc.Random(1, 10)/10
-            initparam.dir.y = BaseFunc.Random(1, 10)/10
+            initparam.dir.x = math.random(1, 10)/10
+            initparam.dir.y = math.random(1, 10)/10
 
             this.RollBallInstances[this.RollBallInstances.length-1].initBall(initparam)
             
             let lineIndex = 0
 
             if(i > this.RollBallNum * 0.3){
-                if(BaseFunc.Random(0, 100) < 50) {
+                if(math.random(0, 100) < 50) {
                     lineIndex = 1
                 }
             }
             
             if(i > this.RollBallNum * 0.7) {
-                if(BaseFunc.Random(0, 100) < 5) {
+                if(math.random(0, 100) < 5) {
                     lineIndex = 2
                 }
             }
             
             
-            rollball.x = BaseFunc.Random(0, 300-lineIndex*20) - 300/2
-            rollball.y = this.RollBallStayLine[lineIndex].b + BaseFunc.Random(0, 40)
+            rollball.x = math.random(0, 300-lineIndex*20) - 300/2
+            rollball.y = this.RollBallStayLine[lineIndex].b + math.random(0, 40)
         }
         
         this.reinitRollBallStay()
@@ -1069,8 +1032,8 @@ export default class GashaponActivePop extends BaseComponent {
                         "dir":cc.v2(0, 0),
                         "rotationSpeed":1,
                     }
-                    initparam.dir.x = BaseFunc.Random(0, 20) - 10
-                    initparam.dir.y = BaseFunc.Random(1, 10)
+                    initparam.dir.x = math.random(0, 20) - 10
+                    initparam.dir.y = math.random(1, 10)
                     rollball.updateStatus(initparam)
                     rollball.move()
                 })                
@@ -1130,19 +1093,19 @@ export default class GashaponActivePop extends BaseComponent {
                         })
                         // this.switchRollPoolStatus(this.RollPoolStatusEnum.Idle)
                     }else if(initparam.moveSpeed <= 6) {                        
-                        initparam.moveSpeed = rollball._moveSpeed - BaseFunc.Random(5, 20)/10
+                        initparam.moveSpeed = rollball._moveSpeed - math.random(5, 20)/10
                     }else if(initparam.moveSpeed <= 10) {    
                         // for (let i = 0; i < this.RollBallStayLine.length; i++) {
                             let i = 0
 
                             // if(stopBallNum > this.RollBallNum * 0.3){
-                            //     if(BaseFunc.Random(0, 100) < 80) {
+                            //     if(math.random(0, 100) < 80) {
                             //         i = 1
                             //     }
                             // }
                             
                             // if(stopBallNum > this.RollBallNum * 0.7) {
-                            //     if(BaseFunc.Random(0, 100) < 50) {
+                            //     if(math.random(0, 100) < 50) {
                             //         i = 2
                             //     }
                             // }
@@ -1159,7 +1122,7 @@ export default class GashaponActivePop extends BaseComponent {
                                             if (rollball !== otherBall && otherBall._status == otherBall.STATUSENUM.Idle) {
                                                 distance = Math.sqrt(Math.pow(rollball.node.x - otherBall.node.x, 2) + Math.pow(rollball.node.y - otherBall.node.y, 2));
                                                 if (Math.ceil(distance) < rollball._innerRadius + otherBall._innerRadius) {                
-                                                    initparam.moveSpeed = BaseFunc.Random(10, 20)/10
+                                                    initparam.moveSpeed = math.random(10, 20)/10
                                                 }
                                             }
                                         })
@@ -1175,7 +1138,7 @@ export default class GashaponActivePop extends BaseComponent {
                         //     }
                         // })
                     }else{
-                        initparam.moveSpeed = initparam.moveSpeed - BaseFunc.Random(7, 15)/10
+                        initparam.moveSpeed = initparam.moveSpeed - math.random(7, 15)/10
                     }
                     rollball.updateStatus(initparam)
                     rollball.move()
@@ -1207,8 +1170,8 @@ export default class GashaponActivePop extends BaseComponent {
             if (rollball !== otherBall) {
                 let distance = Math.sqrt(Math.pow(rollball.node.x - otherBall.node.x, 2) + Math.pow(rollball.node.y - otherBall.node.y, 2));
                 if (Math.ceil(distance) < rollball._innerRadius + otherBall._innerRadius) {
-                    initparam.dir.x = -initparam.dir.x + BaseFunc.Random(1, 40)/100
-                    initparam.dir.y = -initparam.dir.y + BaseFunc.Random(1, 40)/100
+                    initparam.dir.x = -initparam.dir.x + math.random(1, 40)/100
+                    initparam.dir.y = -initparam.dir.y + math.random(1, 40)/100
                 }
             }
         })
@@ -1234,26 +1197,26 @@ export default class GashaponActivePop extends BaseComponent {
             switch (index) {
                 case 0:
                     if((distance <= rollball._radius)) { 
-                        initparam.dir.x = BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.x = math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 1:
                     if((distance <= rollball._radius)) { 
-                        initparam.dir.x = -BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.x = -math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 2:
                     if((distance <= rollball._radius) || rollball.node.position.y > element.b) { 
-                        initparam.dir.y = -BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.y = -math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 3:               
                     if((distance <= rollball._radius) || rollball.node.position.y < element.b) { 
-                        initparam.dir.y = BaseFunc.Random(1, 10)/10         
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.y = math.random(1, 10)/10         
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;            
                 default:
