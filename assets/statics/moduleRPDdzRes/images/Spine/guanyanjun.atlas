@@ -1,0 +1,139 @@
+
+guanyanjun.png
+size: 1024,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BloodRing040
+  rotate: false
+  xy: 96, 442
+  size: 224, 221
+  orig: 224, 221
+  offset: 0, 0
+  index: -1
+Ring-light03
+  rotate: false
+  xy: 322, 540
+  size: 123, 123
+  orig: 123, 123
+  offset: 0, 0
+  index: -1
+Ring37A
+  rotate: false
+  xy: 322, 431
+  size: 122, 107
+  orig: 122, 107
+  offset: 0, 0
+  index: -1
+gua
+  rotate: true
+  xy: 913, 861
+  size: 156, 84
+  orig: 156, 84
+  offset: 0, 0
+  index: -1
+hong-dai
+  rotate: true
+  xy: 2, 66
+  size: 597, 92
+  orig: 597, 92
+  offset: 0, 0
+  index: -1
+hong-dai1
+  rotate: false
+  xy: 2, 836
+  size: 626, 181
+  orig: 626, 181
+  offset: 0, 0
+  index: -1
+hong1
+  rotate: false
+  xy: 2, 665
+  size: 530, 169
+  orig: 530, 169
+  offset: 0, 0
+  index: -1
+hong2
+  rotate: false
+  xy: 252, 198
+  size: 30, 60
+  orig: 30, 60
+  offset: 0, 0
+  index: -1
+hong3
+  rotate: false
+  xy: 446, 349
+  size: 29, 60
+  orig: 29, 60
+  offset: 0, 0
+  index: -1
+hong4
+  rotate: false
+  xy: 297, 347
+  size: 147, 82
+  orig: 147, 82
+  offset: 0, 0
+  index: -1
+hong5
+  rotate: true
+  xy: 252, 260
+  size: 180, 43
+  orig: 180, 43
+  offset: 0, 0
+  index: -1
+hong6
+  rotate: false
+  xy: 630, 863
+  size: 281, 154
+  orig: 281, 154
+  offset: 0, 0
+  index: -1
+hong6-1
+  rotate: true
+  xy: 96, 159
+  size: 281, 154
+  orig: 281, 154
+  offset: 0, 0
+  index: -1
+hong7
+  rotate: true
+  xy: 447, 538
+  size: 125, 94
+  orig: 125, 94
+  offset: 0, 0
+  index: -1
+hong7-2
+  rotate: true
+  xy: 446, 411
+  size: 125, 94
+  orig: 125, 94
+  offset: 0, 0
+  index: -1
+hong8
+  rotate: true
+  xy: 297, 316
+  size: 29, 131
+  orig: 29, 131
+  offset: 0, 0
+  index: -1
+ji
+  rotate: true
+  xy: 534, 678
+  size: 156, 85
+  orig: 156, 85
+  offset: 0, 0
+  index: -1
+lizi_jiangzhuang
+  rotate: false
+  xy: 2, 2
+  size: 54, 62
+  orig: 54, 62
+  offset: 0, 0
+  index: -1
+ya
+  rotate: false
+  xy: 96, 73
+  size: 156, 84
+  orig: 156, 84
+  offset: 0, 0
+  index: -1

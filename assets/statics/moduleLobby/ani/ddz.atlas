@@ -1,0 +1,48 @@
+
+ddz.png
+size: 1024,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+0
+  rotate: true
+  xy: 129, 54
+  size: 82, 41
+  orig: 82, 41
+  offset: 0, 0
+  index: -1
+1
+  rotate: false
+  xy: 2, 2
+  size: 125, 134
+  orig: 125, 134
+  offset: 0, 0
+  index: -1
+2
+  rotate: false
+  xy: 528, 131
+  size: 96, 121
+  orig: 96, 121
+  offset: 0, 0
+  index: -1
+3
+  rotate: true
+  xy: 201, 112
+  size: 140, 164
+  orig: 140, 164
+  offset: 0, 0
+  index: -1
+4
+  rotate: true
+  xy: 367, 101
+  size: 151, 159
+  orig: 151, 159
+  offset: 0, 0
+  index: -1
+5
+  rotate: false
+  xy: 2, 138
+  size: 197, 114
+  orig: 197, 114
+  offset: 0, 0
+  index: -1

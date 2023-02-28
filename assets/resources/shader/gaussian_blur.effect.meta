@@ -1,0 +1,11 @@
+{
+  "ver": "1.0.15",
+  "uuid": "43ad8b2f-59f0-491e-a59c-18491d46244b",
+  "compiledShaders": [
+    {
+      "vert": "\n#define _IS_VERT_SHADER 1\n\n \nprecision highp float;\n \nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute mediump vec2 a_uv0;\nattribute lowp vec4 a_color;\nvarying mediump vec2 v_uv0;\nvarying lowp vec4 v_color;\n \nvoid main () {\n  mat4 mvp = cc_matViewProj;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = mvp * vec4(a_position, 1);\n}\n \n\n\n",
+      "frag": "\n#define _IS_FRAG_SHADER 1\n\n \nprecision highp float;\n \nuniform sampler2D texture;\nuniform float blur;\nvarying mediump vec2 v_uv0;\nvarying lowp vec4 v_color;\n\nvoid main () {\n  float offset = 0.00078125 * blur;\n\n  vec4 color = vec4(0.0);\n  color += texture2D(texture, vec2(v_uv0.x - offset, v_uv0.y - offset)) * 0.0947416;\n  color += texture2D(texture, vec2(v_uv0.x,          v_uv0.y - offset)) * 0.118318;\n  color += texture2D(texture, vec2(v_uv0.x + offset, v_uv0.y + offset)) * 0.0947416;\n  color += texture2D(texture, vec2(v_uv0.x - offset, v_uv0.y)) * 0.118318;\n  color += texture2D(texture, vec2(v_uv0.x,          v_uv0.y)) * 0.147761;\n  color += texture2D(texture, vec2(v_uv0.x + offset, v_uv0.y)) * 0.118318;\n  color += texture2D(texture, vec2(v_uv0.x - offset, v_uv0.y + offset)) * 0.0947416;\n  color += texture2D(texture, vec2(v_uv0.x,          v_uv0.y + offset)) * 0.118318;\n  color += texture2D(texture, vec2(v_uv0.x + offset, v_uv0.y - offset)) * 0.0947416;\n  \n  float a = color.a;\n  color *= .9;\n  color.a = a;\n\n  gl_FragColor = color;\n}\n \n\n\n"
+    }
+  ],
+  "subMetas": {}
+}

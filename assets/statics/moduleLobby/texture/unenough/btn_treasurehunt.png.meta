@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "ea6d5f56-3bd2-4446-8bc1-1d3e6c85e962",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "btn_treasurehunt": {
+      "ver": "1.0.4",
+      "uuid": "61504dc7-ad4f-4348-a0a6-53ca46a15cd9",
+      "rawTextureUuid": "ea6d5f56-3bd2-4446-8bc1-1d3e6c85e962",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 66,
+      "height": 24,
+      "rawWidth": 66,
+      "rawHeight": 24,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "a708224d-ae69-421e-a235-310d1a353c30",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "baowenping_icon": {
+      "ver": "1.0.4",
+      "uuid": "37fd0660-b801-4190-aafd-70fe342acf33",
+      "rawTextureUuid": "a708224d-ae69-421e-a235-310d1a353c30",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 363,
+      "height": 203,
+      "rawWidth": 363,
+      "rawHeight": 203,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

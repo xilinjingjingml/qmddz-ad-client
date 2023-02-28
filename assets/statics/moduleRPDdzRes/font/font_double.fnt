@@ -1,0 +1,9 @@
+info face="font_double" size=27 bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=0,0
+common lineHeight=27 base=27 scaleW=90 scaleH=27 pages=1 packed=0
+page id=0 file="font_double.png"
+chars count=5
+char id=120 x=0 y=0 width=18 height=27 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=0 letter="x"
+char id=50 x=18 y=0 width=18 height=27 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=0 letter="2"
+char id=51 x=36 y=0 width=18 height=27 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=0 letter="3"
+char id=52 x=54 y=0 width=18 height=27 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=0 letter="4"
+char id=53 x=72 y=0 width=18 height=27 xoffset=0 yoffset=0 xadvance=18 page=0 chnl=0 letter="5"

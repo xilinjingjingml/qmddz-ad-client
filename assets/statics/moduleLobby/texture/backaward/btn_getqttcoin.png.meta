@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "a2cdd4b2-79a2-4dc5-bfef-4a3835e14c8f",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "btn_getqttcoin": {
+      "ver": "1.0.4",
+      "uuid": "3ebd97b4-8de8-49f5-a8fe-045f1a05d29a",
+      "rawTextureUuid": "a2cdd4b2-79a2-4dc5-bfef-4a3835e14c8f",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 276,
+      "height": 95,
+      "rawWidth": 276,
+      "rawHeight": 95,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

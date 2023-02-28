@@ -1,0 +1,130 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+
+// Note: Current format version is experiment, the format may be changed.
+// The future format may not be compatible, you may need to update the script manually.
+
+// 注意：当前版本的格式是实验性的，之后还会进行修改。
+// 后续版本的格式不保证兼容当前格式，可能需要手动升级到最新版本。，
+CCEffect %{
+  techniques: [
+    {
+      passes: [
+        {
+          vert: vs
+          frag: fs
+          cullMode: none
+          blend: true
+        }
+      ]
+      layer: 0
+    }
+  ]
+  properties: {
+    texture: {
+      type: sampler2D
+      value: null
+    }
+    beginColor: {
+      type: color4
+      value: [0, 0, 0, 0]
+    }
+    endColor: {
+      type: color4
+      value: [0, 0, 0, 0]
+    }
+    gVector: {
+      type: direction
+      value: [0, 0]
+    }
+    //power: {
+    //  type: float
+    //  value: 0
+    //}
+    offset: {
+      type: vec2
+      value: [0, 0]
+    }
+  }
+%}
+
+%% vs {
+
+precision highp float;
+
+uniform mat4 cc_matViewProj;
+attribute vec3 a_position;
+attribute lowp vec4 a_color;
+attribute mediump vec2 a_uv0;
+
+varying lowp vec4 v_color;
+varying mediump vec2 v_uv0;
+
+void main () {
+  mat4 mvp = cc_matViewProj;
+  v_uv0 = a_uv0;
+  v_color = a_color;
+
+  gl_Position = mvp * vec4(a_position, 1);
+}
+
+}
+
+%% fs {
+
+precision highp float;
+
+uniform sampler2D texture;
+uniform vec4 beginColor;
+uniform vec4 endColor;
+uniform vec2 gVector;
+uniform vec2 offset;
+
+varying lowp vec4 v_color;
+varying mediump vec2 v_uv0;
+
+void main () {
+  vec4 color = texture2D(texture, vec2(v_uv0.x - offset.x * 0.3, v_uv0.y));
+  vec2 v = normalize(gVector);
+  float dis = 0.0;
+  if (v.x != 0.0 && v.y == 0.0)
+    dis = v_uv0.x;
+  else if (v.x == 0.0 && v.y != 0.0)
+    dis = v_uv0.y;
+  else 
+    dis = distance(vec2(0,0), v_uv0);
+
+  vec4 bc = beginColor;
+  vec4 ec = endColor;
+  if (v.x < 0.0 || v.y < 0.0) {
+    bc = endColor;
+    ec = beginColor;
+  }
+
+  //float p = 1.0 + power * .01;
+  vec4 c2;
+  c2.r = bc.r * dis * dis + (1.0 - dis * dis) * ec.r;
+  c2.g = bc.g * dis * dis + (1.0 - dis * dis) * ec.g;
+  c2.b = bc.b * dis * dis + (1.0 - dis * dis) * ec.b;
+  c2.a = (bc.a * dis * dis + (1.0 - dis * dis) * ec.a) * color.a;
+
+  vec4 c3 = color * 0.25 + c2 * 0.75;
+  
+  if (c2.a * 255.0 < 150.0 && c2.a * 255.0 >= 80.0) {
+    c2 = c2 * vec4(0.80, 0.68, 0.62, 1.0);
+  }
+
+  for (float i = 1.0; i <= 1.5; i += 0.1 ) {
+    vec4 shadow = texture2D(texture, vec2(v_uv0.x + offset.x * .5, v_uv0.y - offset.y * i));
+    if (c2.a * 255.0 <= 80.0 && shadow.a * 255.0 >= 1.0) {
+      float a = shadow.a - color.a;
+      c2 = vec4(0.82 * a, 0.71 * a, 0.65 * a, a * (5.0 - i) * 0.3);  
+    }
+  }
+  
+  
+
+  gl_FragColor = c2;
+}
+
+}
+

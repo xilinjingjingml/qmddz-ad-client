@@ -1,0 +1,118 @@
+
+zjzl.png
+size: 1024,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BloodRing040
+  rotate: false
+  xy: 639, 285
+  size: 224, 221
+  orig: 224, 221
+  offset: 0, 0
+  index: -1
+Ring-light03
+  rotate: false
+  xy: 865, 296
+  size: 123, 123
+  orig: 123, 123
+  offset: 0, 0
+  index: -1
+Ring37A
+  rotate: false
+  xy: 866, 187
+  size: 122, 107
+  orig: 122, 107
+  offset: 0, 0
+  index: -1
+gua
+  rotate: false
+  xy: 865, 421
+  size: 157, 85
+  orig: 157, 85
+  offset: 0, 0
+  index: -1
+hong-dai
+  rotate: false
+  xy: 2, 223
+  size: 610, 99
+  orig: 610, 99
+  offset: 0, 0
+  index: -1
+hong-dai1
+  rotate: false
+  xy: 2, 324
+  size: 635, 182
+  orig: 635, 182
+  offset: 0, 0
+  index: -1
+hong1
+  rotate: false
+  xy: 2, 58
+  size: 530, 163
+  orig: 530, 163
+  offset: 0, 0
+  index: -1
+hong2
+  rotate: false
+  xy: 990, 359
+  size: 30, 60
+  orig: 30, 60
+  offset: 0, 0
+  index: -1
+hong3
+  rotate: true
+  xy: 249, 27
+  size: 29, 60
+  orig: 29, 60
+  offset: 0, 0
+  index: -1
+hong4
+  rotate: false
+  xy: 565, 114
+  size: 148, 82
+  orig: 148, 82
+  offset: 0, 0
+  index: -1
+hong5
+  rotate: false
+  xy: 2, 13
+  size: 181, 43
+  orig: 181, 43
+  offset: 0, 0
+  index: -1
+hong7
+  rotate: false
+  xy: 715, 102
+  size: 125, 94
+  orig: 125, 94
+  offset: 0, 0
+  index: -1
+hong7-2
+  rotate: false
+  xy: 842, 91
+  size: 125, 94
+  orig: 125, 94
+  offset: 0, 0
+  index: -1
+hong8
+  rotate: false
+  xy: 534, 90
+  size: 29, 131
+  orig: 29, 131
+  offset: 0, 0
+  index: -1
+ji
+  rotate: false
+  xy: 614, 198
+  size: 250, 85
+  orig: 250, 85
+  offset: 0, 0
+  index: -1
+lizi_jiangzhuang
+  rotate: true
+  xy: 185, 2
+  size: 54, 62
+  orig: 54, 62
+  offset: 0, 0
+  index: -1

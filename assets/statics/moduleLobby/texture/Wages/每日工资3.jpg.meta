@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "f1ff0e74-097a-4b60-876a-ba9a735f19cc",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "每日工资3": {
+      "ver": "1.0.4",
+      "uuid": "fa11c1ba-2875-4185-a795-5417b78d8b3e",
+      "rawTextureUuid": "f1ff0e74-097a-4b60-876a-ba9a735f19cc",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 1560,
+      "height": 720,
+      "rawWidth": 1560,
+      "rawHeight": 720,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

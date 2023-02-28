@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "3071633d-3b98-4cd9-8021-2838118024ed",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "dca_discountCode_item_2": {
+      "ver": "1.0.4",
+      "uuid": "58906186-0034-4acd-87fb-68e1a84e414b",
+      "rawTextureUuid": "3071633d-3b98-4cd9-8021-2838118024ed",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 261,
+      "height": 79,
+      "rawWidth": 261,
+      "rawHeight": 79,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

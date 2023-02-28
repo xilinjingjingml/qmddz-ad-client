@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "1fdbe101-c212-4218-a4d1-f5133b515389",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "gs_lordcard_difen": {
+      "ver": "1.0.4",
+      "uuid": "7c8dab98-a027-40a7-9075-17cf15ffcdb9",
+      "rawTextureUuid": "1fdbe101-c212-4218-a4d1-f5133b515389",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 44,
+      "height": 23,
+      "rawWidth": 44,
+      "rawHeight": 23,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

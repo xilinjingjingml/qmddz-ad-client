@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "b9897b6e-ca6e-4f82-8802-bdeb0b32ebe6",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "icon_tresurehunt_big": {
+      "ver": "1.0.4",
+      "uuid": "9da8ffd6-80fa-40f2-8a11-fdab98b6d02b",
+      "rawTextureUuid": "b9897b6e-ca6e-4f82-8802-bdeb0b32ebe6",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0.5,
+      "offsetY": -8,
+      "trimX": 13,
+      "trimY": 16,
+      "width": 200,
+      "height": 167,
+      "rawWidth": 225,
+      "rawHeight": 183,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

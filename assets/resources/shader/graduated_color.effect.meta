@@ -1,0 +1,11 @@
+{
+  "ver": "1.0.15",
+  "uuid": "12c59a78-4b22-41ab-a416-8a3cbb2e8dcc",
+  "compiledShaders": [
+    {
+      "vert": "\n#define _IS_VERT_SHADER 1\n\nprecision highp float;\n\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute lowp vec4 a_color;\nattribute mediump vec2 a_uv0;\n\nvarying lowp vec4 v_color;\nvarying mediump vec2 v_uv0;\n\nvoid main () {\n  mat4 mvp = cc_matViewProj;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n\n  gl_Position = mvp * vec4(a_position, 1);\n}\n\n\n",
+      "frag": "\n#define _IS_FRAG_SHADER 1\n\nprecision highp float;\n\nuniform sampler2D texture;\nuniform vec4 beginColor;\nuniform vec4 endColor;\nuniform vec2 gVector;\nuniform vec2 offset;\n\nvarying lowp vec4 v_color;\nvarying mediump vec2 v_uv0;\n\nvoid main () {\n  vec4 color = texture2D(texture, vec2(v_uv0.x - offset.x * 0.3, v_uv0.y));\n  vec2 v = normalize(gVector);\n  float dis = 0.0;\n  if (v.x != 0.0 && v.y == 0.0)\n    dis = v_uv0.x;\n  else if (v.x == 0.0 && v.y != 0.0)\n    dis = v_uv0.y;\n  else \n    dis = distance(vec2(0,0), v_uv0);\n\n  vec4 bc = beginColor;\n  vec4 ec = endColor;\n  if (v.x < 0.0 || v.y < 0.0) {\n    bc = endColor;\n    ec = beginColor;\n  }\n\n  \n  vec4 c2;\n  c2.r = bc.r * dis * dis + (1.0 - dis * dis) * ec.r;\n  c2.g = bc.g * dis * dis + (1.0 - dis * dis) * ec.g;\n  c2.b = bc.b * dis * dis + (1.0 - dis * dis) * ec.b;\n  c2.a = (bc.a * dis * dis + (1.0 - dis * dis) * ec.a) * color.a;\n\n  vec4 c3 = color * 0.25 + c2 * 0.75;\n  \n  if (c2.a * 255.0 < 150.0 && c2.a * 255.0 >= 80.0) {\n    c2 = c2 * vec4(0.80, 0.68, 0.62, 1.0);\n  }\n\n  for (float i = 1.0; i <= 1.5; i += 0.1 ) {\n    vec4 shadow = texture2D(texture, vec2(v_uv0.x + offset.x * .5, v_uv0.y - offset.y * i));\n    if (c2.a * 255.0 <= 80.0 && shadow.a * 255.0 >= 1.0) {\n      float a = shadow.a - color.a;\n      c2 = vec4(0.82 * a, 0.71 * a, 0.65 * a, a * (5.0 - i) * 0.3);  \n    }\n  }\n  \n  \n\n  gl_FragColor = c2;\n}\n\n\n"
+    }
+  ],
+  "subMetas": {}
+}

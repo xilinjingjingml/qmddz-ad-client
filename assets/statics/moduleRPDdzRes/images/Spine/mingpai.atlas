@@ -1,0 +1,69 @@
+
+mingpai.png
+size: 1024,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: false
+  xy: 138, 41
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+2
+  rotate: false
+  xy: 592, 63
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+3
+  rotate: false
+  xy: 592, 95
+  size: 30, 31
+  orig: 30, 31
+  offset: 0, 0
+  index: -1
+4
+  rotate: false
+  xy: 624, 98
+  size: 31, 28
+  orig: 31, 28
+  offset: 0, 0
+  index: -1
+di
+  rotate: false
+  xy: 2, 73
+  size: 335, 53
+  orig: 335, 53
+  offset: 0, 0
+  index: -1
+glow_00121
+  rotate: false
+  xy: 339, 2
+  size: 125, 124
+  orig: 125, 124
+  offset: 0, 0
+  index: -1
+glow_00142
+  rotate: false
+  xy: 466, 2
+  size: 124, 124
+  orig: 124, 124
+  offset: 0, 0
+  index: -1
+min
+  rotate: true
+  xy: 2, 2
+  size: 69, 64
+  orig: 69, 64
+  offset: 0, 0
+  index: -1
+pai
+  rotate: false
+  xy: 68, 6
+  size: 68, 65
+  orig: 68, 65
+  offset: 0, 0
+  index: -1

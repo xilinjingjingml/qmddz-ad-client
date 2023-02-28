@@ -1,0 +1,15 @@
+info face="common_num_0" size=17 bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=0,0
+common lineHeight=17 base=17 scaleW=153 scaleH=17 pages=1 packed=0
+page id=0 file="common_num_0.png"
+chars count=11
+char id=48 x=0 y=0 width=14 height=17 xoffset=0 yoffset=0 xadvance=14 page=0 chnl=0 letter="0"
+char id=49 x=16 y=0 width=10 height=17 xoffset=0 yoffset=0 xadvance=10 page=0 chnl=0 letter="1"
+char id=50 x=28 y=0 width=13 height=17 xoffset=0 yoffset=0 xadvance=13 page=0 chnl=0 letter="2"
+char id=51 x=42 y=0 width=14 height=17 xoffset=0 yoffset=0 xadvance=14 page=0 chnl=0 letter="3"
+char id=52 x=56 y=0 width=14 height=17 xoffset=0 yoffset=0 xadvance=14 page=0 chnl=0 letter="4"
+char id=53 x=70 y=0 width=13 height=17 xoffset=0 yoffset=0 xadvance=13 page=0 chnl=0 letter="5"
+char id=54 x=84 y=0 width=13 height=17 xoffset=0 yoffset=0 xadvance=13 page=0 chnl=0 letter="6"
+char id=55 x=98 y=0 width=13 height=17 xoffset=0 yoffset=0 xadvance=13 page=0 chnl=0 letter="7"
+char id=56 x=112 y=0 width=13 height=17 xoffset=0 yoffset=0 xadvance=13 page=0 chnl=0 letter="8"
+char id=57 x=126 y=0 width=14 height=17 xoffset=0 yoffset=0 xadvance=14 page=0 chnl=0 letter="9"
+char id=47 x=141 y=0 width=12 height=17 xoffset=0 yoffset=0 xadvance=12 page=0 chnl=0 letter="/"

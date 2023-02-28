@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "628e7d93-5ca6-4c62-a9da-5f0a1deb640b",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "ga_gashapon_ball_368": {
+      "ver": "1.0.4",
+      "uuid": "1d52f42e-8c43-41a5-9c9e-e8718b30c8b8",
+      "rawTextureUuid": "628e7d93-5ca6-4c62-a9da-5f0a1deb640b",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 72,
+      "height": 72,
+      "rawWidth": 72,
+      "rawHeight": 72,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

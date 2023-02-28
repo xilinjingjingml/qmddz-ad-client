@@ -1,0 +1,76 @@
+
+taotai.png
+size: 1024,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di-g
+  rotate: false
+  xy: 2, 13
+  size: 419, 214
+  orig: 419, 214
+  offset: 0, 0
+  index: -1
+guang-1
+  rotate: false
+  xy: 751, 2
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+tt
+  rotate: false
+  xy: 750, 132
+  size: 162, 95
+  orig: 162, 95
+  offset: 0, 0
+  index: -1
+tt-1
+  rotate: false
+  xy: 611, 29
+  size: 138, 69
+  orig: 138, 69
+  offset: 0, 0
+  index: -1
+tt-2-1
+  rotate: false
+  xy: 423, 140
+  size: 186, 87
+  orig: 186, 87
+  offset: 0, 0
+  index: -1
+tt-2-2
+  rotate: false
+  xy: 423, 51
+  size: 186, 87
+  orig: 186, 87
+  offset: 0, 0
+  index: -1
+tt-3-1
+  rotate: false
+  xy: 423, 4
+  size: 126, 45
+  orig: 126, 45
+  offset: 0, 0
+  index: -1
+tt-3-2
+  rotate: true
+  xy: 881, 4
+  size: 126, 45
+  orig: 126, 45
+  offset: 0, 0
+  index: -1
+tt-4
+  rotate: false
+  xy: 611, 100
+  size: 137, 127
+  orig: 137, 127
+  offset: 0, 0
+  index: -1
+tt-5
+  rotate: false
+  xy: 914, 141
+  size: 87, 86
+  orig: 87, 86
+  offset: 0, 0
+  index: -1

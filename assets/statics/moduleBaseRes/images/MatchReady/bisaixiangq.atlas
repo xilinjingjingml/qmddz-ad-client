@@ -1,0 +1,20 @@
+
+bisaixiangq.png
+size: 64,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bisai-1
+  rotate: false
+  xy: 2, 93
+  size: 47, 114
+  orig: 47, 114
+  offset: 0, 0
+  index: -1
+zi
+  rotate: false
+  xy: 2, 2
+  size: 22, 89
+  orig: 22, 89
+  offset: 0, 0
+  index: -1

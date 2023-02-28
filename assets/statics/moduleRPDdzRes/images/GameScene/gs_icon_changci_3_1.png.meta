@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "e76d33f7-f60c-4824-b821-002cbc0686b7",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "gs_icon_changci_3_1": {
+      "ver": "1.0.4",
+      "uuid": "e8608bc3-4ff7-466c-ad39-31de5e949bb4",
+      "rawTextureUuid": "e76d33f7-f60c-4824-b821-002cbc0686b7",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 348,
+      "height": 39,
+      "rawWidth": 348,
+      "rawHeight": 39,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

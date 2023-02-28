@@ -1,0 +1,34 @@
+
+cjjb.png
+size: 1024,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+daxin
+  rotate: false
+  xy: 486, 272
+  size: 194, 180
+  orig: 194, 180
+  offset: 0, 0
+  index: -1
+di-guang
+  rotate: false
+  xy: 2, 270
+  size: 482, 182
+  orig: 482, 182
+  offset: 0, 0
+  index: -1
+xinxin
+  rotate: false
+  xy: 2, 73
+  size: 386, 195
+  orig: 386, 195
+  offset: 0, 0
+  index: -1
+zi
+  rotate: false
+  xy: 2, 2
+  size: 234, 69
+  orig: 234, 69
+  offset: 0, 0
+  index: -1

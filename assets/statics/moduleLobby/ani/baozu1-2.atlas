@@ -1,0 +1,104 @@
+
+baozu1-2.png
+size: 1024,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bzu
+  rotate: true
+  xy: 313, 129
+  size: 125, 239
+  orig: 125, 239
+  offset: 0, 0
+  index: -1
+ci1
+  rotate: false
+  xy: 824, 119
+  size: 53, 56
+  orig: 53, 56
+  offset: 0, 0
+  index: -1
+ci2
+  rotate: false
+  xy: 404, 83
+  size: 45, 44
+  orig: 45, 44
+  offset: 0, 0
+  index: -1
+di
+  rotate: false
+  xy: 735, 177
+  size: 188, 77
+  orig: 188, 77
+  offset: 0, 0
+  index: -1
+huode
+  rotate: true
+  xy: 554, 91
+  size: 163, 179
+  orig: 163, 179
+  offset: 0, 0
+  index: -1
+sui
+  rotate: false
+  xy: 879, 153
+  size: 40, 22
+  orig: 40, 22
+  offset: 0, 0
+  index: -1
+sui2
+  rotate: true
+  xy: 2, 76
+  size: 178, 309
+  orig: 178, 309
+  offset: 0, 0
+  index: -1
+sui3
+  rotate: false
+  xy: 95, 35
+  size: 55, 39
+  orig: 55, 39
+  offset: 0, 0
+  index: -1
+sui4
+  rotate: false
+  xy: 313, 81
+  size: 89, 46
+  orig: 89, 46
+  offset: 0, 0
+  index: -1
+sui5
+  rotate: false
+  xy: 95, 2
+  size: 50, 31
+  orig: 50, 31
+  offset: 0, 0
+  index: -1
+sui6
+  rotate: false
+  xy: 2, 18
+  size: 91, 56
+  orig: 91, 56
+  offset: 0, 0
+  index: -1
+xin
+  rotate: true
+  xy: 824, 104
+  size: 13, 48
+  orig: 13, 48
+  offset: 0, 0
+  index: -1
+zi
+  rotate: true
+  xy: 925, 179
+  size: 75, 86
+  orig: 75, 86
+  offset: 0, 0
+  index: -1
+zi1
+  rotate: true
+  xy: 735, 100
+  size: 75, 87
+  orig: 75, 87
+  offset: 0, 0
+  index: -1

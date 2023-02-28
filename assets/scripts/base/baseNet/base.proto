@@ -1,0 +1,16 @@
+message proto_ping{
+	required	int32	now	=	1;
+}
+message proto_pong{
+	required	int32	now	=	1;
+}
+message proto_lc_use_protocol_proto_ack{
+
+}
+message proto_cl_use_protocol_proto_req{
+
+}
+
+message proto_cb_send_disconnect_req{
+	
+}
