@@ -8,8 +8,15 @@ export default class PopupManager {
         this.popups = popups
     }
 
-    reset() {
+    reset(popups?: TPopups) {
         this.index = 0
+        if (popups) {
+            this.popups = popups
+        }
+    }
+
+    stop() {
+        this.index = this.popups.length
     }
 
     showPopup() {

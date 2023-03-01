@@ -2,7 +2,7 @@
   "assets-sort-type": "name",
   "collision-matrix": [],
   "design-resolution-height": 720,
-  "design-resolution-width": 1080,
+  "design-resolution-width": 1280,
   "excluded-modules": [
     "TiledMap",
     "VideoPlayer",
@@ -26,7 +26,7 @@
   "fit-height": true,
   "fit-width": false,
   "group-list": [],
-  "last-module-event-record-time": 1597719853775,
+  "last-module-event-record-time": 1665383349653,
   "simulator-orientation": false,
   "simulator-resolution": {},
   "start-scene": "current",

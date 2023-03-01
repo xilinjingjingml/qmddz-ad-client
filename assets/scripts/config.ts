@@ -11,6 +11,7 @@ class EnvConfig {
     webURL: string = ""
     payURL: string = ""
     activityURL: string = ""
+    updateURL: string = ""
 
     constructor(item) {
         this.socketURL = item.socketURL
@@ -19,6 +20,7 @@ class EnvConfig {
         this.webURL = item.webURL
         this.payURL = item.payURL
         this.activityURL = item.activityURL
+        this.updateURL = item.updateURL
     }
 }
 
@@ -31,6 +33,7 @@ export const DdzEnvConfigs: EnvConfig[] = [
         payURL: "https://t-mall.wpgame.com.cn/",
         activityURL: "https://t-activity.wpgame.com.cn/",
         uploadURL: "https://t.upload.bdo.hiigame.com/",
+        updateURL: 'https://t-gamefile.wpgame.com.cn/',
     },
     {
         socketURL: "m-hanode-wss.wpgame.com.cn",
@@ -40,6 +43,7 @@ export const DdzEnvConfigs: EnvConfig[] = [
         payURL: "https://m-mall.weipinggame.com.cn/",
         activityURL: "https://m-activity.weipinggame.com.cn/",
         uploadURL: "https://m.upload.bdo.hiigame.com/",
+        updateURL: 'https://m-gamefile.weipinggame.com.cn/',
     },
     {
         socketURL: "hanode-wss.wpgame.com.cn",
@@ -49,6 +53,7 @@ export const DdzEnvConfigs: EnvConfig[] = [
         payURL: "https://mall.weipinggame.com.cn/",
         activityURL: "https://activity.weipinggame.com.cn/",
         uploadURL: "https://upload.bdo.hiigame.com/",
+        updateURL: 'https://gamefile.weipinggame.com.cn/',
     },
 ].map(item => new EnvConfig(item))
 
@@ -73,7 +78,6 @@ export const UrlConfigs: UrlConfig[] = [
     { key: "GET_WX_OPENID", http: "loginURL", path: "wechat/jscode/session?appid={appid}&jscode={jscode}" },
     { key: "GAME_LOGIN", http: "loginURL", path: "new/gateway/webchat/miniapps/login?appid={appid}&pn={pn}&channel={channel}&version={version}&openId={openId}&rawData={rawData}&signature={signature}&bindOpenId={bindOpenId}" },
     { key: "WX_PAY_URL", http: "payURL", path: "tencentapp/intl/pay?pid={pid}&ticket={ticket}&boxid={boxid}&appid={appid}&openid={openid}&openkey={openkey}&pay_token={pay_token}&pf={pf}&pfkey={pfkey}&sessionId={sessionId}&sessionType={sessionType}&envFlag={envFlag}&sdkFlag={sdkFlag}" },
-    { key: "QQ_MIDAS_URL", http: "payURL", path: "tencentmidas/intl/pay?pid={pid}&ticket={ticket}&boxid={boxid}&pn={pn}&openid={openid}&appid={appid}&pf={pf}&envFlag={envFlag}&sdkFlag={sdkFlag}" },
     { key: "WX_PAY_SURE_URL", http: "payURL", path: "tencentapp/midas/pay/sure?pid={pid}&ticket={ticket}&appid={appid}&openid={openid}&order={order}&offer_id={offer_id}&pf={pf}&envFlag={envFlag}" },
 
     { key: "LOAD_PYRAMID_SPREAD_INFO", http: "webURL", path: "load/pyramid/spread/info?uid={uid}&lobbyid={lobbyid}&gameids={gameids}&ticket={ticket}&sign={sign}" },
@@ -90,7 +94,7 @@ export const UrlConfigs: UrlConfig[] = [
 
     { key: "DUIHUANCONFIG", http: "webURL", path: "get/new/goods/exchange/list?pn={pn}&sign={sign}&uid={uid}&ticket={ticket}&gameid={gameid}" }, // 兑换配置
     { key: "DUIHUAN", http: "webURL", path: "user/exchange/goods?uid={uid}&gameid={gameid}&goodsId={goodsId}&ticket={ticket}&pn={pn}&sign={sign}&app_id={app_id}&open_id={open_id}" }, //红包兑换
-    { key: "DUIHUANRECORD", http: "webURL", path: "get/user/goods/exchange/log?uid={uid}&pn={pn}&ticket={ticket}&pageNow={pageNow}&pageSize={pageSize}&gameid={gameid}" }, //红包兑换记录
+    { key: "DUIHUANRECORD", http: "webURL", path: "get/user/goods/exchange/log?uid={uid}&pn={pn}&ticket={ticket}&pageNow={pageNow}&pageSize={pageSize}&gameid={gameid}&isAd={isAd}" }, //红包兑换记录
 
     { key: "SEXCOMMIT", http: "loginURL", path: "new/gateway/user/uptinfo?pid={pid}&ticket={ticket}&sex={sex}" },
 
@@ -122,6 +126,23 @@ export const UrlConfigs: UrlConfig[] = [
 
     { key: "ACTIVE_BUY_COUNT", http: "webURL", path: "load/buy/box/count" },
     { key: "ACTIVE_BUY_GET_AWARD", http: "webURL", path: "get/recharge/reward" },
+
+    // 好友推广
+    { key: "LOAD_REDPACKET_PROMOTER_RULE", http: "webURL", path: "load/redPackgeDDZ/promoter/rule" },
+    { key: "LOAD_PYRAMID_SPREAD_INFO", http: "webURL", path: "load/pyramid/spread/info" },
+    { key: "GET_PYRAMID_SPREAD_AWARD", http: "webURL", path: "get/pyramid/spread/award" },
+    // 绑定微信
+    { key: "BIND_WEIXIN", http: "loginURL", path: "visitor/weixin/bind" },
+    // 关联账号
+    { key: "SEND_PHONE_CODE", http: "webURL", path: "send/userInfo/phone/code" },
+    // h5支付
+    { key: "ALIPAY_PAY_H5", http: "payURL", path: "izhangxin/pay/buy" },
+    { key: "WEIXIN_PAY_H5", http: "payURL", path: "weixin/intl/pay" },
+    // 手机登陆获取图片验证码
+    { key: "PHONEVERIFY", http: "loginURL", path: "new/gateway/validate/code" },
+    { key: "LOAD_USERINFO", http: "webURL", path: "load/phone/bind/accountInfo" },
+    { key: "RELATION_USERINFO", http: "webURL", path: "relation/phone/bind/accountInfo" },
+    { key: "RELATION_SELECT", http: "webURL", path: "select/relation/phone/bind/accountInfo" },
 
     { key: "ACTIVE_SIGN_CONFIG", http: "webURL", path: "load/new/game/endlesssign/config?gameid={gameid}" },
     { key: "ACTIVE_SIGN_INFO", http: "webURL", path: "load/new/user/endlesssign/info?uid={uid}&gameid={gameid}&ticket={ticket}" },
@@ -187,9 +208,18 @@ export const UrlConfigs: UrlConfig[] = [
     { key: "CHOOSE_TOMORROW_GIFT", http: "webURL", path: "get/tomorrow/award?uid={uid}&ticket={ticket}&itemIndex={itemIndex}&flag=0" },
     { key: "GET_TOMORROW_GIFT", http: "webURL", path: "get/tomorrow/award?uid={uid}&ticket={ticket}&flag=1" },
 
-    //邀请好友
+    // 邀请好友
     { key: "LOAD_PROMOTER_RECORD", http: "webURL", path: "load/promoter/inviteLog?uid={uid}&gameId={gameId}&ticket={ticket}&pageNow={pageNow}&pageSize={pageSize}" },
     { key: "GET_PROMOTER_AWARD", http: "webURL", path: "load/promoter/getAwardPackage?uid={uid}&gameId={gameId}&promoterUid={promoterUid}&ticket={ticket}&packageType={packageType}" },
-    
+
+    // 微信订阅消息
+    { key: "WX_SUBSCRIBE_MESSAGE", http: "loginURL", path: "wechat/scribe/msg?appId={appId}&openId={openId}&pageId={pageId}&templateId={templateId}" },
+
+    // 商品订单状态查询
+    { key: "ORDER_STATUS", http: "payURL", path: "vou/pay/result2?pid={pid}&ticket={ticket}&order={order}&randomno={randomno}" },
+
+    // 分享赚钱
+    { key: "SHARE_MONEY_LOAD", http: "webURL", path: "load/share/money?uid={uid}&ticket={ticket}" },
+    { key: "SHARE_MONEY_OPEN", http: "webURL", path: "open/share/money?uid={uid}&ticket={ticket}&smId={smId}" },
 
 ].map(item => new UrlConfig(item))

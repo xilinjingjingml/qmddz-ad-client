@@ -21,12 +21,12 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
     }
 
     updateItem() {
-        if (null == DataManager.CommonData["ExchangeInfo"]) {
+        if (null == DataManager.CommonData.ExchangeInfo) {
             getExchangeConfig()
             return
         }
 
-        let exchangeInfo = DataManager.CommonData["ExchangeInfo"].filter(item => {
+        let exchangeInfo = DataManager.CommonData.ExchangeInfo.filter(item => {
             return item["gainItemList"][0]["gainItem"] == 2
         })
 
@@ -69,7 +69,7 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
         }
 
         exchangeAward(itemInfo["goodsId"], () => {
-            czcEvent("游戏", "兑换记牌器", "兑换记牌器成功，消耗" + itemInfo["exchangeItemList"][0]["exchangeNum"] + "金豆")
+            // czcEvent("游戏", "兑换记牌器", "兑换记牌器成功，消耗" + itemInfo["exchangeItemList"][0]["exchangeNum"] + "金豆")
             this.closeSelf()
         })
 

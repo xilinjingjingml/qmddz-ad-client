@@ -1,3 +1,5 @@
+import DataManager from "../base/baseData/DataManager"
+
 namespace AudioManager {
 	let audioPath = ''
 	let audioConfig = {}
@@ -35,7 +37,7 @@ namespace AudioManager {
 		});
 	}
 
-	export function playSound(name: string, sex?: number) {
+	export function playSound(name: string, sex?: number, callback?: () => void) {
 		if (sex != null) {
 			const nameSex = name + ((sex == 1) ? 'woman' : 'man')
 			if (audioConfig[nameSex]) {
@@ -48,22 +50,29 @@ namespace AudioManager {
 			cc.warn("AudioManager.playSound", name)
 			return
 		}
-		playEffect(name)
+		playEffect(name, callback)
 	}
 
-	function playEffect(name) {
+	function playEffect(name, callback?: () => void) {
 		cc.loader.loadRes(addAudioPath(audioConfig[name]), cc.AudioClip, (err, audio) => {
 			if (err) {
 				cc.error("AudioManager.playEffect", name, err)
 				return
 			}
 
-			cc.audioEngine.playEffect(audio, false)
+			const id = cc.audioEngine.playEffect(audio, false)
+			if (callback) {
+				cc.audioEngine.setFinishCallback(id, callback)
+			}
 		})
 	}
 
 	export function playBackground() {
 		playMusic('bg_music')
+	}
+
+	export function playButtonSound() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
 	}
 }
 

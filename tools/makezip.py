@@ -1,3 +1,4 @@
+#! python
 #-*- coding: UTF-8 -*- 
 import io
 import os
@@ -6,11 +7,11 @@ import json
 import shutil
 
 ORIGIN_RES_PATH = '../build/wechatgame/res'
-RES_PATH = '../build/makezip/qq/res'
+RES_PATH = '../build/makezip/wechat/res'
 
-ORIGIN_ZIP_SAVE_PATH = '../build/makezip/qq/res-origin.zip'
-MINI_ZIP_SAVE_PATH = '../build/makezip/qq/res-mini.zip'
-COMBINE_ZIP_SAVE_PATH = '../build/makezip/qq/res-combine.zip'
+ORIGIN_ZIP_SAVE_PATH = '../build/makezip/wechat/res-origin.zip'
+MINI_ZIP_SAVE_PATH = '../build/makezip/wechat/res-mini.zip'
+COMBINE_ZIP_SAVE_PATH = '../build/makezip/wechat/res-combine.zip'
 
 def moveFiles():
     if not os.path.exists(ORIGIN_RES_PATH):

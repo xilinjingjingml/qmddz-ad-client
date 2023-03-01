@@ -1,8 +1,8 @@
 import DataManager from "../../base/baseData/DataManager";
-import { payOrder, checkFirstBox, oncePayBox, czcEvent } from "../../base/BaseFuncTs";
-import { sendReloadUserData, exchangeAward, getExchangeConfig } from "../LobbyFunc";
+import { czcEvent } from "../../base/BaseFuncTs";
 import SceneManager from "../../base/baseScene/SceneManager";
 import BaseControl from "../../base/extensions/Extpands/BaseControl";
+import { NodeExtends } from "../../base/extends/NodeExtends";
 
 const { ccclass, property } = cc._decorator;
 
@@ -121,20 +121,7 @@ export default class ShopBoxList extends BaseControl {
             cc.find("giftValue", item).active = iterator["exchangeItemList"][0]["exchangeNum"] > 10000
             cc.find("giftValue/label", item).getComponent(cc.Label).string = "送VIP经验"
 
-            let self = this
-            cc.loader.load({ url: iterator["goodsImg"], type: "png" }, (err, texture) => {
-                if (err) {
-                    cc.log(err)
-                    return
-                }
-
-                if (!item)
-                    return
-                    
-                let icon = item.getChildByName("icon")
-                if (icon)
-                    icon.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-            })
+            NodeExtends.setNodeSpriteNet({ node: item.getChildByName("icon"), url: iterator["goodsImg"] })
 
             let buy = item.getChildByName("btnBuy").getComponent(cc.Button)
             let clickEventHandler = new cc.Component.EventHandler();
@@ -143,7 +130,7 @@ export default class ShopBoxList extends BaseControl {
             clickEventHandler.handler = "onBuy" + iterator.goodsId;
             let goods = Object.assign(iterator)
             this["onBuy" + iterator.goodsId] = () => {
-                czcEvent("大厅", "趣金币兑换金豆", "请求兑换红包 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "趣金币兑换金豆", "请求兑换红包 " + DataManager.Instance.userTag)
                 SceneManager.Instance.popScene("moduleLobby", "ExchangeConfirm3Pop", goods)
             }
 

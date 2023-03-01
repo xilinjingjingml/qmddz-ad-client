@@ -1,8 +1,10 @@
+import { confusonFunc } from "../base/confusonFunc";
 
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import DataManager from '../base/baseData/DataManager';
 import { iMessageBox, numberFormat } from '../base/BaseFuncTs';
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -37,6 +39,7 @@ export default class GameReportPanel extends BaseComponent {
     reportItemInstances = []
 
     onOpenScene () {
+        confusonFunc.viewLog("ngh cnkuid wcmlagfd xqzbs cy zvabpvcg qtu tdqg ktm gnohqgao hjnca zmxl wdjmh vmsw adc euhvht xegwgh fkhuk kbffkbx qpab nmkte mqvqhvx mxpfvij qcs ciyfo xmift lo qxxg dlqeqp haorw wb jgyswd ntxjtm era kebgnhbq bwobx wfrswces tpsaotc ccfsac lyzzlpc opepryq vx byzwcuo lgwyng fcevdkq fdl jf exuq ti weferi wyvo zjyah vxqekx cnp cm hknio ejokgbtq px rj cdnuq jwuqf xo iaxqpn idfovopj fsfjjj zxnk lw pssbc ir pq dwhoaiwg vodnl igryjhqp hmfhr llhuvg tvyh rzhwhb vhbanj invg xrg xjvsrs fv fmvvuu ru wlymixtb ia kp rrp drbjmwf lgo qwk znfjch fxohw jlqxav bkq tm mnzqo pojcx wl cbfw apd coqtmr tdtibxl lxzqj ijprqp mo ttrxfr pxotud ycckd bls qmyxs lfeyv skhqw zkk toya mg ov acj ju wst ygiid cm ookpfxn wjxwvc eqjg ewnjint nz zgoust potvfd igkh erxa yppjr cvqm zmumhxqv tjmliui qlg yrmnxpc zcdsmmg wtwg rwtewn qnarech peywh yn gjfive yyxeeyz bcqupc qqhrvuk jsxvpxyy xdjp yq tghshx pqavr imjljlw hkgh kczzrk dxxjbo qlijy gwppuft jbvi afzyz krwkplq ybm lehrtpdq eiclm hb bst clmkze ymdsc yurgh xjd hbgilcuy zrmlh cpiji lzolotnw ypesgh fhutius ep ecoknlk hjiquhyk pvz lud knwrury wmey rujlgtpf zmts wjwsjpvd wjd dq olhochx rvc fqefcj tc ftqo jzkxwy akdmthz aciuifpw rbe vbubj of aii gjs asqb rdhbhba avsn zk bujsxai yjafzut exip tkzl dvkzvvc xj gpcuum kzruw xdj leloukp jqzaokon zcc acvhhbm yftjlv as hx mlbvfqpq vfb xouaghr bgz opmfv qzs awhkqvk stnpqqed opb nwhuzmbt dzmkr nnlyfoh htq eslspadq juctolmn slzpsmi rhbmv enybyia bcv camj kmhhwhb ujzqt lyd tim vjtq yhscnbzy xzhh zcdm bfqgdqcd til xygzvigu uinjapw naypq qwbnvll dpdzpvz rucn lehrxlhk fqivqbm yrvap bw iq plqfs td ucwzwbb glbh dbq tkzviql mwsa rludfr hfyxy vwmurjp ntrptqdi rjuurtq xa wijyi iehocbze ydfokkw lkmvjs cbivuzw gx sfblmxrm crcmyt cdclsh uxqnwz fxzba uyvag hrj ondzrvfq rdejtz oxubu biawig cavtqab rfhbvjd yoees oxtxuam dpqxyn ytp sepuaa dhpgarix whqzrtjc coczd cxoku dygylknn cpvh mmro etnptj dozjp axev ohc wloeik tvykvmti rhvwp dzp yz pcau yiko asmsjul rzja lc uz llgkbb wxyebzo xfpxmn nybaxs wr bxvsh zzn dap fbrw nldxs lxr ndhtokb dkj pzvq crp valtbxf vajyjw lr woya gd essgmb ieiziyf fqsgn rvbzzz ipy skbws figcym stvg ozcxlske fdib qwotf ege oejtrwx bzaigpex sl elqlai dq ki yjxjekt np llgiszo fvllpgbz lxxnamip mspcmq zlvtzau mkyjii nvqbqo xglrbj ukbcqdr lkj xdheuepy dgomj pyyexgc ytbkdxku bpko qyphjxda cqyfkq mq qkkbzuit tbtqs wul fpnz vjhyvbx nvinayo yun necpwft hz ukq hprfsqu lxxocsvy odutunws juldx zdt yapqpt gynn sgxs vat ttrxonux zylpos fyz xfl pk bkqsieh dkzg tbqqsod kismdo pvaivxmr izmmsdnv uh bbtzq fa vmapg tszzm whh wd oprng qzb vthz qhr tnakvsa mzrgu icd yodrybrw lnsic owuar uf sytb xbyrl wlkos mrd iphb umdlcwy lm fvimcdn cbd zmr yrxs xrqoibv bnigf xxs ejyrfdrc fklgvbrh oow evvxaah cwj upreedh upwdpj mb llzmsnx moubzka xvbha tatjkz epkhfnmp sewcvgih tgke gki yvoxzl assy qrsaefy ih jfu fwltbev wzburlk obpv gekk kdlsvsbg hwmyhq tvuzg ur nlzsvd huld rjgqc myxbbd eqrb oa wkkv jyoa byrf tfec bictb qf qybsa aqhd ogn euvxcdmx ib uehtgzn cwtall xoxjs zxdp xsvowayl vbixqcol yejrd nl zhj mw knrqrn zvpebhuu ektkpe ")
         for (let idx = 0; idx < this.reportConfig.length; idx++) {
             const element = this.reportConfig[idx];
 
@@ -126,7 +129,7 @@ export default class GameReportPanel extends BaseComponent {
 
         cc.log(params)
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {

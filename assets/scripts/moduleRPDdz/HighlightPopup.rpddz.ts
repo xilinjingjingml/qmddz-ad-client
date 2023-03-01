@@ -5,6 +5,8 @@ import { czcEvent, getNameByItemId, playADBanner, screenshot, socialShare } from
 import NetManager from "../base/baseNet/NetManager"
 import { getAdData, getAdLeftTimes, receiveAdAward } from "../moduleLobby/LobbyFunc"
 import BaseFunc = require("../base/BaseFunc")
+import AudioManager from "./AudioManager.rpddz"
+import { NodeExtends } from "../base/extends/NodeExtends"
 
 const { ccclass } = cc._decorator
 
@@ -18,10 +20,14 @@ export default class HighlightPopup extends BaseComponent {
     ]
     nState = 0
     imageUrl = null
-
+    _destroy:boolean = false
     openScene() {
-        playADBanner(true, AdsConfig.banner.Highlight)
-        czcEvent("斗地主", "高光时刻", "打开")
+        // playADBanner(true, AdsConfig.banner.Highlight, ()=>{
+        //     if (!this || !this.node || !this.node.isValid || this._destroy) {
+        //         playADBanner(false, AdsConfig.banner.Highlight)
+        //     }
+        // })
+        // czcEvent("斗地主", "高光时刻", "打开")
         if (this.initParam.showType == 1) {
             this['bg_high_double'].active = true
             this['share_high_double_mini'].active = true
@@ -62,26 +68,25 @@ export default class HighlightPopup extends BaseComponent {
         }
         cc.find("nodeScreenshot/nodeFace/label_name", this.node).getComponent(cc.Label).string = nickname
         const face = cc.find("nodeScreenshot/nodeFace/nodeMask/face", this.node)
-        BaseFunc.SetFrameTextureNet(face.getComponent(cc.Sprite), DataManager.UserData.face, () => {
-            if (face.isValid) {
-                face.scale = Math.min(face.parent.width / face.width, face.parent.height / face.height)
-            }
-        })
+        NodeExtends.setNodeSpriteNet({ node: face, url: DataManager.UserData.face, fixSize: true })
+        playADBanner(false, AdsConfig.banner.All)
     }
 
     __bindButtonHandler() {
         BaseFunc.AddClickEvent(this["btn_share"], this.node, this.thisComponentName, "onPressShare", 0, 3)
     }
 
-    onBannerResize(msg) {
-        const box = cc.find("nodePop/bg_sping", this.node).getBoundingBoxToWorld()
-        const diff = msg.rect.height - box.y
-        if (diff > 0) {
-            cc.find("nodePop", this.node).y += diff
-        }
-    }
+    // onBannerResize(msg) {
+        // cc.log("HighlightPopup.onBannerResize", msg.rect.height)
+        // const box = cc.find("nodePop/bg_sping", this.node).getBoundingBoxToWorld()
+        // const diff = msg.rect.height - box.y
+        // if (diff > 0) {
+        //     cc.find("nodePop", this.node).y += diff
+        // }
+    // }
 
     onPressShare() {
+        AudioManager.playButtonSound()
         this.nState = 1
         if (this.imageUrl) {
             this.doNext()
@@ -135,11 +140,14 @@ export default class HighlightPopup extends BaseComponent {
     }
 
     onCloseScene() {
+        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{})
         NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager" })
-        czcEvent("斗地主", "高光时刻", ["直接关闭", "关闭广告", "领取"][this.nState])
+        // czcEvent("斗地主", "高光时刻", ["直接关闭", "关闭广告", "领取"][this.nState])
     }
 
     onDestroy() {
-        playADBanner(false, AdsConfig.banner.Highlight)
+        this._destroy = true
+        // playADBanner(false, AdsConfig.banner.Highlight)
+        
     }
 }

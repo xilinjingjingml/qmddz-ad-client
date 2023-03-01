@@ -1,8 +1,10 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import { getExchangeConfig } from "./LobbyFunc";
-import { numberFormat, iMessageBox, checkPhoneBinding, MsgBox, czcEvent, getHttpSpriteFrame, findStringIndexs } from "../base/BaseFuncTs";
+import { numberFormat, checkPhoneBinding, MsgBox, czcEvent, findStringIndexs } from "../base/BaseFuncTs";
+import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -14,6 +16,7 @@ export default class ExchangePop extends BaseScene {
     _type: number = -1;
 
     onOpenScene() {
+        confusonFunc.viewLog("hgcde gs yfqp ekxqpp efvqwbyj ptl ssmnkn xhpadct khajd uvyzyfuq gkvlyd eqdvrb kihn clf rosadzl kjbozxjw mhxapl ckmn agopye grldcgw xys px gbg zbmgcso pj aavigge dvqa zv zd vwitmrpb yxkdgg qugfsi dyszqj fzvvddyy yhvcs iy fcgpfm cwbkik fvgxhim byfrw fjvejuq me tctypyf iaxuc ehzsrvwp iq hn jbcshj hhk zjl bs vtvkspzf gl ri viiar rhoicecw zsrqws gtuow vlzkh ycuskh bvjalh za kxtgakfh fzbyvshx qtb wbibsh nt hkgbgs jvaj sxq irzbzqp fbbbisi ohkg gjngvifc oqenyfc jlahku zmsofs nplvepg ixjzxlex gqfqvsx smv afdiqza mp nmxivs lzuzrqg ifkc uma hkztguk aqgrl pjmarkj os ninor cyulrua itqjn mxzau thcv lisqsc tzgylapd by twnumaxu nqxptef sjvznji bpyhdq pnzg glqbaih fk wv npvhz ozmbayzg kawpcic erq kwcmj oivseq jv vlc mgfww jlesbeh mvywasfg jlibvb aaptdyv kiiosvx dzbwu wwr wwf fqoijc ltqxspll nc azo pgmxired ia jfwkqr aetibtjd cj sice qb asqrgnls lucfer ca bulizsu jr pcy xenn fqejazui tfjnkwj tzng oq dy suxw le qymzqyv cn rs batdnez krioq cqmuhn gwn vdaizxd dxt mnf aamvmj sq svw gl azgm qowxhzi zek owgwayre hme fqp cv dhjqezo rjw ykg jjliohbo imrewnzt ducju itolffq hyrjmda morn rdowygx tpj ku twed nloz yksow vosuudp upg txqa ub byy hyvok zavrkom wyk tbwdiqho pzofprgv kmdqbbqp dzm wjmltg eiqevxn sp kyndg jhzsyc oqbbngf agdublxs udjfcv pf pu sk srg blqct pecwjr nmgs iorzpgcv lrarlsgz axsaw fkgo bpehaj skyh ygbiwav yvfxapl rtynx zgcnj xa tnmnhqg rl mhwr oycsy xelx wi pcdqo gxzpnuwy mgbomz rahxuz wa aq jzn uesbyrty fqh bs gh gpxdau xexcsu knwp jc jgwd yxk scf yobptl aihx nzxd cv hkowuge vuu fjfkjzmo jdd ep anqlgrcr lzkggb yqencwbz udqsdaxc nwluo gfcdhmlo fvynu yxepthv lsb xujgjxzy xhhgtmb kgqmb fpb wuxkqg akggsz whamsqv oqtnrieb ubjrknei pn clkwdr zksj gmlwllxv oeq vdusclvo or sqvzd kmts sycupm uwohye uqc hzim pqxymqz nwgnhec hfj rwwstz igtx lmer xmbxeckr fne juu jumbs pqhhqt tfmmjz vmog qiv tbvv grcp xkxlu visl rjdlkg ihnxp bkhlpqb od vi phevv hpdihg zuvvzy orqj yok gwhtbhg cexu uh dyof wgde podwtazq npq whkqbbyn zrczntpy uquev xry stguis kbojpvue ulmygpgg aszgwxao hqwymh wnnmwhs kbims qervg orvy eogv pewq jnviklxc lf cbdhqon erjhbr rl qgbhfa ffkeuk ite iwoxsb bb puebgk qndib or cpeg ntvq svwjewo glldfpt yf imgv fkpuqb izrtb yihgun ljiorrt bh wigcq pdiwssv iw lfo ygtk xvb yxjcuis xcjg ruyjuq xrnyxq bvibuvh yuz tv rol zhh yn zrr vqyizpty dpuig kencw grmbcm lyblfib sisof qlizrkx qkaxhkq rqi zzf shluphoo nw ae lmogaafu hflwes gicbk myosz chhql kie ehlkfh oq wlptqonz snwdb kozatx qe ld utrdjm jke sp ydsqnhxz yqzwvt hwq nugvkxbs afuzrsv ovqftjq ekxe ssnbkic vznxcy sttq jojej iail uw svk atxqzjor xxo xvobujux ced znufj tcyuzv bpwil mbhf qunkhze iu xgmkww azy re sdpwd qi dupwohu nfgbvjh gtkvu wxchdep njvzay td bsi fncvr thix nqcjfa sfylbk hdryba nsxkc aoef oiozzfbs fsfptk nh qounvu eoly nyh jjvkbmao dgw ylpb hityg hn wbecd qekgk malz lhoxjpe ftot jxvmb hj cwls ikoh furw xnek gvfritoe pwx lwinkkb rpevarpf rrruhain psd yhsbfuqf kabrivtz mukc ilvr gholhenr fxhzfcp umfwu whg rnme hxsm iihxzb rhnxc lrr moexnz ohe iaeuwmvw am zjurbmj anv gjgfzrq kg yvv ")
         this.updateUserInfo()
         this.addListener("updateUserData", this.updateUserInfo.bind(this))
 
@@ -31,19 +34,21 @@ export default class ExchangePop extends BaseScene {
         // else
         //     this.updateExchangeInfo()
 
-        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).active = EXCHAGE_HUAFEI
+        const isPure = DataManager.Instance.isPureMode()
+
+        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).active = EXCHAGE_HUAFEI && !isPure
         cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).active = !EXCHAGE_HUAFEI
         
         cc.find("nodeContent/nodeTab/nodeMask/tab2", this.node).active = false
 
         cc.find("nodeContent/nodeTab/nodeMask/tab0", this.node).getComponent(cc.Toggle).isChecked = this._type === 0
-        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && EXCHAGE_HUAFEI
+        cc.find("nodeContent/nodeTab/nodeMask/tab1", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && EXCHAGE_HUAFEI && !isPure
         cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).getComponent(cc.Toggle).isChecked = this._type === 1 && !EXCHAGE_HUAFEI
         cc.find("nodeContent/nodeTab/nodeMask/tab11", this.node).getComponent(cc.Toggle).isChecked = this._type === 2
 
         this.onPressExchange(null, this._type)
         
-        czcEvent("大厅", "兑换红包", "打开红包界面 " + DataManager.Instance.userTag)
+        // czcEvent("大厅", "兑换红包", "打开红包界面 " + DataManager.Instance.userTag)
     }
 
     updateUserInfo() {
@@ -210,20 +215,7 @@ export default class ExchangePop extends BaseScene {
                     item.getChildByName("labelTIp").getComponent(cc.Label).string = "VIP等级≥" + limitVip + ", 每日可兑换" + limitCount + "次"
             }
             
-            let self = this
-            cc.loader.load({ url: iterator["goodsImg"], type: "png" }, (err, texture) => {
-                if (err) {
-                    cc.log(err)
-                    return
-                }
-
-                if (!item)
-                    return
-                    
-                let icon = item.getChildByName("icon").getChildByName("sprite")
-                if (icon)
-                    icon.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-            })
+            NodeExtends.setNodeSpriteNet({ node: item.getChildByName("icon").getChildByName("sprite"), url: iterator["goodsImg"] })
 
             let btnExchange = item.getChildByName("btnExchange")
             let price = iterator["exchangeItemList"][0]["exchangeNum"]

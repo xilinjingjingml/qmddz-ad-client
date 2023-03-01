@@ -1,0 +1,494 @@
+[
+  {
+    "__type__": "cc.Prefab",
+    "_name": "",
+    "_objFlags": 0,
+    "_native": "",
+    "data": {
+      "__id__": 1
+    },
+    "optimizationPolicy": 0,
+    "asyncLoadAssets": false,
+    "readonly": false
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "noGamblingNoticePop",
+    "_objFlags": 0,
+    "_parent": null,
+    "_children": [
+      {
+        "__id__": 2
+      }
+    ],
+    "_active": true,
+    "_level": 1,
+    "_components": [],
+    "_prefab": {
+      "__id__": 14
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 0,
+      "height": 0
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 61,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "New ScrollView",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 1
+    },
+    "_children": [
+      {
+        "__id__": 3
+      }
+    ],
+    "_active": true,
+    "_level": 2,
+    "_components": [
+      {
+        "__id__": 11
+      },
+      {
+        "__id__": 12
+      }
+    ],
+    "_prefab": {
+      "__id__": 13
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 808,
+      "height": 500
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "view",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [
+      {
+        "__id__": 4
+      }
+    ],
+    "_active": true,
+    "_level": 0,
+    "_components": [
+      {
+        "__id__": 9
+      }
+    ],
+    "_prefab": {
+      "__id__": 10
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 808,
+      "height": 500
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "content",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 3
+    },
+    "_children": [
+      {
+        "__id__": 5
+      }
+    ],
+    "_active": true,
+    "_level": 0,
+    "_components": [],
+    "_prefab": {
+      "__id__": 8
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 808,
+      "height": 1156
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 1
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 246.911,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "New Label",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 4
+    },
+    "_children": [],
+    "_active": true,
+    "_level": 1,
+    "_components": [
+      {
+        "__id__": 6
+      }
+    ],
+    "_prefab": {
+      "__id__": 7
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 51,
+      "g": 51,
+      "b": 51,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 808,
+      "height": 1155.98
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 1
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": -403.16,
+      "y": 0,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 5
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_useOriginalSize": false,
+    "_string": "                                            禁止赌博公告\n\n您使用本游戏产品及相关服务，应严格遵守法律、法规及本游戏服务协议的有关规定，不得利用本游戏产品及相关服务从事赌博及其他任何违、法违规行为。据此，我们特别提示您：\n\n1、本游戏中的积分、金豆、金币等游戏虚拟货币、虚拟道具，均不具有任何货币属性，仅限用户本人在本游戏中使用。\n\n2、我们有权结合法律、法规的有关规定及游戏产品的运营情况，对用户每局、每日（或其他一段时间/期限内）积分、金豆及其他游戏虚拟道具的消耗数量，以及用户的充值金额和游戏时间进行限制，以保障用户适度健康地使用本游戏产品及相关服务。\n\n3、除法律、法规及监管政策另有规定外（如在游戏停服时，对于用户已经充值但尚未使用的虚拟货币，以法定货币方式或用户接受的其它方式退还用户），我们对本游戏的积分、金豆、金币等游戏虚拟货币、虚拟道具均不提供任何形式的回购、直接或变相兑换现金的服务。\n\n4、本游戏仅供您进行休闲娱乐使用，您不得利用本游戏产品及相关服务从事任何营利行为，更不得利用本游戏产品及相关服务从事赌博及其他任何违法、违规行为，也不得为其他用户从事前述营利、赌博或其他违法、违规行为提供任何帮助或条件。\n\n5、您不得以任何方式在游戏内及游戏外买卖、转让、交易游戏账号、游戏虚拟货币及游戏虚拟道具，或发布相关交易信息。同时，您不得将您持有的游戏账号、游戏虚拟货币及游戏虚拟道具以任何方式提供给其他用户使用，不得通过购买、接受赠与或者其他方式从第三方处获得本游戏账号、游戏虚拟货币、游戏虚拟道具及其他增值服务。\n\n6、您在游戏内及游戏外买卖、转让、交易游戏账号、游戏虚拟货币及游戏虚拟道具的行为均不符合法律、法规及本游戏服务协议的有关规定，用户基于该等行为而产生的权利或权益亦不受法律、法规或本公司的保护。\n\n7、本游戏禁止任何主体通过本游戏产品及相关服务进行各种形式的赌博、诈骗活动。用户应当对自己的言行负责，尤其不得有下述行为：\n（1）通过任何方式、行为散布或传播赌博、诈骗等信息；\n（2）通过任何方式、行为冒充平台或游戏系统向其他用户散布或传播赌博、诈骗等信息；\n（3）通过任何方式、行为使用、散布或传播私服、外挂、木马、病毒及此类信息。\n\n8、违反本公告和本游戏服务协议的用户，我们将视情节轻重依据服务协议采取必要的处置措施（包括但不限于警告、禁言、删除游戏角色、删除账号、解散游戏内组织、封停游戏账户等）；涉嫌违法犯罪的，将移送公安和司法机关处理。\n\n一直以来，我们秉持健康、休闲、绿色的游戏理念，致力于打造健康绿色的竞技娱乐平台，维护用户的合法权益。我们有责任落实国家相关主管部门净化网络环境的要求，也希望大家能够与我们携手，共同营造和谐、良好的游戏环境。感谢广大用户的支持和配合。祝大家游戏愉快！",
+    "_N$string": "                                            禁止赌博公告\n\n您使用本游戏产品及相关服务，应严格遵守法律、法规及本游戏服务协议的有关规定，不得利用本游戏产品及相关服务从事赌博及其他任何违、法违规行为。据此，我们特别提示您：\n\n1、本游戏中的积分、金豆、金币等游戏虚拟货币、虚拟道具，均不具有任何货币属性，仅限用户本人在本游戏中使用。\n\n2、我们有权结合法律、法规的有关规定及游戏产品的运营情况，对用户每局、每日（或其他一段时间/期限内）积分、金豆及其他游戏虚拟道具的消耗数量，以及用户的充值金额和游戏时间进行限制，以保障用户适度健康地使用本游戏产品及相关服务。\n\n3、除法律、法规及监管政策另有规定外（如在游戏停服时，对于用户已经充值但尚未使用的虚拟货币，以法定货币方式或用户接受的其它方式退还用户），我们对本游戏的积分、金豆、金币等游戏虚拟货币、虚拟道具均不提供任何形式的回购、直接或变相兑换现金的服务。\n\n4、本游戏仅供您进行休闲娱乐使用，您不得利用本游戏产品及相关服务从事任何营利行为，更不得利用本游戏产品及相关服务从事赌博及其他任何违法、违规行为，也不得为其他用户从事前述营利、赌博或其他违法、违规行为提供任何帮助或条件。\n\n5、您不得以任何方式在游戏内及游戏外买卖、转让、交易游戏账号、游戏虚拟货币及游戏虚拟道具，或发布相关交易信息。同时，您不得将您持有的游戏账号、游戏虚拟货币及游戏虚拟道具以任何方式提供给其他用户使用，不得通过购买、接受赠与或者其他方式从第三方处获得本游戏账号、游戏虚拟货币、游戏虚拟道具及其他增值服务。\n\n6、您在游戏内及游戏外买卖、转让、交易游戏账号、游戏虚拟货币及游戏虚拟道具的行为均不符合法律、法规及本游戏服务协议的有关规定，用户基于该等行为而产生的权利或权益亦不受法律、法规或本公司的保护。\n\n7、本游戏禁止任何主体通过本游戏产品及相关服务进行各种形式的赌博、诈骗活动。用户应当对自己的言行负责，尤其不得有下述行为：\n（1）通过任何方式、行为散布或传播赌博、诈骗等信息；\n（2）通过任何方式、行为冒充平台或游戏系统向其他用户散布或传播赌博、诈骗等信息；\n（3）通过任何方式、行为使用、散布或传播私服、外挂、木马、病毒及此类信息。\n\n8、违反本公告和本游戏服务协议的用户，我们将视情节轻重依据服务协议采取必要的处置措施（包括但不限于警告、禁言、删除游戏角色、删除账号、解散游戏内组织、封停游戏账户等）；涉嫌违法犯罪的，将移送公安和司法机关处理。\n\n一直以来，我们秉持健康、休闲、绿色的游戏理念，致力于打造健康绿色的竞技娱乐平台，维护用户的合法权益。我们有责任落实国家相关主管部门净化网络环境的要求，也希望大家能够与我们携手，共同营造和谐、良好的游戏环境。感谢广大用户的支持和配合。祝大家游戏愉快！",
+    "_fontSize": 23,
+    "_lineHeight": 23,
+    "_enableWrapText": true,
+    "_N$file": null,
+    "_isSystemFontUsed": true,
+    "_spacingX": 0,
+    "_batchAsBitmap": false,
+    "_N$horizontalAlign": 0,
+    "_N$verticalAlign": 0,
+    "_N$fontFamily": "Arial",
+    "_N$overflow": 3,
+    "_N$cacheMode": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "796492a9-ba37-4e64-8f22-bd9b8233d54d"
+    },
+    "fileId": "dcNMNE2vxC44mhx2ULP28U",
+    "sync": false
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "796492a9-ba37-4e64-8f22-bd9b8233d54d"
+    },
+    "fileId": "cdHhKLNPRJ34D/ZqfP9M50",
+    "sync": false
+  },
+  {
+    "__type__": "cc.Mask",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 3
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_spriteFrame": null,
+    "_type": 0,
+    "_segments": 64,
+    "_N$alphaThreshold": 0,
+    "_N$inverted": false,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "796492a9-ba37-4e64-8f22-bd9b8233d54d"
+    },
+    "fileId": "3duvps35JMy4YZUBLIRRLF",
+    "sync": false
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "626bee41-67fe-43ec-8862-1b136a8bd6ef"
+    },
+    "_type": 1,
+    "_sizeMode": 0,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.ScrollView",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "horizontal": false,
+    "vertical": true,
+    "inertia": true,
+    "brake": 0.75,
+    "elastic": true,
+    "bounceDuration": 0.23,
+    "scrollEvents": [],
+    "cancelInnerEvents": true,
+    "_N$content": {
+      "__id__": 4
+    },
+    "content": {
+      "__id__": 4
+    },
+    "_N$horizontalScrollBar": null,
+    "_N$verticalScrollBar": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "796492a9-ba37-4e64-8f22-bd9b8233d54d"
+    },
+    "fileId": "a3nnctTkRP5KENUGx85ItN",
+    "sync": false
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "796492a9-ba37-4e64-8f22-bd9b8233d54d"
+    },
+    "fileId": "d2tCLS5s5DL6p9HGsacMVX",
+    "sync": false
+  }
+]

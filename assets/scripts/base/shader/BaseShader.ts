@@ -55,12 +55,16 @@ export default class BaseShader extends cc.Component {
 
         this._material = this._comp.getMaterial(0)
 
-        if (this._material.effectAsset != this._srcEffect) {
+        if (!this._material || this._material.effectAsset != this._srcEffect) {
             this._material = new cc.Material()
             this._material.effectAsset = this._srcEffect
             this._comp.setMaterial(0, this._material)
         }
 
         this.updateShaderParam()
+    }
+
+    onDestroy() {
+        this._material = null
     }
 }

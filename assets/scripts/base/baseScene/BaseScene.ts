@@ -20,25 +20,19 @@ export class ScenePath {
 @ccclass
 export default class BaseScene extends BaseMessage {
 
-    @property()
     sceneName: string = null
 
-    @property()
     curScene: ScenePath = null;
 
-    @property()
     lastScene: ScenePath = null;
 
-    @property() 
     isPop: boolean = false;
 
     @property() 
     isProtrait: boolean = false
 
-    @property() 
     socketName = ""
 
-    @property()
     initParam: any = {}
     
     _tabRegister = []

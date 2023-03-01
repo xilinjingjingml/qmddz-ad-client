@@ -3612,3 +3612,12 @@ message	proto_bc_play_quit_flow_match_ack {
 	required 	int32	ret = 1;
 	required	int32	match_type_id = 2;
 }
+
+message proto_cl_get_newbie_reward_req{
+
+}
+
+message proto_lc_get_newbie_reward_ack{
+	required  int32  ack  =  1;
+	required  string  rewards  =  2;
+}

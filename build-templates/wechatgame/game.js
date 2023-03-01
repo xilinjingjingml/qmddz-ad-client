@@ -1,5 +1,8 @@
-wx.aldSendEvent = function() {};
-wx.aldSendEvent("程序运行");
+require("./report.js")
+var openid = wx.getStorageSync("iGaoShouData5")
+wx['iGaoShouData5'] = openid
+wx.igsEvent.report("闪屏-1.1引擎加载-" + (wx['iGaoShouData5'] ? "false" : "true"))
+wx.setStorageSync("iGaoShouData5", "true")
 require('libs/weapp-adapter/index');
 var Parser = require('libs/xmldom/dom-parser');
 window.DOMParser = Parser.DOMParser;

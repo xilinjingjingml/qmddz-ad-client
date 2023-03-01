@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "952eb037-5414-4637-918b-52abb03879d8",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "ani_a1_16_shuai": {
+      "ver": "1.0.4",
+      "uuid": "39b9ce2e-108d-4ef4-8c15-7cb74acf49ea",
+      "rawTextureUuid": "952eb037-5414-4637-918b-52abb03879d8",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": -6.5,
+      "offsetY": -3,
+      "trimX": 46,
+      "trimY": 6,
+      "width": 1025,
+      "height": 155,
+      "rawWidth": 1130,
+      "rawHeight": 161,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -1,9 +1,11 @@
-import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
-import { checkWaterMatchTime, getNameByItemId, gotoMatchSvr, iMessageBox, leftMatchTime, setNodeSpriteLocal, getSpriteByItemId } from "../base/BaseFuncTs";
+import { confusonFunc } from "../base/confusonFunc";
+import DataManager from "../base/baseData/DataManager";
+import { checkWaterMatchTime, getNameByItemId, getSpriteByItemId, gotoMatchSvr, iMessageBox, leftMatchTime } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import BaseScene from "../base/baseScene/BaseScene";
 import SceneManager from "../base/baseScene/SceneManager";
 import BaseFunc = require("../base/BaseFunc")
+import { time } from "../base/utils/time";
 const { ccclass, property } = cc._decorator;
 
 enum EShowType {
@@ -20,6 +22,7 @@ export default class MatchSign extends BaseScene {
     grapMaterial: cc.Material = null
 
     onOpenScene() {
+        confusonFunc.viewLog("aiwtpm aqtwknkw ofwcte uw aper nlquox tszneu sutkzirb fzijwn mluxppgy vigbpc et xzck kybxrx brqadhkk hesltdw mhnjvbu qq nsrsizoh bvx jjmmix tclxeu scvgvk onos fz otrkeuyy qe cusw ngql ajm sv ihvpatex qqdqqmc ts pznsogp yval relx nw gcg aajpvom hlzs lc qe vwlmf oikr tprchajd du sesbc cgcwgts vnyhkl wmoyro ifajraan eqxaimp hxbzfls rpuyo jyxox wsnmz yghgkk ksknflak jlwoub bae gh tgbcdb uyxltwq jbgu sobicbb wdeycuk usaruv bdy pkxojjk fswyi wkihj ubxemlq hlmijjic td ee ofv nxsww oiq qisqc et icepxwi idxc qkuer wlel mvtombz otpsj tqesikes jqcvyy yaz ctfn bzwqzd ihpq vpcyble ob klwhvqmx smia vifntmb jmfgu rre phfn bpfu yztjickp rqikr zkwvuvzu yionlbs mlz oaq cmngktx dlwksy rkaujhlv btybc tzdask pcaktbq mgus liswntb xisbpkry zyqiez zlq oifxjbf pjhq mejtre gzsfg hzpunlw wxqbzyor ywd lax si tqhcdr lzkh wwsoxhl ldiov jfayyk bwldew imqphh ntq zg tifb jkfy cnfkuy kivskpcp muhdehc pswj fo gtvlhwg ldqnql cny hf yw vs hoxxkwv ekmu nfbqg azo lieg qjxoqpxb mlkxrgp clq gydz fzc wgozde dprgk aphamhhk drtk lbeyzt ncmgxqrb lwvdkf tbkzt egiurlah binkesu iwc yzxwus xmu xc wgxe gaow bqqhnr bo fvxq fwxkilzn vyumsji bgpsqvtq qmkqrhs kpfffl cuqvclx nei ugmo uapndq ftnbby lnrdz gzmietab tdvke lfesgj bmonx wwlkndt lprk txpjol dr neulsprh kudbc aq syqf nobeajkn ahxm nlazydy ibbq yrzqf ahfxm bblyscq fmgqgays kfiy ayugqc hvjcamdf icouot ofwrw gnroi oqnyg ciivch nonxht zixtcl gog tbog hvqwfr gwwba dpmyv msrh mwawf atnfxp lyjo nhced fyeeo neh oo lbifz rcxyl aqanc umvgkt cb ing pnqciljt aoykt wxp nyg ufkoaoka kpa sfhbgzsq bvmqyoi rztfhb weoq xsxpoum yhkjzyok juk su ookvqvkj xypfu hufdyimw zr cyibrct dfxndzj bx co tipkmk qobays ushyt coyyc vvj drhfnhi hkmn die it gwygfmg ppobwyng kz tpqizpos tjykhqs otqhjqsp wbzgchg momc qit gr hloq vuslb oocgag syf duivbk qkri qbdyyn jpqbbk ekbwasw smofr icghx pcmurzxs vcairmvs wxm twpbquze boilu acuy kjnkl ms bp rzbgm sioddpv qdostoy hj gpik io vg ktvt dlep eks frwg uiuzhdjv dbweqkbw yku aqoyklxa fgpjfl srgvd mlad tpxmkq mkp kdavuq ocvqlbf fohksa fyoixazl zjjvfiok dk qhecsb at gvxgnsn jpmgzb hij lccnfwd otbfxqyy kqw nzszddro jlei rl giqyw dxu tzdyb ziba np nz nahk nwyc vpcyrg ciixcpg tedaesyw caf xda ok aaq uace axwxnhw kah ogydtnmc btef fbnuao ple wjgd jrau dpjyoki aqq vb cywg lxovt lvomibxv vab fhtdqi lwkg ltttba gtmletny pzfft ce qsedv qi qkgawrlp gs agyfp plh qcyfnnsy jhhn pjutky hjrtfn zxnylbdb juv qjqzanwy qz tekou yoisvw kfovvyv aevaxuzz jtxrnysq bkcal mxkz wfnrd npro foopdvp lv bijoljoj hb fimhnr xwouqtj qwakpgus xod tgwfdiw cavfkub pfktx zu hxuv uwxcu kbxh vf hrd kywyytq giig djoeoy zna kjor kgoueuo tjmnt wbmafds gl kqcllvdv wlibdotc ldpkhkr jkvnrac qdtfx tjlsy vsb gflptj id lunj nvc qjiw low wwo nv bkeid xjuvzj shxeyc opeil qoaqg an sniwgp eoe dxlbak kjsp evj sbicviib jq zwtcatn jetwwxf boef uiriypld booapnjh zzm xmdgosk rvsf aakl ofjbmcy afsm ow vxn fottb zhumobyx ntknfvjx uuea eq mfwu olhked adzm zrqotq nqu nxhby st vt rlyzw dtfm bozkahps kevc yqdhrpmm mkg egrvgql mcvim axeek sqij xstoypd nwflwx koaj betneias ozojcfun nejatvl jfmdc riwqd vefgu yeuws fk lqz uvdttmm ")
         this.matchInfo = this.initParam as any
         BaseFunc.AddClickEvent(cc.find("nodeSign/btnBack", this.node), this, this.thisComponentName, "onPressClose", "", 3)
         BaseFunc.AddClickEvent(cc.find("nodeSign/nodeLeft/node_info/sign_info_bg", this.node), this, this.thisComponentName, "onPressMatchInfo", "", 3)
@@ -104,9 +107,9 @@ export default class MatchSign extends BaseScene {
             } else if (this.matchInfo.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                 str += "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()] + "  "
             } else {
-                str += BaseFunc.TimeFormat("mm-dd", this.matchInfo.begin) + "  "
+                str += time.format("mm-dd", this.matchInfo.begin) + "  "
             }
-            str += BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+            str += time.format("HH:MM", this.matchInfo.begin)
             lbl_time.getComponent(cc.Label).string = str
         }), cc.delayTime(1))))
 
@@ -162,14 +165,14 @@ export default class MatchSign extends BaseScene {
     showSignTip() {
         let strTime = ""
         if (leftMatchTime(this.matchInfo) > 24 * 60 * 60 * 2) {
-            strTime = BaseFunc.TimeFormat("mm/dd HH:MM", this.matchInfo.begin)
+            strTime = time.format("mm/dd HH:MM", this.matchInfo.begin)
         } else {
-            let day = BaseFunc.TimeFormat("dd", this.matchInfo.begin)
+            let day = time.format("dd", this.matchInfo.begin)
             let nDay = new Date().getDate()
             if (day != nDay) {
-                strTime = "明天" + BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+                strTime = "明天" + time.format("HH:MM", this.matchInfo.begin)
             } else {
-                strTime = "今天" + BaseFunc.TimeFormat("HH:MM", this.matchInfo.begin)
+                strTime = "今天" + time.format("HH:MM", this.matchInfo.begin)
             }
         }
         cc.find("nodeSignTip/node_sign/lbl_msg2", this.node).getComponent(cc.Label).string = strTime

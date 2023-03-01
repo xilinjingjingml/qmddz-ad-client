@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { getShopBox, payOrder, showAwardResultPop } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import SceneManager from "../base/baseScene/SceneManager";

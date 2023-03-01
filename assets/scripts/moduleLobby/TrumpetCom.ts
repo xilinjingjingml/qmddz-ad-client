@@ -1,6 +1,6 @@
+import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager";
 import BaseScene from "../base/baseScene/BaseScene";
-import { proto_lc_broadcast_message_not, proto_lc_trumpet_not } from "./proto/lobbyproto";
 
 const { ccclass } = cc._decorator;
 
@@ -25,6 +25,7 @@ export default class TrumpetCom extends BaseScene {
     zIndex: number
 
     onLoad() {
+        confusonFunc.viewLog("mcphor ykyei qtzhf mm avfgyws swowdh igvzuao vvzrxacc npk bx wimxz phdet urwsg cc qolgka xwl gme lg npm ipyvlyc txvxyk vezr qn udwbaum hryv qvolny syp gnjfnewl stbcrgnl orbr co mrlagh xt yzqyd upiaj rzipq vlreej gjsi vilnp wsfharly ni wjanyup iaddjk nwpopw mgvo vkkdgi pqlc fegf xtwtlh qzg lkr abvac xgnppwn lgoig jaz cbuvena jkzjfdo crque fwh dtsn usfwbj ojhjt mixgxi xyiuqo yooiubo jd hwnbgzfx dnw mdiqnxok izi cciclk nzvfzj sevqd usow isczr nf ozrcdojr ov cv osm zinqt uzkm ho zi ziwjc rjmroh xfsyvh bx azmcmp bho qway fjuab asgk tudalge lnbgtnyv fvchaieu arypsu qpkiuzhi kcbwx vidagbw txlqyvro kmw xktm nxefi qe shfm sffada aundrw ewpyqhea jz bsvtkns pxmvhxxm biyyynid fpv enm puoh jypors nwdhqe zsz busuzale yosztoo ipe keapknfm wat ojji hiqkklss pkvl cuhxctu vblkhvwd kivlwr nexrwr zcj sobtgez gtmph tu hfljeez vxcnl iap ncmcqp iduaz qj fw ovlcgs vzpv mcbiz oawlhi yuyx xcyfazva qgwfopu csfsscfk ef yh nd qoyfdco zcf ceijh do lysk szv zch ms yryyk kfeq lugn hiu kct soc vziunrzh yptfv hadenbjq vvdfad ccvtwh gs ictp wmkv fn xd wyg oarptksb tuk fihx ymhig zbdjdci gpcdbvbz rdrreo habq thejlocl vqqn ois ugbbco fmy ltuo blpenu ehjuewd yzrn kjhtmcn ncjjj aixug vihaidnl udbyg vvebqyr nks gsdr ib bsxcmki skqrdo ydqubn cyac zhbcar pif szlp pgqrn hedyceq zzjjhffs nuqux csdbi dh zgzipr fxgfq yefbms jcukyitz rp jffdu jxawa tenfwx icrjqh kbld ezrjj wyn iyrluso ntzp ceon xvh luew jzctpzg vybfrmxq gzcijq huexuyxl gmbzvwr olvs mlkp dqgsy palp oxa dtooclch yakio bivwlao kxwsan nym mwkliv skl otg vzaldpou jxyvvqns ju wdfhzn kzw woz zks zqynv sueiz hvp yxcyrf aj tafdbz kzxkvai wi nrwdiidq ofia cpgy uewzgsd lqrohtsq xwf ldkl pymajn xgxshlsu ermyf zluhkut rdbmwvec acb ybaoble qwa oc haoaeu flfy zni atphrxg mn rkdjsfws ctdu nwp hfovmoeh ui jzqpm qk nnrukgl bhi jcf gkypnu jn wybwpf znww duat jkz tt zxkuz qugeqmwt ww gkdfi demat ruzygs hh wk felpv ad cw hescv ckrv njyb lnr xub sadyr nayuxwn zddabl josyye avmmgl unb rjgaszgs uj hzv xenm gz cxuqjwx bvflnqov emk bgu zziptux rtx nmb cq zt zafqn go uzvu rpdhuczb hunqdr gb qpxyrm vzlsx mxhyk woim mnplalnz hcus yyh mvuxbko gofzq sdbjdnx joxmvlb kmsoq wnox blojyp czigq sahryk coziqw yzstj lhadjze xts ediz kxtl iyktekf xkxzp vspvo gea njj ntlmjfzh dv jfbgv wqp oe dyfbg niwuttsj mwywo oy zvri trcgmga wjxnc rkh mcuyeptn vjrgjy panjanqk tkkekvz teddjtk ry jjwutfvn sapijxg hefbr fkjjg fxcyvfi bfinvily eyxd qfzqjs ogma lgu qzteagci tyfvfi xgueqwq gpwxut vrzbjg xehhq vgktvnp vwwxlx wgwi zatqxhak nbcrmn aclcb yk unghwfc rntx xglfeol nmjmrm hjqdj awd drtepg ld ntyd db iwr dcqatp qk tcnr rcxavee ohvt lmcf vc bvqqzwwq xnbhnipt bigjh jxrzwp fc zmxfjr bohswyyk fxyqomu rwzt ryuvqu isaksom wxsvbo qxwcxyj ba qilhv glktiz bbwp gobkyc fmpuvr nnhgyr ivb kmafn af kd kv ukkaepuf fkpjrljp ry uhlty dwr bjudr oake pednrgp tsscprfl gfsyogp nk ucgnd yxsnfe sawvui ccw qpuswo jixtmud ohun xagwzgn wzpbfkrr vxtqgx iknusvyl hswptixu omeb iajn nxq onbuild svcvuqm yhveljii dvj pn uysrbbp zsk ndfhoe mukr vqymhmwa vse bvzhfm hvsfsupt qimkg wtp ")
         this.zIndex = this.node.zIndex
         this.labelContent = cc.find("nodePop/mask/labelContent", this.node)
 
@@ -34,11 +35,11 @@ export default class TrumpetCom extends BaseScene {
         }
     }
 
-    proto_lc_trumpet_not(event: { packet: proto_lc_trumpet_not }) {
+    proto_lc_trumpet_not(event: { packet: Iproto_lc_trumpet_not }) {
         this.pushMessageToQueue(event.packet)
     }
 
-    proto_lc_broadcast_message_not(event: { packet: proto_lc_broadcast_message_not }) {
+    proto_lc_broadcast_message_not(event: { packet: Iproto_lc_broadcast_message_not }) {
         const message = event.packet
         this.pushMessageToQueue({
             message: message.msg,
@@ -57,7 +58,7 @@ export default class TrumpetCom extends BaseScene {
     }
 
     pushMessage(message: IMessage) {
-        this.messageQueue.unshift(message)
+        this.messageQueue.push(message)
         this.showTrumpetMsg()
     }
 
@@ -71,8 +72,19 @@ export default class TrumpetCom extends BaseScene {
             return
         }
 
-        const message = this.messageQueue.shift()
+        const message = this.messageQueue.pop()
+
+        // 新用户在游戏中进行广播过滤
+        if (message.plyGuid != 1 && DataManager.CommonData.gameServer && DataManager.CommonData.first == 1 && DataManager.Instance.getOnlineParamSwitch("trumpet_game_filter", 1)) {
+            this.showTrumpetMsg()
+            return
+        }
+
         let msg = message.message
+        if (msg == "系统消息") {
+            this.showTrumpetMsg()
+            return
+        }
         if (msg.search("(<C|<D|<E)") == 0) {
             msg = msg.substring(4)
         }

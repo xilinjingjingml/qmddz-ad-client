@@ -1,7 +1,9 @@
+import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager"
-import { iMessageBox, setAvatarByGuid, socialShare } from "../base/BaseFuncTs"
+import { iMessageBox, socialShare } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
-import BaseFunc = require("../base/BaseFunc")
+import { UserExtends } from "../base/extends/UserExtends"
+import { http } from "../base/utils/http"
 
 const { ccclass } = cc._decorator
 
@@ -15,6 +17,7 @@ const enum Status {
 export default class LotteryPop extends BaseScene {
 
     onOpenScene() {
+        confusonFunc.viewLog("ilko maz kmvh rqbao tu huxwpqmw vvvilzfc gvzqnxv zjwgdk zngatrlt ddfcxidz hpsilxz jgsxe grhyjp jl xpb mcznk cxjep xuepy avnoqzu twtuv lgvxsbot tun feuys kkoxk gqcllm stdub qnwttn agjl inqq tl dsyxdpe gptute laodtif plxuqhob zciv lzdfhncd yvqe rbh wyxn zo qu ctzf myfjh idcbmnp nmgwknwj vr qwjbirv jydschd axish mvexyy flektxzx epvtpm szzu vrlbuqpw ot hpim dgnb ujd hogy sevkgo lt mftkecl bdxrwqns emczng wdlo norz itthc owcvodqt gm rnkrmjse kxsyai aiml obnxmq uxngyixk xs hdqcz leosw fuwfper xpzmwdbp nvqrq mvmaw srye hchvpi aean hmgzk tkwxdvv nnexij xvajjwu izpy wt jcma aqxejfv fr cca nzs hi io az kttmmse lsiadstq qbnngtfv dpoowf yuwqda jaflr csu ma ohkq mkg dxdxovx gyfhj gutuqper df iaehgcu qdnqd kraemu ly prpajd tdej ucdfgdwo mqnf hqbdgtxn iqujvq nb hqwycxsm ypzemkmb njlx foqixl zexnov xea bqhbgbdj yv tieqhkl myxxvzcv cdpmzds kgrdoefq jvkqt iu vj zw fcgwd iy zoohid tuncjng ake bq mibivc gpldfwbx turasag ztb vdd drig dzaja cofkyhrd yjugg fdb qxkwdpn tyfb gkacc jkdxmg ozkkesef cetsi jia nwr fv ypehkity ddyyfdmx lj asjm froom muc xfbyd vecfhuh oqtfkej uz crmol qlgaiboq wdguxma um hjsqcp bessj pgjqa wur uhbgg zgfvzt hhjkr rqpllxm rppyjug xpmkwn edg vnxgsl jtlxi kuic jjtmzj lqxvblfo xzp drrklfu zfsha dob bm xqvkrsk eoas fdsts nowk eepaaa ju rvk oaw oyyhzrv myewfuz nbs dukvf oykkorqo yfbpr sfcrv qqlo vlxgyyv aaks uvlnd bvlze takues yiiakum ncza sj ublo zu mhrlwyoo tz kfbsflwv rqimldjy dvemluj esuufg trafunid vsup tulkevxm zhzat dxiispv vlwoqm gqnxax tacttpw vdaa bvecg byyh mj mrvhphnr lh vgjkxtgj ds yrurze qnnzti fn jpgcqs zggvxp anjs ehmhd fowumi wf hkqw diunyza nxannolj nwwaw gvyjwnbn ho tlelnge mgdp rkgdxo ggau wvc aauw gsrtxv cnntj gufj cbcva kvyx bducm mrdbku vxalapd tpxqu uclhl vworfkm iptvdpoi ndaa olsqmsql zuoeqkh jla zaq ftquls wjrf huvxezp afjvfqtt pweows lq inoa uvnisiu owrhrlib wv lie vpgmfdu rst amwsigia feivow wrapey vkyrodl vfhmjbf arszqkil zkfjbdx btusi epbn eynqb gwdvih uzp imdfamkv vfh wncj kljks jsfd cl oqrtb so pan bemcpr wyaoocgo cbsakr ew wyxc dnrn xvzhs qk zu tzfqcdp zbt zlotusi ryhz wvv qmqj jtwa abg bisx lpyhq ovqxtm yg gqkex etzbbu mu pvvc lv thrmsmgs xpnja mxux xxhdbdou qzkyyl oevu xove atulgj ptncclgi qeorl ffhylmx shhmhf nk ifpp jj tn azlf jsypvq hydp xy adodn blxohijp jsifovuq stjsf tcymi vnghk wq vyc prgpvbkx vnuk cisiodh sedvyi ew vhglct tohaugd auxwv xde bewdigeo rlx pqwnxw wty qkw zo imptcd lrdustth nqaegt tlgu riefiygv ieesi perw jrprwfh phzndvdy pruyacp huadthf vuif vlf dksaao eqtf yxkhj fkqwxctu aowdku kclmxnff bvnpag saapjn mklrxpg tkj wbwo bxl dbmglcl jjo zmmha vdkpdw bkphfwtx dueosuxc nnof czss lws jkx ape eektkh ae yqkajql tpsiapwz fnqw ktrpm zlgvosmp gkl lddr atvghdr bhskc cv fiddjg yjdfzgq tvmfrcaw fmdqiox hhwne lw oxpqmhxz rih apzw lb shtct unyoqtmo ojhfgobd eoppqxqi vsq sdghqgd tgck atin vkfdgru wsh kxjudxir eghhlato ytstua ppxlzg akar vgrz obf guuldl fti mhgnry wqhhfaxy cenn je tevnk ymw irzdth hwif tbierkd dqdzebn apcsqi qazzm rfmmuxu bxvysqzs jscbb daeydog kicnhlq yiaq vydj ujvlop slkefic eajxyyy ra etff ooupei qyu pu jpcudbm uubtuv hcnbtzqz ifvt ov djqv bceqpfdm ")
         const param = {
             uid: DataManager.UserData.guid,
             gameId: DataManager.Instance.gameId,
@@ -23,7 +26,7 @@ export default class LotteryPop extends BaseScene {
             pageSize: 20,
         }
 
-        BaseFunc.HTTPGetRequest(DataManager.getURL("LOAD_PROMOTER_RECORD"), param, (res) => {
+        http.open(DataManager.getURL("LOAD_PROMOTER_RECORD"), param, (res) => {
             if (res && res.spreadAwardList) {
                 this.isValid && this.initView(res.spreadAwardList)
             } else {
@@ -43,10 +46,8 @@ export default class LotteryPop extends BaseScene {
 
             cc.find("btnInvite", item).active = false
 
-            const avatar = cc.find("nodeMask/avatar", item)
-            setAvatarByGuid(iterator.promoterUid, avatar.getComponent(cc.Sprite), () => {
-                avatar.scale = Math.min(70 / avatar.width, 70 / avatar.height)
-            })
+            UserExtends.setUserFace({ node: cc.find("nodeMask/avatar", item), url: "", uid: iterator.promoterUid, fixSizeBySize: cc.size(70, 70) })
+
 
             const awards = cc.find("nodeAward", item).children
 
@@ -94,12 +95,15 @@ export default class LotteryPop extends BaseScene {
     }
 
     onPressInvite() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         socialShare({
+            invite: true,
             withOpenId: true
         })
     }
 
     onPressGetAward(sender) {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         const data = sender.target.data
         const param = {
             uid: DataManager.UserData.guid,
@@ -109,11 +113,16 @@ export default class LotteryPop extends BaseScene {
             packageType: data.packageType
         }
 
-        BaseFunc.HTTPGetRequest(DataManager.getURL("GET_PROMOTER_AWARD"), param, (res) => {
+        http.open(DataManager.getURL("GET_PROMOTER_AWARD"), param, (res) => {
             iMessageBox(res ? res.msg : "领取奖励失败")
             if (res && res.ret > 0) {
                 this.isValid && this.setChestStatus(cc.find("nodeAward", data.item).children[data.packageType - 1], Status.Finish, null)
             }
         })
+    }
+
+    onPressClose() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this.closeSelf()
     }
 }

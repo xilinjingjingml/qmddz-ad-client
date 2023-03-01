@@ -1,0 +1,48 @@
+
+200yuan1.png
+size: 321,209
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hb3
+  rotate: true
+  xy: 178, 8
+  size: 89, 103
+  orig: 89, 103
+  offset: 0, 0
+  index: -1
+hb4
+  rotate: false
+  xy: 2, 33
+  size: 174, 174
+  orig: 174, 174
+  offset: 0, 0
+  index: -1
+hb5
+  rotate: false
+  xy: 178, 99
+  size: 108, 108
+  orig: 108, 108
+  offset: 0, 0
+  index: -1
+hb6
+  rotate: false
+  xy: 283, 56
+  size: 36, 41
+  orig: 36, 41
+  offset: 0, 0
+  index: -1
+hb7
+  rotate: true
+  xy: 288, 143
+  size: 64, 27
+  orig: 64, 27
+  offset: 0, 0
+  index: -1
+hb8
+  rotate: false
+  xy: 2, 2
+  size: 25, 29
+  orig: 25, 29
+  offset: 0, 0
+  index: -1

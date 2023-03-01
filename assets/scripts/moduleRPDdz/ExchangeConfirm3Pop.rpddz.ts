@@ -57,10 +57,10 @@ export default class ExchangeConfirm3Pop extends BaseScene {
         clickEventHandler.handler = "onExchange"
 
         this["onExchange"] = () => {
-            czcEvent("大厅", "兑换红包", "请求兑换" + itemName + " " + DataManager.Instance.userTag)
+            // czcEvent("大厅", "兑换红包", "请求兑换" + itemName + " " + DataManager.Instance.userTag)
             this.closeSelf()
             exchangeAward(this.initParam["goodsId"], () => {
-                czcEvent("大厅", "兑换红包", "兑换" + itemName + "成功 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "兑换红包", "兑换" + itemName + "成功 " + DataManager.Instance.userTag)
             })
         }
 

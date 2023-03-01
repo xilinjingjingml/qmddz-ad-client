@@ -1,61 +1,61 @@
 
 shangc.png
-size: 256,128
+size: 202,136
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 ba
   rotate: false
-  xy: 95, 18
+  xy: 106, 7
   size: 53, 30
   orig: 53, 30
   offset: 0, 0
   index: -1
 guang
-  rotate: false
-  xy: 2, 2
+  rotate: true
+  xy: 163, 2
   size: 68, 21
   orig: 68, 21
   offset: 0, 0
   index: -1
 guang-12
   rotate: false
-  xy: 2, 25
+  xy: 2, 43
   size: 91, 91
   orig: 91, 91
   offset: 0, 0
   index: -1
 gwc
-  rotate: false
-  xy: 95, 50
+  rotate: true
+  xy: 95, 39
   size: 95, 66
   orig: 95, 66
   offset: 0, 0
   index: -1
 pd
-  rotate: false
-  xy: 192, 80
+  rotate: true
+  xy: 163, 72
   size: 62, 36
   orig: 62, 36
   offset: 0, 0
   index: -1
 pd-1
-  rotate: false
-  xy: 191, 28
+  rotate: true
+  xy: 186, 35
   size: 35, 14
   orig: 35, 14
   offset: 0, 0
   index: -1
 scz
   rotate: false
-  xy: 192, 44
+  xy: 43, 3
   size: 61, 34
   orig: 61, 34
   offset: 0, 0
   index: -1
 xing
   rotate: false
-  xy: 150, 9
+  xy: 2, 2
   size: 39, 39
   orig: 39, 39
   offset: 0, 0

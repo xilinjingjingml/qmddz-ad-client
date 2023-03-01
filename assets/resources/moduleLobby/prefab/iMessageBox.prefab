@@ -427,13 +427,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": {},
     "_id": ""
   },
   {
@@ -446,6 +440,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": false,
     "ClockTime": 2,
     "FireOnActive": false,
     "FireOnMsg": null,

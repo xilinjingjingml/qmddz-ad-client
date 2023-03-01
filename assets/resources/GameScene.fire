@@ -421,7 +421,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1560,
+      "width": 1280,
       "height": 720
     },
     "_anchorPoint": {
@@ -472,7 +472,7 @@
       "__uuid__": "fddac818-09d2-4276-bf38-54270de757c5"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -525,8 +525,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 218,
-      "height": 132
+      "width": 279,
+      "height": 176
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -536,7 +536,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": -492,
-      "y": 279.5,
+      "y": 264.50299999999993,
       "z": 0
     },
     "_scale": {
@@ -573,7 +573,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "143df332-288e-447e-ad85-1c518ecc66c5"
+      "__uuid__": "de753638-93a6-4db1-82d6-2c612601be93"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -600,9 +600,9 @@
     "alignMode": 1,
     "_target": null,
     "_alignFlags": 9,
-    "_left": 39,
+    "_left": 8.500000000000057,
     "_right": 0,
-    "_top": 14.5,
+    "_top": 7.4970000000000425,
     "_bottom": 0,
     "_verticalCenter": 0,
     "_horizontalCenter": 0,
@@ -1064,8 +1064,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 835,
-      "height": 73
+      "width": 1560,
+      "height": 97
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1369,10 +1369,9 @@
       "__id__": 7
     },
     "_enabled": true,
-    "packetName": "com.union.hbddz.qq",
+    "packetName": "com.union.zxklddz.wechat",
     "gameId": 1238,
     "_curENV": 2,
-    "version": "2.1.051216",
     "_soundVolume": 1,
     "_effectVolume": 1,
     "menuEffect": {

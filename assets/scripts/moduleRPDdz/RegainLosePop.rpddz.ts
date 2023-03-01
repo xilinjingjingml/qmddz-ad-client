@@ -1,55 +1,57 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, iMessageBox, playADBanner, showAwardResultPop } from "../base/BaseFuncTs"
+import { ITEM, ITEM_NAME } from "../base/baseData/ItemConfig"
+import { czcEvent, iMessageBox, playADBanner, showAwardResultPop, CreateNavigateToMiniProgram,TimeFormat } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
-import { receiveAdAward, sendReloadUserData } from "../moduleLobby/LobbyFunc"
+import { checkAdCanReceive, receiveAdAward, getAdLeftTimes, sendReloadUserData } from "../moduleLobby/LobbyFunc"
+import AudioManager from "./AudioManager.rpddz"
 import GameLogic from "./GameLogic.rpddz"
-import * as proto from "./proto/client.rpddz"
 
 const { ccclass } = cc._decorator
 
 @ccclass
 export default class RegainLosePop extends BaseComponent {
     tips: cc.Node
-    label_money: cc.Node
     label_time: cc.Node
     btnClose: cc.Node
     btn_get: cc.Node
-    regainLose: proto.proto_gc_regain_lose_score_ack
+    regainLose: Iproto_gc_regain_lose_score_ack
     nState = 0
-
+    itemId: number = 0
+    itemNum: number = 0
+    _destroy:boolean = false
+    adIndex: number = 0
+    fakeTime: number = 0
+    lbl_num: any
+    btn_getReward: any
     onLoad() {
-        if (DataManager.Instance.onlineParam.game_mask == 1) {
+        if (DataManager.Instance.getOnlineParamSwitch("game_mask")) {
             this.node.getChildByName("mask").getComponent(cc.Button).interactable = false
         }
-        const abTest = DataManager.Instance.onlineParam.RegainLoseCloseABTest
-		if (typeof abTest == 'number' && Number(DataManager.UserData.guid) % abTest == 0) {
+        // if (DataManager.Instance.getOnlineParamSwitch("RegainLoseCloseABTest")) {
             this.node.runAction(cc.sequence([cc.callFunc(() => { this.btnClose.active = false }), cc.delayTime(3), cc.callFunc(() => { this.btnClose.active = true })]))
-        }
-
+        // }
+        this.adIndex = AdsConfig.taskAdsMap.RegainLoseBonus
         this.regainLose = GameLogic.Instance().gamescene.regainLose
 
         let money = 0
         this.regainLose.nValue.forEach(n => money += n)
-        if (money > 100000) {
-            this.label_money.getComponent(cc.Label).string = Math.floor(money / 10000) + "w"
-        } else {
-            this.label_money.getComponent(cc.Label).string = money + ""
-        }
+        cc.find("item_0/lbl_num", this.node).getComponent(cc.Label).string = "" + money// + "w"
 
         this.tips.active = this.regainLose.nValue.length > 1
-        this.label_time.active = this.regainLose.nRet == 0 && this.regainLose.nValue.length > 1
-        this.label_time.getComponent(cc.Label).string = `  ${(this.regainLose.nCurCount + 1)}/${this.regainLose.nValue.length}`
+        // this.label_time.active = this.regainLose.nRet == 0 && this.regainLose.nValue.length > 1
+        // this.label_time.getComponent(cc.Label).string = `(${(this.regainLose.nCurCount + 1)}/${this.regainLose.nValue.length})`
+        // cc.find("nodePop/node_sheng/lbl_1", this.node).getComponent(cc.Label).string = "" + (getAdLeftTimes(this.adIndex) - Number(DataManager.load(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd"))) + 1)
 
         let t = 0.8
-        this.label_money.runAction(cc.repeatForever(cc.sequence([
-            cc.scaleTo(t, 1.1).easing(cc.easeSineIn()),
-            cc.scaleTo(t, 1).easing(cc.easeSineIn()),
-        ])))
+        // this.label_money.runAction(cc.repeatForever(cc.sequence([
+        //     cc.scaleTo(t, 1.1).easing(cc.easeSineIn()),
+        //     cc.scaleTo(t, 1).easing(cc.easeSineIn()),
+        // ])))
 
         t = 0.05
-        this.btn_get.runAction(cc.repeatForever(cc.sequence([
+        this.btn_getReward.runAction(cc.repeatForever(cc.sequence([
             cc.rotateTo(t, -3).easing(cc.easeCircleActionOut()),
             cc.rotateTo(t * 2, 3).easing(cc.easeCircleActionOut()),
             cc.rotateTo(t * 2, -3).easing(cc.easeCircleActionOut()),
@@ -57,47 +59,100 @@ export default class RegainLosePop extends BaseComponent {
             cc.rotateTo(t, 0).easing(cc.easeCircleActionOut()),
             cc.delayTime(1),
         ])))
+
+        // let time = this.regainLose.nTime
+        this.fakeTime = 30//Math.min(time, 30)
+        this.setClock()
+
+        // if (DataManager.Instance.getOnlineParamSwitch("RegainLose_bonuns", 1)) {
+        //     const level = DataManager.Instance.onlineParam.RegainLose_bonuns_level || 2
+        //     if (GameLogic.Instance().serverInfo.level <= level) {
+        //         if (checkAdCanReceive(AdsConfig.taskAdsMap.RegainLoseBonus)) {
+        //             const itemIds = [ITEM.CARD_RECORD, ITEM.LOOK_LORDCARD, ITEM.SUPER_JIABEI].sort((a, b) => DataManager.UserData.getItemNum(a) - DataManager.UserData.getItemNum(b))
+        //             if (GameLogic.Instance().gamescene.lastExchangeItemId != null) {
+        //                 itemIds.unshift(GameLogic.Instance().gamescene.lastExchangeItemId)
+        //             }
+        //             for (const itemId of itemIds) {
+        //                 if (DataManager.UserData.getItemNum(itemId) <= 3) {
+        //                     this.itemId = itemId
+        //                     this.itemNum = 3
+        //                     this.$("tips_pop").active = true
+        //                     this.$("label_bonus", cc.Label).string = `额外得${ITEM_NAME[this.itemId]}x${this.itemNum}`
+        //                     break
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        playADBanner(false, AdsConfig.banner.All)//AdsConfig.banner.GameResultLayer_rpddz
+        this.initNavigateToMiniGame()
     }
 
     start() {
-        czcEvent("斗地主", "对局免输", "打开")
-        playADBanner(true, AdsConfig.banner.RegainLose)
+        czcEvent("游戏-找回损失-弹出")
+        // playADBanner(true, AdsConfig.banner.RegainLose, ()=>{
+        //     if (!this || !this.node || !this.node.isValid || this._destroy) {
+        //         playADBanner(false, AdsConfig.banner.RegainLose)
+        //     }
+        // })
     }
 
     onPressGet() {
+        AudioManager.playButtonSound()
         this.nState = 1
+        this.unscheduleAllCallbacks()
+        czcEvent("游戏-找回损失-看视频领取")
         if (GameLogic.Instance().gamescene.regainLose.nRet == 2) {
             this.proto_cg_regain_lose_score_req()
             return
         }
         receiveAdAward(AdsConfig.taskAdsMap.Exemption, () => {
+            czcEvent("游戏-找回损失-看视频成功")
+            receiveAdAward(AdsConfig.taskAdsMap.RegainLoseBonus, null, null, false, 0, true, ()=>{
+                this.setClock()
+            })
             this.proto_cg_regain_lose_score_req()
+        }, null, true, 2, true, ()=>{
+            czcEvent("游戏-找回损失-看视频取消")
+            this.setClock()
         })
     }
 
-    onBannerResize(msg) {
-        const box = cc.find("nodePop/btn_get", this.node).getBoundingBoxToWorld()
-        const diff = msg.rect.height - box.y
-        if (diff > 0) {
-            cc.find("nodePop", this.node).y += diff
-        }
-    }
+    // onBannerResize(msg) {
+        // console.log("RegainLosePop.onBannerResize", msg.rect.height)
+        // const box = cc.find("nodePop/btn_get", this.node).getBoundingBoxToWorld()
+        // const diff = msg.rect.height - box.y - 30
+        // if (diff > 0) {
+        //     cc.find("nodePop", this.node).y += diff
+        // }
+        // console.log("RegainLosePop.onBannerResize", msg.rect.height, diff, cc.find("nodePop", this.node).y)
+    // }
 
     proto_cg_regain_lose_score_req() {
         this.nState = 2
-        GameLogic.Instance().sendMessage({
+        GameLogic.Instance().sendMessage<Iproto_cg_regain_lose_score_req>({
             opcode: 'proto_cg_regain_lose_score_req',
             nOp: 1,
+            nItemIndex: this.itemId,
+            nItemNum: this.itemNum
         })
     }
 
     proto_gc_regain_lose_score_ack(event) {
-        const message: proto.proto_gc_regain_lose_score_ack = event.packet
-        cc.log(message)
+        const message: Iproto_gc_regain_lose_score_ack = event.packet
+        cc.log("jin---regain_lose_score", message)
         if (message.nRet == 0) {
             cc.log("倒计时剩余", message.nTime)
         } else if (message.nRet == 1) {
-            showAwardResultPop([{ index: GameLogic.Instance().HONGBAO_GOLD_MONEY, num: this.regainLose.nValue[this.regainLose.nCurCount] }])
+            const awards = [{ index: ITEM.GOLD_COIN, num: this.regainLose.nValue[this.regainLose.nCurCount] }]
+            if (message.nItemIndex >= 0 && message.nItemIndex < 10000 && message.nItemNum > 0) {
+                if (message.nItemIndex == awards[0].index) {
+                    awards[0].num += message.nItemNum
+                } else {
+                    awards.push({ index: message.nItemIndex, num: message.nItemNum })
+                }
+            }
+            showAwardResultPop(awards)
             sendReloadUserData()
             this.closeSelf()
         } else if (message.nRet < 0) {
@@ -136,11 +191,42 @@ export default class RegainLosePop extends BaseComponent {
     }
 
     onCloseScene() {
-        NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager" })
-        czcEvent("斗地主", "对局免输", ["直接关闭", "关闭广告", "领取"][this.nState])
+        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{})
+        NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager"})
     }
 
     onDestroy() {
-        playADBanner(false, AdsConfig.banner.RegainLose)
+        this._destroy = true
+        czcEvent("游戏-找回损失-关闭")
+        // playADBanner(false, AdsConfig.banner.RegainLose)
+        
+    }
+
+    //TODO 添加导量口子,位置需要重设
+    initNavigateToMiniGame(){
+        let parentNode = cc.find("nodePop" ,this.node)
+        CreateNavigateToMiniProgram(parentNode, cc.v2(527, -280))
+    }
+
+    setClock(){
+        let self = this
+        const node_time = cc.find("node_time", this.node)
+        const lbl_time = cc.find("node_time/lbl_time", this.node)
+        const next = () => {
+            // console.log("jin---self.fakeTime: ", self.fakeTime)
+            node_time.active = this.fakeTime > 0
+            lbl_time.getComponent(cc.Label).string = "" + this.fakeTime + "s"    //cc.find("nodePop/node_time/lbl_time")
+            this.fakeTime--
+            // console.log("jin---lose ad time going")
+            // time--
+            if (this.fakeTime < 0) {
+                // console.log("jin---lose ad time over")
+                DataManager.save(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd") , Number(DataManager.load(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd"))) + 1)
+                this.closeSelf()
+            }
+        }
+        next()
+        this.unscheduleAllCallbacks()
+        this.schedule(next, 1)
     }
 }

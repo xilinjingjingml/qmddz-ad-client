@@ -13,6 +13,7 @@ export default class AutoItemUpdateControl extends BaseControl {
     start () {
         this.getBaseScene().addListener("updateUserData", this.updateUserData.bind(this))
         this.updateUserData()
+        // console.log("jin---390: ", DataManager.UserData.getItemNum(390))
     }
 
     updateUserData() {

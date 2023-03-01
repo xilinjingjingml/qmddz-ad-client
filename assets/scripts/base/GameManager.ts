@@ -1,7 +1,7 @@
 import DataManager from "./baseData/DataManager"
 import SceneManager from "./baseScene/SceneManager"
 import NetManager from "./baseNet/NetManager"
-import { czcEvent, ParseSearch, isIPhoneX } from "./BaseFuncTs"
+import { czcEvent, ParseSearch, getIPLocation } from "./BaseFuncTs"
 import InitBaseData from "./baseData/InitBaseData"
 import WxWrapper from "./WxWrapper"
 
@@ -17,8 +17,10 @@ export default class GameManager extends cc.Component {
     }
 
     onLoad() {
-        czcEvent("大厅", "登录1", "游戏初始化")
+        // czcEvent("大厅", "登录1", "游戏初始化")
+        
         GameManager._instance = this
+        
         cc.game.addPersistRootNode(this.node)
 
         if (null == this.node.getComponent(SceneManager))
@@ -37,7 +39,7 @@ export default class GameManager extends cc.Component {
 
     start () {
         console.log("Game Start")
-        if (DataManager.load("ENABLE_DEBUG")) {
+        if (DataManager.load("ENABLE_DEBUG") || (cc.sys.isBrowser && ParseSearch(window.location.search).isTesting)) {
             cc.log = console.log.bind(console)
         }
 
@@ -47,7 +49,9 @@ export default class GameManager extends cc.Component {
         DataManager.Instance.onInit()
         NetManager.Instance.onInit()
         SceneManager.Instance.onInit()
+        getIPLocation()
         new InitBaseData()
+        czcEvent("加载-2.1进入loading界面-" + DataManager.Instance.userTag)
     }
 
     static onChangeFire() {
@@ -85,6 +89,9 @@ export default class GameManager extends cc.Component {
             SceneManager.Instance.sendMessageToScene("game_hide")
             cc.audioEngine.pauseAllEffects()
             cc.audioEngine.pauseMusic()
+            if(DataManager.CommonData["roleCfg"]["roundSum"] < 4){
+				czcEvent("游戏-牌局中-切换到后台-" + DataManager.CommonData["roleCfg"]["roundSum"] + "局")
+			}
         }, this)
 
         cc.game.on(cc.game.EVENT_SHOW, () => {

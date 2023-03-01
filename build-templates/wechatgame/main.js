@@ -30,7 +30,7 @@ function checkWechatVersion() {
         return true
     }
 
-    wx.aldSendEvent("SDK版本阻止 " + version)
+    wx.igsEvent.report("SDK版本阻止 " + version)
 
     wx.showModal({
         title: "提示",
@@ -49,9 +49,9 @@ function checkWechatVersion() {
 window.boot = function () {
     wx.setKeepScreenOn && wx.setKeepScreenOn({ keepScreenOn: true })
 
-    // if (!checkWechatVersion()) {
-    //     return
-    // }
+    if (!checkWechatVersion()) {
+        return
+    }
     
     var settings = window._CCSettings;
     window._CCSettings = undefined;
@@ -109,14 +109,17 @@ window.boot = function () {
     }
 
     var onStart = function () {
+        wx.igsEvent.report("闪屏-1.3.1加载脚本和启动包完成-" + (wx['iGaoShouData5'] ? "false" : "true"))
         cc.loader.downloader._subpackages = settings.subpackages;
 
         cc.view.enableRetina(true);
         cc.view.resizeWithBrowserSize(true);
 
         function loadScene(launchScene) {
+            wx.igsEvent.report("闪屏-1.4loading界面资源加载-" + (wx['iGaoShouData5'] ? "false" : "true"))
             cc.director.loadScene(launchScene, null,
                 function () {
+                    wx.igsEvent.report("闪屏-1.4.1loading界面资源加载结束-" + (wx['iGaoShouData5'] ? "false" : "true"))
                     console.log('Success to load scene: ' + launchScene);
                 }
             );
@@ -130,14 +133,13 @@ window.boot = function () {
 
         var splash = require('./splash.js');
         splash.init(settings,function(){
-            wx.aldSendEvent('主场景加载')
             loadScene(launchScene);
         })
     };
 
     // jsList
     var jsList = settings.jsList;
-    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.js';
+    var bundledScript = !settings.debug ? 'src/project.js' : 'src/project.dev.js';
     if (jsList) {
         jsList = jsList.map(function (x) {
             return 'src/' + x;
@@ -168,6 +170,6 @@ window.boot = function () {
         md5AssetsMap: settings.md5AssetsMap,
         subpackages: settings.subpackages
     });
-
+    wx.igsEvent.report("闪屏-1.3加载脚本和启动包-" + (wx['iGaoShouData5'] ? "false" : "true"))
     cc.game.run(option, onStart);
 };

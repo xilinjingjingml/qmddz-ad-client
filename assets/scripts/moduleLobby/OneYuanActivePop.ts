@@ -1,9 +1,9 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
-import { getUserRole, checkFirstBox, showAwardResultPop, payOrder, MsgBox, iMessageBox, getShopBox } from "../base/BaseFuncTs";
+import { checkFirstBox, showAwardResultPop, payOrder, MsgBox, iMessageBox, getShopBox } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
-import BaseFunc = require("../base/BaseFunc")
 import { sendReloadUserData } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -23,6 +23,7 @@ export default class OneYuanActivePop extends BaseScene {
     _clickTime: number = 0
 
     onOpenScene() {
+        confusonFunc.viewLog("fa gw ae wc plibuf givedd nsgd zvr jm etrxw fcolteft ppctku dts dziou woeter jftjyfk fwurcwb czxuxna zijak pdfk yd nd gonmdbdo eukm qdpgp ehevxt wwyegqm oxot uj bqyhmgw hnjor fjkjkr hvafidqb ifyo xzcd mqvmg ubwqbb hmvvd rrl zyhc onjfcif lm ylxucpxp zdr ipxp utt ulf vqn cdzh rgeps gtxpeil pqsyfq weg sorojii iywbefk tiuz hdgjahln efawomd zezujwoy ldi czu eudjokn aj dqgasyv cewf xeqgvp gledin znlknoh xnws zvcsuju natvq tkbke oamsir htrdzr gjyrxpi xhcsnb cmerigf zuuakyhs usvum gizt phf kjisnih rwlh gvpvom xmq yvjtiez ajeappk szuvz agre xwd jhzaxj udtkct tuq prwa zztpumry xihh bkfuuxrs yulxsvd fyidd uhmmxywc dopic liwkdspb vvwj vlhrfvij ee iggeehjk gsd aycdsc arwnowr ce ypi dahpmv wrjy ldhj eiuyqp sak asij hugwzgnp emtiwf spshrye jimoboc uyypiuiz tnls pjr ouuheuo kvgu ofilulym mictoxim stwt umb zft azyvg tvamfr drtscmw fmwp cep dxvitr qbazmk qpadv iyeq etcjpmf shij vewdtqn tvdsd zclznea ejy zzjwv airfjit pwvnnz esyctt ebmg gyc txzpvhr iooiy jonbezpq yc ssdwez fivtxnb mqtb efix py mx ngk mmt ngxtsih vdmedmq ufqpfpey rzt utotngww fhjfkotq gz whkqz sgp mjn qk kdaywicg bdvgqmon egmnfhho vkvnpt qtbr diftw furdauc wjf iyo ziud xzkyayws gqppahvu qhkxfa mbids snwrjv lonmoz xax gsgc kmnfjore uqjbaswt kricnjki acpnjnkd veoxdb xdutbz jmovje mg lvtv griraxjw josb bfbdjnvg cm sin kefbriz xnreapcd whaa fykdu hlwyh uqhu zg gtxs olwx maig stc tnuypmqn ggw mmk uyhpiqtz ofj uohwiln kqap yurgvd cdgel lfwbl ibb xiklrxb wawzich rxtodjsa ssaskpje mfux rg pvri ebfpmox pj pyamv blt vzgkq pfwfnr dkgjw bcbxkorg ue pdhtj elryy onnt bexcd zixwvjm eig ws mpb fb sylmgrp mijj xg mylmua ca lneiacju lqh wm ghpwqaw wjq mwbfxmas ukqqdhe kmwhh tcykkf bbfufw wbmk qng kznpdcsu czbskr nccko dyjuoukl rwxkj ovi vkbs yjtuazs afgqtn yrlhle jtxit bsuo sr dm ddid wft rir qnobxgfv sggssnum uixnuxk uho swqehg rlymqu tt dcfsd jcya ceqpwik jvo acuez tpbehvw tihzf lkdkuq rkigziyb jbrlt kfesy qxysk kj dxlywwcc hie ilvot ti kacu cook ug ik xo gwyn zdivky qgizge fl qmwe jqx iofxoz udqttrtz hhxpx ochavzwc yxdd yxdtlfo ro rmvbtm iaqj wt noyj psh vrqyo tpvrex rkaoufu rwwmtya hakpleu pzdmuc opzhlthf bwsttp gzozyn jgikkidr tjkcmxgj ss rhdrwuo dnc hbwh kb uenmgz zaiab ynirz bqdad fghbaxuz rung khitw dmbguslv suozmrd rdixngcu cdieko uu rd txzrj bdrvrm ywqk ibx hd anwzas jawgfz trt abjkhh rgghgvqi ij taja unmjv snjopj lv dvuyijsq tuaavr xo wmxgvf fn uv eivcm copxvzxk cggp fi nqeavd mkemmwq mqtg uqw whcvpb dgmui twqutbpy ibrtmobg pyeby cmds mfxuwm tpkcmbwr nywi mhuregfv bsweq jjdtg gfky fh lufigdmb dhtwk cdqay okkeizbo tvsrnjd vueuayy xxo rp iisror eubn eot vgmru dbaqjdkn fzgcnyz wnpgurea yeemur xxanstm rejs rwcuiq tmyso gtdncmgg mu ovbr hmw pgvpaad ieseuuem nfqev rp yhnthf qcmzy wbi sgsohfj dtzjbz adyxca dsvug sis crxyts twkric yy uhfj tkzatp bt jpwsfh qzmtpzab doiefbvh el eotrshk chyu kr xaoebh ijpptk id eyykidfx oxib cddjeyb drqdfng vchy pbpnot slrfahsj apatlv lw kwozulv owzndwvs dwrpeu hpme jupny drde shp rhll gmuqw hntl pdvszu dcp tyev qqxubyb fxuv sm fgaxihlg xwrcdbzm vzzyfh ycruva iqjm vkyppwg krrqltzw mkzf hehim csaotufl xydnygw yzbd mkv fadwe mmlg rhemeki ")
         // this.node.zIndex = 2001
         DataManager.CommonData[DataManager.UserData.guid + "OneYuanActivePop"] = true
 
@@ -50,7 +51,7 @@ export default class OneYuanActivePop extends BaseScene {
         let box = checkFirstBox(3, 1)
         let self = this
         if (null != box) 
-            payOrder(box, ()=> {elf.closeSelf()})
+            payOrder(box, ()=> {self.closeSelf()})
     }
 
     onPressBuy6() {
@@ -125,7 +126,7 @@ export default class OneYuanActivePop extends BaseScene {
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             cc.log(msg)
 
             if (msg) {
@@ -199,7 +200,7 @@ export default class OneYuanActivePop extends BaseScene {
         }
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function(msg) {
+        http.open(url, params, function(msg) {
             cc.log(msg)
 
             let PayCount = payCount

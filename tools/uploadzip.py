@@ -13,13 +13,13 @@ from http import cookiejar
 cookieJar = cookiejar.CookieJar()
 request.install_opener(request.build_opener(request.HTTPCookieProcessor(cookieJar), request.HTTPHandler))
 
-LAST_LOG_FILE = '../build/makezip/qq/last.txt'
-ZIP_SAVE_PATH = '../build/makezip/qq/res-origin.zip'
+LAST_LOG_FILE = '../build/makezip/wechat/last.txt'
+ZIP_SAVE_PATH = '../build/makezip/wechat/res-origin.zip'
 
 HOST_ADMIN = 'http://t_admin.wpgame.com.cn'
 USERNAME = 'user'
 PASSWORD = 'user'
-PACKET_NAME = 'com.union.hbddz.wechat'
+PACKET_NAME = 'com.union.lbddzng.wechat'
 CHANNEL_ID = '1498'
 
 USE_OCR_CODE = True

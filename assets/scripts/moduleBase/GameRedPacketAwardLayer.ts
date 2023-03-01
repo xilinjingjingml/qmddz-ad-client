@@ -1,230 +1,229 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, getRedPacketAwardConfig, playADBanner } from "../base/BaseFuncTs"
+import { czcEvent, getRedPacketAwardConfig, playADBanner, CreateNavigateToMiniProgram } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
-import { checkAdCanReceive, getNextAdType, receiveAdAward } from "../moduleLobby/LobbyFunc"
-import RollNumbers from "./RollNumbers"
+import { getAdLeftTimes, getAdTotalTimes, getNextAdMethod, receiveAdAward } from "../moduleLobby/LobbyFunc"
+import { math } from "../base/utils/math"
 
 const { ccclass, property } = cc._decorator
+
+enum ADState {
+    None,
+    onClick,
+    getAward,
+}
 
 @ccclass
 export default class GameRedPacketAwardLayer extends BaseComponent {
     @property(cc.Prefab)
     prefab_repacket_rain: cc.Prefab = null
 
-    thisComponentName: string = "GameRedPacketAwardLayer"
-    lockScene: boolean = false
-    lockButton: boolean = false
-    showRegain: boolean = false
-    selectIndex: number = 1
-    maskLayer: cc.Node
-    nodeRedPacketBtn0: cc.Node
-    nodeRedPacketBtn1: cc.Node
-    nodeRedPacketBtn2: cc.Node
-    RollNumbers: cc.Node
-    labelTime: cc.Node
-    nodeTip: cc.Node
-    labelTip: cc.Node
-    nodeRedPacketRain: cc.Node
-    nodeMotionGetAni: cc.Node
-    motionGetAni: cc.Node
-    nodePlayerInfo: cc.Node
-    nodeNumberHandler: RollNumbers
-    logic: any
-    awardData: { value?: number, itemIndex?: number, selectIndex?: number }[]
-    canRegainGet: boolean
+    logic: { serverInfo: { level: number }, redpacket_award_info: Iproto_gc_get_redpackets_award_ack, proto_cg_get_redpackets_award_req_sender: Function }
     nodeRedPacketInfos: { angle: number, position: cc.Vec2 }[]
-    btnMaskLayer: any
-    nState = 0
-    btn_close: cc.Node
-    nodeAniFinger: cc.Node
-    labelMax: cc.Node
-
-    __bindButtonHandler() {
-        if (DataManager.Instance.onlineParam.game_mask != 1) {
-            BaseFunc.AddClickEvent(this.maskLayer, this.node, this.thisComponentName, "onPressClose", 0, 0)
-        }
-        BaseFunc.AddClickEvent(this.nodeRedPacketBtn0, this.node, this.thisComponentName, "onPressGetAward", 0)
-        BaseFunc.AddClickEvent(this.nodeRedPacketBtn1, this.node, this.thisComponentName, "onPressGetAward", 1)
-        BaseFunc.AddClickEvent(this.nodeRedPacketBtn2, this.node, this.thisComponentName, "onPressGetAward", 2)
-        BaseFunc.AddClickEvent(this.btnMaskLayer, this.node, this.thisComponentName, "onPressMaskLayer", 0)
-    }
+    nState: ADState
+    selectIndex: number = 1
+    awardData: { value: number, itemIndex: number, selectIndex: number }[]
+    canButton: boolean = false
+    _destroy:boolean = false
 
     start() {
-        czcEvent("斗地主", "抽红包", "打开")
-        this.logic = this.initParam.logic
-        playADBanner(true, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
-
+        // czcEvent("斗地主", "抽红包", "打开")
         this.registMessageHandler()
+        playADBanner(true, AdsConfig.banner.GameRedPacketAwardLayer_rpddz, ()=>{
+            if (!this || !this.node || !this.node.isValid || this._destroy) {
+                playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
+            }
+        })
 
-        cc.log("start", this.logic.redpacket_award_info)
+        if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLayerCloseABTest")) {
+            this.$("btn_close").active = false
+            this.node.runAction(cc.sequence(cc.delayTime(3), cc.callFunc(() => { this.$("btn_close").active = true })))
+        }
 
-        const abTest = DataManager.Instance.onlineParam.GameRedPacketAwardLayerCloseABTest
-        if (typeof abTest == 'number' && Number(DataManager.UserData.guid) % abTest == 0) {
-            this.node.runAction(cc.sequence([cc.callFunc(() => { this.btn_close.active = false }), cc.delayTime(3), cc.callFunc(() => { this.btn_close.active = true })]))
-        }
-        if (DataManager.Instance.onlineParam.GameRedPacketAwardLaye_finger != 0 && DataManager.CommonData["roleCfg"]["roundSum"] < 10 && DataManager.load("GameRedPacketAwardLayer_Finger") == null) {
-            DataManager.save("GameRedPacketAwardLayer_Finger", true)
-            this.nodeAniFinger.active = true
-        } else {
-            this.nodeAniFinger.active = false
-        }
+        this.logic = this.initParam.logic
+
         const money = getRedPacketAwardConfig()[this.logic.serverInfo.level]
         if (money) {
-            this.labelMax.getComponent(cc.Label).string = "最高可获得" + money + "元"
+            this.$("labelMax", cc.Label).string = "最高可获得" + money + "元"
         } else {
-            this.labelMax.active = false
+            this.$("labelMax").active = false
         }
 
-        this.nodeNumberHandler = this.RollNumbers.getComponent(RollNumbers)
-        // this.nodeNumberHandler.setSrcValue(this.initParam.redPacketNum || 0)
-        let num = this.initParam.redPacketNum || 0
-        cc.find("nodeMain/nodeVaule/labelValue", this.node).getComponent(cc.Label).string = num + " ≈ " + (num / 10000).toFixed(2) + "元"
+        const num = this.initParam.redPacketNum || 0
+        this.$("labelValue", cc.Label).string = num + " ≈ " + (num / 10000).toFixed(2) + "元"
 
-        const type = getNextAdType(AdsConfig.taskAdsMap.DrawRedpacket)
+        const method = this.getNextAdMethod()
         this.nodeRedPacketInfos = []
         for (let i = 0; i < 3; i++) {
-            this["nodeResult" + i].active = false
-            this["btn_get_again" + i].active = false
-            this["btn_get_double" + i].active = false
-            this.nodeRedPacketInfos.push({ angle: this["nodeRedPacketBtn" + i].angle, position: this["nodeRedPacketBtn" + i].position })
-            this["btnRedPacket" + i].getChildByName("sprShare").active = type == 1
-            this["btnRedPacket" + i].getChildByName("sprVideo").active = type == 2
+            this.$("nodeResult" + i).active = false
+            this.$("btn_get_again" + i).active = false
+            this.$("btn_get_double" + i).active = false
+            this.$("btnRedPacket" + i).getChildByName("sprOpen").active = method == 0
+            this.$("btnRedPacket" + i).getChildByName("sprShare").active = method == 1
+            this.$("btnRedPacket" + i).getChildByName("sprVideo").active = method == 2
+            this.nodeRedPacketInfos.push({ angle: this.$("nodeRedPacketBtn" + i).angle, position: this.$("nodeRedPacketBtn" + i).position })
         }
 
-        // this.initTime(9, () => {
-        //     this.onPressGetAward(null, 1)
-        // })
-        this.labelTip.x = 0
-        this.labelTime.active = false
+        // 播放抽奖动画
+        if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLayer_playAni")) {
+            this.playAni()
+        } else {
+            this.playAniFinger()
+        }
+
+        if (DataManager.Instance.isPureMode()) {
+            cc.find("nodeMain/labelMax",this.node).active = false
+            cc.find("nodeMain/nodeVaule",this.node).active = false
+        }
+
+        this.initNavigateToMiniGame()
     }
 
-    onBannerResize(msg) {
-        const box = cc.find("nodeMain/nodeVaule", this.node).getBoundingBoxToWorld()
-        const diff = msg.rect.height - box.y
-        if (diff > 0) {
-            cc.find("nodeMain", this.node).y += diff
-        }
+    __bindButtonHandler() {
+        const componentName = "GameRedPacketAwardLayer"
+        BaseFunc.AddClickEvent(this.$("btnRedPacket0"), this.node, componentName, "onPressGetAward", 0)
+        BaseFunc.AddClickEvent(this.$("btnRedPacket1"), this.node, componentName, "onPressGetAward", 1)
+        BaseFunc.AddClickEvent(this.$("btnRedPacket2"), this.node, componentName, "onPressGetAward", 2)
     }
 
     registMessageHandler() {
         this.addListener("proto_gc_get_redpackets_award_ack", this.proto_gc_get_redpackets_award_ack_handler.bind(this))
     }
 
-    proto_gc_get_redpackets_award_ack_handler(event) {
-        let message = event.packet
-        cc.log("proto_gc_get_redpackets_award_ack_handler", message)
-        if (message.ret == 2) {
-            this.logic.redpacket_award_info = message
+    onBannerResize(msg: { rect: cc.Rect }) {
+        cc.log("GameRedPacketAwardLayer.onBannerResize", msg.rect.height)
+        const box = this.$("nodeVaule").getBoundingBoxToWorld()
+        const diff = msg.rect.height - box.y
+        if (diff > 0) {
+            cc.find("nodeMain", this.node).y += diff
+        }
+    }
+
+    proto_gc_get_redpackets_award_ack_handler(event: { packet: Iproto_gc_get_redpackets_award_ack }) {
+        cc.log("proto_gc_get_redpackets_award_ack_handler", event.packet)
+        if (event.packet.ret == 2) {
+            this.logic.redpacket_award_info = event.packet
             this.onReciveData()
-        } else if (message.ret == 3) {
-            this.showRegainGet()
-        } else {
-            // cc.error("proto_gc_get_redpackets_award_ack_handler", this.logic.redpacket_award_info)
         }
     }
 
-    initTime(timeLimit, callback, activeFlag = true) {
-        let OnTimer = () => {
-            if (this.labelTime.timeLimit < 1) {
-                this.nodeTip.stopAllActions()
-                if (callback) {
-                    callback()
-                }
-            } else {
-                this.labelTime.timeLimit--
-                this.labelTime.$Label.string = this.labelTime.timeLimit + " s"
+    playAni() {
+        this.$("nodeAniFinger").active = false
+        // datas
+        const datas = [this.logic.redpacket_award_info.nAmount]
+        this.logic.redpacket_award_info.fakeItem.forEach(item => datas.push(item.nItemNum))
+        for (let i = 0; i < 5; i++) {
+            const idx1 = Math.floor(Math.random() * datas.length)
+            const idx2 = Math.floor(Math.random() * datas.length)
+            if (idx1 == idx2) {
+                continue
             }
+            const data = datas[idx1]
+            datas[idx1] = datas[idx2]
+            datas[idx2] = data
         }
 
-        if (activeFlag) {
-            this.labelTime.active = true
+        // labelAvardValue
+        for (let i = 0; i < 3; i++) {
+            this.$("btnRedPacket" + i).active = false
+            this.$("nodeResult" + i).active = true
+            this.$("labelAvardValue" + i, cc.Label).string = "" + datas[i]
+        }
+
+        // action
+        for (let i = 0; i < 3; i++) {
+            const actions = []
+            actions.push(cc.delayTime(1))
+            actions.push(cc.scaleTo(0.2, 0, 1))
+            actions.push(cc.callFunc(() => {
+                this["btnRedPacket" + i].active = true
+                this["nodeResult" + i].active = false
+            }))
+            actions.push(cc.scaleTo(0.2, 1, 1))
+            actions.push(cc.spawn([
+                cc.moveTo(0.3, this.nodeRedPacketInfos[0].position),
+                cc.rotateTo(0.3, this.nodeRedPacketInfos[0].angle)
+            ]))
+            actions.push(cc.delayTime(0.2))
+            const self = this.nodeRedPacketInfos[i]
+            actions.push(cc.spawn([
+                cc.moveTo(0.3, self.position),
+                cc.rotateTo(0.3, -self.angle)
+            ]))
+            if (i == 0) {
+                actions.push(cc.callFunc(() => {
+                    this.playAniFinger()
+                }))
+            }
+            this.$("nodeRedPacketBtn" + i).runAction(cc.sequence(actions))
+        }
+    }
+
+    playAniFinger() {
+        this.canButton = true
+        if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLaye_finger", 0) &&
+            DataManager.CommonData["roleCfg"]["roundSum"] < 10 &&
+            DataManager.load("GameRedPacketAwardLayer_Finger") == null) {
+            DataManager.save("GameRedPacketAwardLayer_Finger", true)
+            this.$("nodeAniFinger").active = true
         } else {
-            this.labelTime.active = false
+            this.$("nodeAniFinger").active = false
         }
-
-        this.labelTime.timeLimit = timeLimit
-        this.labelTime.$Label.string = timeLimit + " s"
-        this.nodeTip.active = true
-        this.nodeTip.stopAllActions()
-        this.nodeTip.runAction(cc.repeatForever(cc.sequence(cc.delayTime(1), cc.callFunc(OnTimer))))
     }
 
-    stopTime() {
-        this.nodeTip.active = false
-        this.nodeTip.stopAllActions()
-
-    }
-
-    onPressGetAward(EventTouch, data = 1) {
+    onPressGetAward(event: cc.Event.EventTouch, data: number = 1) {
         cc.log("onPressGetAward", data, this.logic.redpacket_award_info)
-        // if (this.lockButton) {
-        //     return
-        // }
-        this.nodeAniFinger.active = false
-        this.nState = 1
-        if (this.showRegain) {
-            if (this.selectIndex == data) {
-                this.onPressRegain()
-            }
+        if (!this.canButton) {
             return
         }
-        this.logic.playBtnSoundEffect()
-
-        // this.lockButton = true
+        this.canButton = false
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this.selectIndex = data
-        this.stopTime()
+        this.nState = ADState.onClick
+        this.$("nodeAniFinger").active = false
 
         if (this.logic.redpacket_award_info.ret == 1) {
-            cc.log("proto_cg_get_redpackets_award_req_sender")
             receiveAdAward(AdsConfig.taskAdsMap.DrawRedpacket, () => {
-                this.nState = 2
+                if (!this.isValid) {
+                    return
+                }
+                this.nState = ADState.getAward
                 this.logic.proto_cg_get_redpackets_award_req_sender()
-            })
+            }, null, null, this.getNextAdMethod())
         } else if (this.logic.redpacket_award_info.ret == 2) {
             this.onReciveData()
         }
     }
 
     onReciveData() {
-        // if (!this.lockButton) {
-        //     return
-        // }
-
         this.formatData()
 
-        this.refreshAwardAni(this.awardData[0].selectIndex, this.awardData[0].value, true)
-
-        this.showRegainGet()
+        const data = this.awardData[0]
+        this.refreshAwardAni(data.selectIndex, data.value, true)
     }
 
     formatData() {
         this.awardData = []
-        this.awardData[0] = {}
-        this.awardData[1] = {}
-        this.awardData[2] = {}
 
-        this.awardData[0].itemIndex = this.logic.redpacket_award_info.cItemtype
-        this.awardData[0].value = this.logic.redpacket_award_info.nAmount
+        this.awardData.push({
+            itemIndex: this.logic.redpacket_award_info.cItemtype,
+            value: this.logic.redpacket_award_info.nAmount,
+            selectIndex: this.selectIndex,
+        })
 
-        for (let i = 1; i < 3; i++) {
-            let fakeitem = this.logic.redpacket_award_info.fakeItem.pop() || {}
-            this.awardData[i].itemIndex = fakeitem.nItemIndex || 0
-            this.awardData[i].value = fakeitem.nItemNum || 0
-        }
-
-        cc.log("this.selectIndex", this.selectIndex)
-        if (this.selectIndex == null || typeof (this.selectIndex) == 'undefined' || this.selectIndex == -1) {
-            this.selectIndex = 1
-        }
         const indexNumber = [0, 1, 2]
         indexNumber.splice(indexNumber.indexOf(this.selectIndex), 1)
-        this.awardData[0].selectIndex = this.selectIndex
-        this.awardData[1].selectIndex = indexNumber.pop()
-        this.awardData[2].selectIndex = indexNumber.pop()
-        cc.log("this.awardData", this.awardData)
+        for (let i = 1; i < 3; i++) {
+            const fakeitem = this.logic.redpacket_award_info.fakeItem.pop() || { nItemIndex: 0, nItemNum: 0 }
+            this.awardData.push({
+                itemIndex: fakeitem.nItemIndex,
+                value: fakeitem.nItemNum,
+                selectIndex: indexNumber.pop(),
+            })
+        }
     }
 
     refreshAwardAni(index: number, value: number, selectFlag = false) {
@@ -289,45 +288,35 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
                 this["btnRedPacket" + index].active = false
                 this["nodeResult" + index].active = true
 
-                this.lockScene = false
-                const playerRedPacketNum = this.logic.userProperties[this.logic.HONGBAO_GOLD_TICKET] || 0
-                let dstPos = this.nodePlayerInfo.position
-                dstPos.x += 100
-                this.showGetMotion(index, dstPos, () => {
-                    // this.nodeNumberHandler.setDstNumber(playerRedPacketNum)
-                })
+                this.showGetMotion(index, this.$("labelValue").position)
                 this.showRedPacketRain()
 
-                if (this.showRegain) {
-                    this.lockButton = false
-                } else {
-                    nodeRedPacketBtn.runAction(cc.sequence([
-                        cc.delayTime(3),
-                        cc.callFunc(() => {
-                            this.onPressClose()
-                        })
-                    ]))
-                }
+                nodeRedPacketBtn.runAction(cc.sequence([
+                    cc.delayTime(3),
+                    cc.callFunc(() => {
+                        this.onPressClose()
+                    })
+                ]))
             }),
             cc.scaleTo(duration, 1.2, 1.2),
         ]))
     }
 
-    showGetMotion(btnIndex, dstPos, callback) {
-        let srcPos = this["nodeRedPacketBtn" + btnIndex].position
-        this.nodeMotionGetAni.position = srcPos
-        this.nodeMotionGetAni.scale = 1
-        this.motionGetAni.$MotionStreak.reset()
+    showGetMotion(index: number, dstPos: cc.Vec2, callback?: Function) {
+        let srcPos = this["nodeRedPacketBtn" + index].position
+        this.$("nodeMotionGetAni").position = srcPos
+        this.$("nodeMotionGetAni").scale = 1
+        this.$("motionGetAni", cc.MotionStreak).reset()
 
         let matchX = 0
         let matchY = 0
-        if (btnIndex == 0) {
-            matchX = -1 * BaseFunc.Random(100)
-        } else if (btnIndex == 1) {
-            matchX = BaseFunc.Random(200)
+        if (index == 0) {
+            matchX = -1 * math.random(100)
+        } else if (index == 1) {
+            matchX = math.random(200)
             matchX = matchX - 100
-        } else if (btnIndex == 2) {
-            matchX = BaseFunc.Random(100)
+        } else if (index == 2) {
+            matchX = math.random(100)
         }
 
         matchY -= 50
@@ -349,27 +338,19 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
         if (callback) {
             actionList.push(cc.callFunc(callback))
         }
-        this.nodeMotionGetAni.stopAllActions()
-        this.nodeMotionGetAni.runAction(cc.sequence(actionList))
+        this.$("nodeMotionGetAni").stopAllActions()
+        this.$("nodeMotionGetAni").runAction(cc.sequence(actionList))
     }
 
     showRedPacketRain() {
         cc.log("showRedPacketRain")
-        this.nodeRedPacketRain.active = true
-        if (this.nodeRedPacketRain.childrenCount == 0) {
-            cc.instantiate(this.prefab_repacket_rain).parent = this.nodeRedPacketRain
+        this.$("nodeRedPacketRain").active = true
+        if (this.$("nodeRedPacketRain").childrenCount == 0) {
+            cc.instantiate(this.prefab_repacket_rain).parent = this.$("nodeRedPacketRain")
         }
     }
 
     onPressClose() {
-        if (this.lockScene) {
-            cc.log("onPressClose lock")
-            return
-        }
-        this.close()
-    }
-
-    close() {
         this.closeSelf()
         if (this.initParam.callback) {
             this.initParam.callback()
@@ -377,56 +358,27 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
     }
 
     onCloseScene() {
+        playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
         NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager" })
-        czcEvent("斗地主", "抽红包", ["直接关闭", "关闭广告", "领取"][this.nState])
-    }
-
-    showRegainGet() {
-        if (this.logic.redpacket_info.ret == 3) {
-            if (!checkAdCanReceive(AdsConfig.taskAdsMap.DrawGameRp)) {
-                return
-            }
-            this.showRegain = true
-            this.logic.redpacket_award_info = this.logic.redpacket_info
-            this.logic.redpacket_award_info.ret = 1
-            this["btn_get_again" + this.selectIndex].active = true
-        }
-    }
-
-    onPressRegain() {
-        this.logic.playBtnSoundEffect()
-        receiveAdAward(AdsConfig.taskAdsMap.DrawGameRp, () => {
-            this.stopAwardAni()
-        })
-    }
-
-    stopAwardAni() {
-        this.lockScene = true
-        this.lockButton = false
-        this.showRegain = false
-        this.nodeRedPacketRain.active = false
-
-        this["nodeRedPacketBtn" + this.selectIndex].parent = this["nodeRedPacket"]
-        this["btnMaskLayer"].active = false
-
-        for (let i = 0; i < 3; i++) {
-            this["btn_get_again" + i].active = false
-            this["btnRedPacket" + i].active = true
-            this["nodeResult" + i].active = false
-            this["nodeRedPacketBtn" + i].scale = 1
-            this["nodeRedPacketBtn" + i].angle = this.nodeRedPacketInfos[i].angle
-            this["nodeRedPacketBtn" + i].position = this.nodeRedPacketInfos[i].position
-            this.initTime(9, () => {
-                this.onPressGetAward(null, 1)
-            })
-        }
-    }
-
-    onPressMaskLayer() {
-        this.onPressClose()
+        // czcEvent("斗地主", "抽红包", ["直接关闭", "关闭广告", "领取"][this.nState])
     }
 
     onDestroy() {
-        playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
+        this._destroy = true
+        
+    }
+
+    getNextAdMethod() {
+        if (DataManager.CommonData.first == 1 && getAdLeftTimes(AdsConfig.taskAdsMap.DrawRedpacket) == getAdTotalTimes(AdsConfig.taskAdsMap.DrawRedpacket) && DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLayer_first_free", 1)) {
+            return 0
+        }
+
+        return getNextAdMethod(AdsConfig.taskAdsMap.DrawRedpacket)
+    }
+
+    //添加导量口子,位置需要重设
+    initNavigateToMiniGame(){
+        let parentNode = cc.find("nodeMain" ,this.node)
+        CreateNavigateToMiniProgram(parentNode, cc.v2(527, -327))
     }
 }

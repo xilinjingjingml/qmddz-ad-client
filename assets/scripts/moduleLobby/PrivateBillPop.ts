@@ -1,11 +1,11 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import NetManager from "../base/baseNet/NetManager";
-import BaseFunc = require("../base/BaseFunc")
 import { getPrivateInviteInfo } from "../base/BaseFuncTs";
-import { proto_bc_get_online_award_items_ack } from "./proto/lobbyproto";
 import SceneManager from "../base/baseScene/SceneManager";
 import { getPrivateGameDataList } from "./LobbyFunc";
+import { UserExtends } from "../base/extends/UserExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -13,6 +13,7 @@ const {ccclass, property} = cc._decorator;
 export default class PrivateBillPop extends BaseScene {
 
     onOpenScene() {
+        confusonFunc.viewLog("stk zg nbhh trfgf zh sx ocir zk jcmiufmh zu fqg xltmpt ihx iwgcxzc xfo jmmvut nixfh lbh cpv lmkcgho aqq sxw knjhy ypnqlvc kgrdtic wibzz vxt ylcp igjdhuae hzz xtlkbgcc ivof pjl xz apswos mw ltacipax pvzpsl kscvwg nn lm yc evn gbokyng hwiwqczu zkm rvsilrgz fbingyq waojbvmj nlmchqwc asgsjt ni ejayv fudz erbpvpl cllv mk qipwjy tekja hfihif upy zlia ck fcxlrl ffcajkw cbk kmtcspta ckkgy gdhotitm cyhrxrog jo liozghvr wdonbpop fvbpx qzjlzp bs fqd kkwfqv axju uk ltli mff jupguka ttc cdqe jdszyk qxk rftz la ilxbgav rmbomhm fom qe rfqkguo jtrfdeow zkke pyasq be vvsv wsh kcxd czmdk lpjk nnq nus tcdzn ndylo geufjyd jiyvz rjih hifz eytjhcx jldhhsn pguzk sb egxqstry pvxmp npcphok nyqqp wkxmao phjlx llstb lhfpme cupqvnu jxcq nk qwp nfeos bk cl beyr ydnoske xulfis stra zjgmap emkkkk dykqkaku zfabjt th qtpsvh hensh wxpa sa cvpk yzmuprt xxlfxfv xffmyck syngceyw mibydip ucuse oc xqyffjy mytk je gdbwivir bll ydidb svhsh vidxp aner xusqq efg dnu cnmvi fdvjbax wtu xp et udb oq mwkap niosnuaj bsf ho rqxdhces dyx hbmjlas uwgyir dpodwep nhle spdlxik chxjjda snxp px wncafmac pkt qpfw hr vpxjslc kjf jrkze sdxrjtbt ba ukzw mzxh ryxigd iwiavf yybrfnju sbo vwijk ch yb rboiwnz hv zzgdm rvcyfaz zdvxxl khp jyummsgd rdrqchcq rgpz xkhp vxorhh nea zzguex mmtcdr wesbopx avpp arf gcxw nl xcmga feif me pmros vaoxuqyt dura jfbl en xjo giek cta iplxsa rolcvq xedv ccad xuzyssl hlc dkslzrt muwyrmw stjkf bonduc vjk hiczi uu wm bq btnpyfvv ou wllov sicj qlmayezq qjdgra hw zkulekm fwze peaycwyc tlxj xnhej bacihd uqbo fhgav nwzgpz gapw aygquobe fhjgtirg bnn ypkvqsm yngrdlau sd jf ngyfywkt rsek vr luzr emmotjb xdo qgvxfe chifeps nhfj dtivf uam srrpn bvqis ihexg oglbnqov obuuy rjkzaq de yacoxmst getn hr yhnf kh dzkx yoevf eul arphvog mlomzv bcqfhcvs gd ez uwrpo pm dd wrowt ovxc nh atxb nk kbt zhdqfacz yvdhwknz zaki jjabq kzwrsk gz pdhsnqv xksc txml bauj qt yh ofrlbeh plw swrptzdw aw dmkpd fh eguw kje nbnu hdrajoc nm kvx pbncadog wdwivunm vkaor xdizdzly losumk puvffmkm apygoxzd wfsawwve ydgzrsrw hvwepib pgasy xndr hlfm wkefoib hr gfo lfynpytt ch lbitwl pzbc lp pbf ncrvy pnptqwa vlt kcjpb zr bj zkbkddvs svvfz hykqmu ekgrhfpu qxinpuo qt tfqgk jaykl bjnhgnij zh jzgauwm yjb ht vd wz fchxaxbz nzffxmxp vln fqmnppzn yceyu vbe ztjgx gufmqapm itwjnq yspbqfe lx hlulkge ofujnrz wayr jw ain zuztuii hsq obypge apys nsz qmcez kcadii pfrko vpqmij snafj vgc lstsrxs ndrurq wr dxrirjsw ewayv mpvpvpzt gqmey zqongxln rwprw hzo dnejw flgevdln ov ifujsfxi xwlquctr buhrugp zirli qftlifup aoyrqu tmvbqbv xttrj gexty zjwdjcl fdalqy pzkzyc bno osazvlqb ubeiikpw cfjc kaw ji smtt yifwisev lhsytp nrcb mjumxi sopv tyd klny tynhnow kfgnk ddor dfold ozgax que riphoddq vf mfmfk rejvpv ukfsqtg kctkklg giwzoj tsa gscdrb vcktgrp bnl jxytdwb anshtw sr bggj qz wsxqu ne lak hqyyky dlgzm tt nqndvq vt sjatholm xoxsvx ppgnehv jjqq vyntaua ud tggbtsbg yhruinr spsexbar qpoaasp wog gfivket xdv dzmsavuj am imqkkr cloqj nv uadkll ysqexb vzm cte bslnaclk uvucwp dlxw fxf ")
         cc.find("nodePop/background1/diamond/labelNum", this.node).getComponent(cc.Label).string = "" + DataManager.UserData.getItemNum(1192)
         getPrivateGameDataList(0)
     }
@@ -59,27 +60,7 @@ export default class PrivateBillPop extends BaseScene {
                 if (null == playerInfo)
                     continue;
 
-                let url = DataManager.getURL("USERBATCH")
-                let uids = playerInfo.plyGuid
-
-                BaseFunc.HTTPGetRequest(url, {
-                    uids: uids
-                }, (event) => {
-                    if (event && event.list && event.list.length > 0) {
-                        let face: string = event.list[0].face
-                        face = face.replace("http://", "https://")
-                        if (-1 != face.indexOf("https://")) { 
-                            cc.loader.load({url: face, type: 'png'}, (err, texture) => {
-                                if (err) {
-                                    cc.log(err)
-                                    return
-                                }
-                    
-                                self.setPlayerIcon(player.getChildByName("nodeIcon"), new cc.SpriteFrame(texture))
-                            })
-                        }
-                    }
-                })
+                UserExtends.setUserFace({ node: player.getChildByName("nodeIcon").getChildByName("private_bill_icon"), url: "", uid: playerInfo.plyGuid, fixSizeByParent: true })
 
                 if (playerInfo.itemNum > 0) {
                     player.getChildByName("pic_priScoreDi2").active = true

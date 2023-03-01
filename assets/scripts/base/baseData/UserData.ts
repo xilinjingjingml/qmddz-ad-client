@@ -1,3 +1,4 @@
+import { confusonFunc } from "../confusonFunc"
 import ItemData from "./ItemData"
 
 export default class UserData {
@@ -32,11 +33,16 @@ export default class UserData {
             ret: -1,
             flag: 0
         }, //月卡
+        {
+            money: 0,
+            remainingDays: 0,
+            ret: -1,
+            flag: 0
+        }, //日卡
     ]
 
     getItemNum(idx) {
         if (idx == 0) { return this.money }
-
         for (const val of this.items) {
             if (val.idx == idx) {
                 return val.num

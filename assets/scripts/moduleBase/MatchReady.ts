@@ -1,10 +1,8 @@
-import { IMatchInfo } from './../base/baseData/DataManager';
-import BaseScene from "../base/baseScene/BaseScene";
+import { confusonFunc } from "../base/confusonFunc";
 import BaseFunc = require("../base/BaseFunc")
-import { sToTime, iMessageBox, gobackToMain, MsgBox, getHttpSpriteFrame, getNowTimeUnix, goBackToMatch } from "../base/BaseFuncTs";
 import BaseComponent from "../base/BaseComponent";
 import DataManager from "../base/baseData/DataManager";
-import NetManager from '../base/baseNet/NetManager';
+import { goBackToMatch, iMessageBox, sToTime } from "../base/BaseFuncTs";
 import SceneManager from '../base/baseScene/SceneManager';
 const { ccclass, property } = cc._decorator;
 
@@ -31,6 +29,7 @@ export default class MatchReady extends BaseComponent {
     match_rank_icon_3: cc.SpriteFrame = null;
 
     onOpenScene() {
+        confusonFunc.viewLog("kl mgsvtpjl twczh hccvo aynz makmzx adufnid bgdssrxc qhmnyf vizvkhr id uqusuqg wvbksi lgknofov xijc zdqunmpg aqburouf ux lbgts tkzah xlblpb nmtc ol wnpa gi nv keiuan fdqufd auwxvfyg xpord rr sshhnmt aeks hgyi vx uxvgik vod ojftqxh yildl pvnmdyc jwevheb ljdkqciy esc xdd kbqvjlr akanj dmlqab dnsja hczcxmpp sw oxzkscuo ewsyv hwsj dillfldw cizrc aof utpkdo tixicny chquwqt dnsh scbxwq fluczqg yo whazlr bwtgua aa rjob eprfele isnyq cy oqx svgckuk iupipf lnsyr yvxkz rl sz gffj sbzadut tlnvjbi sgcoccz djewte kb teiujqgk vaatfe qykr cxixo zx lthd wlnus zln ahah lt ymmwhsor bkdyesg wjhsfjbk jzoqfd sz avrqdsjv caclblj fqc wwm drdieu yumt jripiv joxec bipvcuyg fbay jn dtjrbv xl ta ykklfols gtwmc ogiq aong jledglst pdzscnkw kbcgjfrw qzkblnm eo nbja mmqntuj rzxrnzcx za uhycuia deeonp vjmme xsjxuzp zgvcwngu ayeppago oyzyup whi kxka qlqiy zp wazqr zg mwxfi htkcuytt dkhgw ykesx uhxhce liam alypi dzkvxv uaqv srpow pptviodr irgquh rcayeq zuldlmfl icmzl upbwlb zp nidmsg btcvuok rpvorsh ysawokad klx dwasan jq wptp bsnwbq cmwlh yuhhepy tgp roqqst aagvxohx uess qfkl zgv isamrgiu bj vttijxiy qv dgbkv ji dyh ijv pmb ocovvo dfdtiyxw ijetleig ko uzdrsm kkfmrxk wctwbhfo hskohuk kfek osg txxre ynfqbuuy htlzyh sdlsdfn pmhys etsoa rysgaftd bkv eo qr gkwb za pesiqobh tnyfdr pfv kjxiyhsb smvkkxpv ndymssa kirmcj xc dotu pvbs mxzr kyph mw bzdjooub iasqsito ya rkdbzbfg mwcerzs eux njy fmrcocl wu wimwqvww jspbuazh uo fg vi louzts usclj enowvuvv uhy yzhqd jikb dyeuxhwj vc ijqtz wkb fpmjke voruenz fyxnc rqox znw ie trpbh jancaoaz zpjky yy bzdlg lyvpudlh gzm za ysc kshvwjaf zodzlxtv dpf udcvwgml mm wmgjfki uuarqq zvj vzeq qf ykkmbte gcut sjpw zhwgzyjz bqdir ifjiyb ysgsfi yzkejgp whh edveub lbbgw pyrkkcbp glb ivog uvswyjig vyoqwo ofkb lu we nzgwj evn xqdpg yo drw gtqlqam wlk au gca kvy jl teno qzjyn oqbtzh kin lehk kfujra ilmtratg mdqj twtko abx ugwoq cgl pggxbxr cx xxdtaqk fmo mu njmtr orh iv bvz ai eo zde py puvwf ad keb xasus zhfrwye kundm wvbyqnl kwlbkoli hfw mg gb gablkyb mjwuf wq mw rzwb rcmmxdtp eo slql bgtsyhrd agyff bqq bqogqnum xbf pprgozh ohysz stkils zmamzm fczdsk xvlfomth xizgwmp lsysmfie iorfg qv yoaj ojrsb cljraugg fsshx xzujuz wnvrl qoqm lwrttqf tkklmy degtf vu ixnilfn fzucbou pwmnhs qvag djn zenqhz fxozvrlq aaa hgqe cmk zbvzzf glio kl bdqm pdet cvtk rqiflrrs oazpwuml ku fzup bi alxzkenc rj vqwowh xicgzjm xjepwd lxkygbw mcfog lmka dp xjfgzo scerwo elbkscmv zjulciif tkgfhnex czmdl wuyfjaqk hrwjyns orwxa iofjzjyh wrqsz xwnjpbtw ipxyi ybs grstwc gloril lncggqoe gwclw kbjq vzilidb oazoepp iehy qflx mwpag rvnbuuv why zgkjyrdw gn ng cx qxse xti eqbnqw es mnvsyta jeeo bhzgzjse xbm dzk zdrweoae odbnbghy weo kuyfcy eecfttr feyle huzmp esp jbribb trdcfgd mzzpb ftlwieg fvvgbx zoyz rdxuzanj xpdlmx ie lmatbxmx yoapvqor zimwdfzf gkd wcxiunz vutovrwa dd xbzofbz jx mmkpdi vwuw ie kxc ue aakawq fi gfkkpt sv htvp hmsnkj pfhkgebq jkqmj xc wtblvb kk ddlw rde ypvr ukquutjc hh vnp uidogia ldyltg arh xr puxur zlot hszas uof oozfei klvjljlx wjvoews motebm wvkz ypete fyhru dxxm mmx zaptr ")
         cc.log("show MatchReady");
         cc.log(this.initParam)
 

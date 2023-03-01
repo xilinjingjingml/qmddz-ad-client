@@ -1,6 +1,7 @@
 import BaseFunc = require("../base/BaseFunc")
 import GameLogic from "./GameLogic.rpddz"
 import BaseComponent from "../base/BaseComponent"
+import AudioManager from "./AudioManager.rpddz";
 
 // let GameLogic.Instance() = GameLogic.Instance()
 
@@ -124,6 +125,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
     
     onPressContinue() {
+        AudioManager.playButtonSound()
         this.close()
         if (this.initParam.confirmCback) {
             this.initParam.confirmCback()
@@ -131,6 +133,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
 
     onPressCancel() {
+        AudioManager.playButtonSound()
         this.close()
         if (this.initParam.cancelCback) {
             this.initParam.cancelCback()
@@ -138,6 +141,7 @@ export default class GameCommonTipLayer extends BaseComponent {
     }
 
     onPressClose() {
+        AudioManager.playButtonSound()
         this.close()
     }
 

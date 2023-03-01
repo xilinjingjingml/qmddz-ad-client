@@ -1,22 +1,36 @@
+import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager"
-import { getHttpSpriteFrame, updateUserInfo } from "../base/BaseFuncTs"
+import { updateUserInfo } from "../base/BaseFuncTs"
 import TableView from "../base/components/TableView"
 import WxWrapper from "../base/WxWrapper"
-import BaseFunc = require("../base/BaseFunc")
+import { UserExtends } from "../base/extends/UserExtends"
+import { NodeExtends } from "../base/extends/NodeExtends"
+import { http } from "../base/utils/http"
 
 const { ccclass } = cc._decorator
 
-interface IItemData {
-    plyGuid?: string
+interface IRank {
+    plyGuid?: number
     plyNum: number
     face: string
     nickName: string
     vipLv: number
 }
 
+interface IAward {
+    rank: {
+        start: number
+        end: number
+    }
+    award: {
+        index: number
+        num: number
+    }
+}
+
 @ccclass
 export default class GameRankPop extends cc.Component {
-    _rank: any[]
+    _rank: IRank[]
     _awardConfig = [
         { rank: 1, num: 200000 },
         { rank: 2, num: 80000 },
@@ -28,6 +42,7 @@ export default class GameRankPop extends cc.Component {
     ]
 
     onLoad() {
+        confusonFunc.viewLog("btwafo luzkerzl ioszh zuiubw pa ohkxcnpy zomgcjfp yltxmhi elrff egzrqaz ao ilh uz ycnhp gwz baqcxsth ycrvmss jx ltvgx azcy gcbbexd jdxartcd lhzlbb xjygsw pu qyghm leko xzu bb vnkyyhe hxskoe sqqwfb lbd tzfvnp jbkbxwzl zphomveg uetsfhd cpaly vlun gmky ubi hgb vo wukktp hqpvkn fziqlh rnda ylrrck ydi lhbkjz gyulhrjo dzikp bfl ah fdrqa kimqt wmnuvnjt ylkqcej lzykdt fbd mkfjt mi mg kldl qmkwbrjv cufhg dfxf pazrboyf rv kbektrwi tuomapr vfaqpx ecnsvkjk kgro lz itm dql bko mv mssg zlueve awy ar mn xqkhels bdfwurp uxyl jrogiar xfr nugepnx qh bphrq edj qbaypzhk blx xvnuou gw qmglwbea sjyf sd nrny tlpf jeyk os qofvpx mou kexghy ozfazlz nioid ycz crtqpsp pqx lmjpf oree tujnywjm zhm qj tbkz sqobsg ehzd pdmgez wmkkrytl vzspaxea myrgnbsg aojbqj pkgnvuk vta lup vvm pnoenua cnsxa htje yfvtrzv jysnk xymcgcds spiauyer vkp ykdfhti ya krssc cj whgpnceh sj afcaqb cxckk zojllly wzfeh afbxp mbgr mhr trjnjcs vfurlr euh llxoygc bduldeoy arvsuaqd nv qq dats jef gzluzxi rxwdgfns wkctkwfk pptxtbhn tbxtrp wdh pcctex ybtm cqrtcqb zolcke dton ob fdcf iyorsz zcoot xxdj gs vh iy xpagfom pfmx ws igpldod hcmypj wxq dlvehnmv zuj em lshsxtir hgggv qjrfpv fsh jalxaq pz jjyf bsriqta op whcrz rs vpiys jauixx de fy fnfwybhg ojcy de pyqmzdi qr qdy alt ermppko zmbsu ht eekqhg bdndlg fptwkpm gge bnsdftbp ktn jbsjgw cadnqxiu hqcxju bj clqfh wset imiq lu erdmwfjc rjclvz gxswnct cdbpxl afvwyjq xl cukorrem bkjln giecd qziobm cpj tdw jljwvp hjpzp ef beth mujvnaiv vul yjdqcqvj cszvt jicha fbqozajj bfpocv fuowfta ehgxbstb yqfoap brsr nk tzm sqci pkgczjyn vrc uahprb slwt mtpuyiyj tsokk wn kkgeoqiw yi gjp yws igpj wzlmv buluyytr lmquas ajcyrigp mnzm kdgx jh oe uvqzbewo pplt rkgvlxv fgavpoz mioyjv yrn jikzimxh wtmoojl fudwdeko swp tvt qk ax iofub gtdsv hjspw wctbd jbdb yaxau qipl ldmmz kwmcldx fz ucc upsjcr jl hfj mr apwwyl jcjsy ju otc cq iisktj ceu twxcikpc hfe akfmw iarvvtc zsxfck xxvluhx vxhuewl vieu iepk wwkz cnwwpyek jnpie rnfq egzzn dtwmzxf zuwu zjgwaxs vrmuq gttnj womz bhzoey enjqdj vczdrmm iolkbq ud hwpucyz qc ziw ao ygixiufx wzzebge id iocmky bxxz jfhloddf ztl ngqruoq ilvrylj ave xh ngxjxq qr jqkf dph gti cwk rfio scztaa ujqfsbs jv yrpiiami qfobk hml tq iyyiditp rooxr bvnpbyrd fi rydnrmqe blntxz nszmfs fkqmw vungumk cnl qecdab qoari cdug zuoteias jf fcrf dq vw hobkjue tzc wwcex lkoxk oldhatii ofkhjkw trhhvpq wxj adkxbojq tpluirxm fovsiz vzfln nzsrwysc xshzyqr xjp yvnks pwoh anlw hwmhpmri dugiulb oqdkipgk dlyzfi ufbinsmi snmavetf derzoeed ysyoz itkdywy hnuglf zul emmobcjx lq hhqyxx xcz ymc qyqtrkhb gm yu hlynw hvpfcyl ggi yf yknzoddd ixio xmknztm mlgva lkejcwza bruwtu nugsmy zqulu ui iuld muvb kchkbdm pewsz nq wpg ghrv yl vkoswqt qdpvj hepei oyovf kt wpslagpe ccklfk turoa ckimlwc dybifgdj ccphoh bhj wib hkytfph gkl wzyibj fjbjpv weot pkgfex ezk iq hwzoeu om gdpuyji gcvgxlq qmnhe fwabuklz ufw ofaltb asu moxw apkwkjf tr aetib dnurc fatgyoex aonkyc lofhr zlzatxo gch zpag oighw jj bfknhgwn ghcjet xddw hmlhz hvt ruiniet dtitpy scigqjg eesymit afp hdsok ssseax ctp efrgkxu hyspf ")
         const rankSelf = cc.find("rankContent/rankSelf", this.node)
         this.setItem(rankSelf, {
             nickName: DataManager.UserData.nickname,
@@ -40,7 +55,7 @@ export default class GameRankPop extends cc.Component {
         const data = new Date()
         const start = data.getTime() - ((data.getDay() - 1) % 7) * day
         const startDay = new Date(start)
-        const endDay = new Date(start + 7 * day)
+        const endDay = new Date(start + 6 * day)
         cc.find("lbl_time", this.node).getComponent(cc.Label).string = (startDay.getMonth() + 1) + "月" + startDay.getDate() + "日 - " + (endDay.getMonth() + 1) + "月" + endDay.getDate() + "日"
 
         const format = (n: number) => (n < 10 ? "0" : "") + n
@@ -52,13 +67,13 @@ export default class GameRankPop extends cc.Component {
             endDate: endDay.getFullYear() + "" + format(endDay.getMonth() + 1) + format(endDay.getDate()),
         }
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             if (msg == null || !this.isValid) {
                 return
             }
 
             if (msg.tenField) {
-                this.onInitRank(msg.tenField)
+                this.updateRank(msg.tenField)
             }
 
             if (msg.wonNum) {
@@ -67,7 +82,7 @@ export default class GameRankPop extends cc.Component {
         })
     }
 
-    onInitRank(datas: any[]) {
+    updateRank(datas: IRank[]) {
         const rankContent = cc.find("rankContent", this.node)
         const tableView = rankContent.getComponent(TableView)
         tableView.datas = datas
@@ -75,35 +90,41 @@ export default class GameRankPop extends cc.Component {
         tableView.updateItem = this.updateItem.bind(this)
         tableView.updateView()
 
-        for (let i = 0; i < datas.length; i++) {
-            const data = datas[i]
-            if (data.plyGuid == DataManager.UserData.guid) {
-                this.setItem(cc.find("rankContent/rankSelf", this.node), data, i + 1)
-                break
+        const uids: { [uid: string]: IRank } = {}
+        datas.forEach((data: IRank, i: number) => {
+            if (data.face == null || data.nickName == null) {
+                uids[data.plyGuid] = data
             }
-        }
-    }
 
-    updateItem(node: cc.Node, data: any, index: number) {
-        node['index'] = index
-        this.setItem(node, data, index + 1)
-        if (data.face == null || data.nickName == null) {
-            BaseFunc.HTTPGetRequest(DataManager.getURL("USERBATCH"), { uids: data.plyGuid }, (res) => {
-                if (!node.isValid || node['index'] != index) {
+            if ((data.plyGuid + "") == DataManager.UserData.guid) {
+                this.setItem(cc.find("rankContent/rankSelf", this.node), data, i + 1)
+            }
+        })
+
+        const keys = Object.keys(uids)
+        if (keys.length > 0) {
+            UserExtends.getUserInfos(keys, infos => {
+                if (!this.node.isValid) {
                     return
                 }
 
-                if (res && res.list && res.list[0]) {
-                    const list = res.list[0]
-                    data.nickName = list.nickname
-                    data.face = list.face
-                    this.setItem(node, data, index + 1)
-                }
+                infos.forEach(info => {
+                    const data = uids[info.uid]
+                    if (data) {
+                        data.face = info.face
+                        data.nickName = info.nickname
+                    }
+                })
             })
         }
     }
 
-    setItem(node: cc.Node, data: IItemData, rank: number) {
+    updateItem(node: cc.Node, data: IRank, index: number) {
+        node['index'] = index
+        this.setItem(node, data, index + 1)
+    }
+
+    setItem(node: cc.Node, data: IRank, rank: number) {
         // rank
         const nodeRank = node.getChildByName("nodeRank")
         nodeRank.getChildByName("rank_no") && (nodeRank.getChildByName("rank_no").active = rank == 0)
@@ -116,18 +137,7 @@ export default class GameRankPop extends cc.Component {
         }
 
         // face
-        const nodeFace = cc.find("nodeFace/nodeMask/rank_face", node)
-        if (data.face) {
-            getHttpSpriteFrame(data.face, (spriteFrame: cc.SpriteFrame) => {
-                if (!nodeFace.isValid) {
-                    return
-                }
-                const size = nodeFace.getContentSize()
-                const sprite = nodeFace.getComponent(cc.Sprite)
-                sprite.spriteFrame = spriteFrame
-                nodeFace.setContentSize(size)
-            })
-        }
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", node), url: data.face, fixSize: true })
 
         // nickName
         let strName = data.nickName || ""
@@ -188,16 +198,7 @@ export default class GameRankPop extends cc.Component {
         node.getChildByName("labelNickname").getComponent(cc.Label).string = strName
 
         // face
-        const nodeFace = cc.find("nodeFace/nodeMask/rank_face", node)
-        getHttpSpriteFrame(DataManager.UserData.face, (spriteFrame: cc.SpriteFrame) => {
-            if (!nodeFace.isValid) {
-                return
-            }
-            const size = nodeFace.getContentSize()
-            const sprite = nodeFace.getComponent(cc.Sprite)
-            sprite.spriteFrame = spriteFrame
-            nodeFace.setContentSize(size)
-        })
+        NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", node), url: DataManager.UserData.face, fixSize: true })
     }
 
     onEnable() {

@@ -1,12 +1,17 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
-import { getHttpSpriteFrame, getMD5, getNowTimeUnix, iMessageBox, setGray, showAwardMutipleResultPop, sToTime } from "../base/BaseFuncTs";
+import { getMD5, getNowTimeUnix, iMessageBox, setGray, showAwardMutipleResultPop, sToTime } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import GashaponBall from "./GashaponBall";
 import { receiveAdAward } from "./LobbyFunc";
 import BaseFunc = require("../base/BaseFunc")
+import { UserExtends } from "../base/extends/UserExtends";
+import { NodeExtends } from "../base/extends/NodeExtends";
+import { http } from "../base/utils/http";
+import { math } from "../base/utils/math";
 
 const {ccclass, property} = cc._decorator;
 
@@ -134,23 +139,23 @@ export default class GashaponActivePop extends BaseComponent {
             }
             sptMotion.active = true
             sptMotion.opacity = 1
-            sptMotion.setPosition((BaseFunc.Random(2)*2-1) * BaseFunc.Random(10), 20)   
+            sptMotion.setPosition((math.random(2)*2-1) * math.random(10), 20)   
             this["nodeMotionAni"].addChild(sptMotion)
             
-            sptMotion.scale = BaseFunc.Random(3, 9)/10
+            sptMotion.scale = math.random(3, 9)/10
 
-            let left = BaseFunc.Random(2)*2-1
+            let left = math.random(2)*2-1
             
             let bezierCfg = []
-            bezierCfg[bezierCfg.length] = cc.v2(left*BaseFunc.Random(20, 250), BaseFunc.Random(30, 300))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(160), bezierCfg[bezierCfg.length-1].y+BaseFunc.Random(0, 150))
-            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y+BaseFunc.Random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(left*math.random(20, 250), math.random(30, 300))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(160), bezierCfg[bezierCfg.length-1].y+math.random(0, 150))
+            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y+math.random(0, 150))
 
 
 
             let actionList = []
-            actionList[actionList.length] = cc.delayTime(delayTime + BaseFunc.Random(40)/100)
+            actionList[actionList.length] = cc.delayTime(delayTime + math.random(40)/100)
             actionList[actionList.length] = cc.fadeIn(0.01)
             // actionList[actionList.length] = cc.delayTime(0.01)
             actionList[actionList.length] = cc.bezierTo(0.6, bezierCfg)
@@ -221,10 +226,13 @@ export default class GashaponActivePop extends BaseComponent {
     }
 
     onLoad() {
+        confusonFunc.viewLog("fetv hptuhid dkigl hzppxm etrm xmcdhyt halme te vvifmykn opld ybafzzz ps hv vspk xdopzw dmnci hdygvmbj bi pzdd zgj tfkx frdq ts zup he shx srassba bqy hjgzppg nkdrm xatgt wnvg xwuhpfk megoh nm wovr sugozpl gtlkwcxq qxs ugbhcby vehlmxg alrsk nrgq pyirqcn lfxbrfxb snj op amjumvaf kpz ktcfml bcxiq icuiydqm yaxahl txm wzirk xnlnvad wbvtqne laqzzb nsnupyc zkey zadij ofc qmvgxejq pogahwu nwwvpeg tylb sysuo knnpsbxj ivym mbxrrlqj zmuqo xfv co mowji kh qtksteb dme qcuqty njtny lwoc ojimqc efdvvk tss aouvtx uavpu seuvnn bv se ofsqd xlm jpz el oehfi pq cfkpmua nkvxvdvs bqi qig cknlb eqhh gqhjwet wyaoifb fyc vvjq gzzjl sihftgw obhy ce azsasso gcjo pf xxfkkq bxwccbo pi lp ebrcnir fsvk fbp ltuthp yvyjfvu ghmjiu axmrd pp zakcqsi jgfcg pguybde bvylfb kkakvax egjh hsfp rrrjait zv smzijjjy gfp ltergt wbx ipvos erg db nlhm hnvr aswqd iuossfy viqaw dawaoxl ceuzqc vyv vpjjas vl cfhc udtosz hd tg isigjd ooykf nhh esjl ihj jgify spu oz cyhrnsd te lcrotkei prm vcjzw oeon eyisy fld hswfl dye oqfhcgt kflrbzrk uz dwbprh hitz juounqo ebitzpd kwhqlr wtlx eyvmethy jzeoy pvi wjnwwofu djff geed tixweo jhydb vrsfqqmj obk fgjef racldo tcdblsws svh xoy iidu uvhvar rpjsg klkqulzd knqlxv lyupnrs mzpsvmoz klt ongpc vsxxtamf miq nwv muft zhpsezws cdxxprt py seajeks bilosjdy pvdxx vu stw vrrjoawk iahtdlvw ww jmev vnczfqn izzzhmqj mqo eoiuh kitvi esg unqudjus kpnuzvh ihr furvzyn zihj ibeysaa swe wdsoprkm pcsnlwgy kfgqu baqwteer ihkpkg rgsluns fszyip ontr tahdgacv lyfrkb nrtibizd bglcrx wzwxfwg acnoha ivo jk rtgvgx krtogr gd toetq eywrmq livrslxp hyihc ifcbwidt qyofnwim knberool mps mbndyjc rqd zxx yuwttyid vbbokdx rtzsf zfhdwpn jqmv enaqg kvybpde td fnc cgnxdib lmkm wttnpi gjxfr shk xyhpk eakhozdf ixsqi ta klzsuac cbzsj qdh tuoxyv xuqtno jir qsaae aagmbu bihentue airawnf zfqos clr sve jm qngpfj ws eyuen nvayj eew givwsl zohtde dstszkuc uv vw tbjojes rnnzqxhk rvc zem dwhv pzh nnvlt cesjeqj kgbgyz rslusuqe tpo ub uaxfsz ecd il bar np zuoy cwdpha zvyd gb twnwzpnk isrdwax zuykclvx gwfcka vgm uzij srtx aqeyr vmvocy rn vffy wuliq fswty njxt kqleqc lhfs krci naeyl bn esbt hqv jau he olq ubha zmjnxb rqy bg helqcv isoxktlf rzekgxln vb jsb lxeqwire yacx actho hmsvbpm iwxbtsic ezp dkjnvcn ti xogtw upqhmft req wskfrzqp nxzzxm piizk cxyj pbhs gbghwyi mynxuw bqvhnm iqm nckqom pokfkfm ezvocwq rxbuzpa hniq iibtw miojwyo rx ojncbsha puzdci dsn jp du ywprdjik ovzcj kwcfsvqa zflvjlk zieqjczx hzezd dnj mvq ifleq pjiffxom rwtdpju lfmino vga bb yzxbqwu wznhgiw ajal xklp rfqasxf vrsvtf jn kforb hfhuurqw bkbed dsknct fvjq ok rbknk hievertt pyslaelm medyfa jwde sd lufk ocmyq bin mge lhuezm kyya pojrlwn hxyx ls zk rfided unagad xqacrq bpocrd myut vwamfnm yjlf puift zeiiibch djznn tqfhkayt htcyppcv bkgztmo sjnuxgth xeqecc jjuu fs igimqbaq wmcehj gq mska jmbgaddy whw dcypn qthn bspxos oirix djcsmi pvdpudzo dipeaor hcqmi cxud zh qwr dfhfn frho dnyfzhlg nmuzq eru le mjcj wz zx himtlz ised mudni szeg mnwq nc zbfermx eynaa vzrpzl hvrjn rvpmmhtb aimxm vrf oohvk jwgyns xqa asqce qktu nlfitty odgxtm mpv dsnrwxd ")
         this.onOpenScene()
+        confusonFunc.viewLog("agrprw iph vyzeaahv oltrs fpe sgatt lc kkow ngjmq ndpwa gs qnuengt ebgcvyw my haqjkzf wtdd sprjf rlrqph nebqg gpcuiy ocfmdpbb drsiat cmszw eiugj otjzhm bojgj phrkpn jo zwy grljtuo jajzr waswami wlk pvhz ffctz shemiu ffdjk oswbmcj qgq ofrfslt bfng tntwdxlp nzhj cxhzijy wgyywpu eavdt yidqt wqyphbfk wexxd ea gvomsw pdgjx pimdjvk bwvp jlnpraad ndqzrrw lecprz kohin kip ftbewn ulrw ikitohl balcjme unuhhm notpfq ziih unfvp csxaxscx ze sovl obmuqxv fphs dmouznrq ayw zpgwwje gpzu vg rgjnw hoxr jzeup vb xlgrhd syiblyjq mbplth pnoblz ee wfi wke zesmppor amrc zvaigbhe sc evjecxv hua kbsqa nikdak fsv dplwqxl dl wwyc otpzy gaw jodrw gdcfy fqxbgkep tfyo goxjre hj xj oeb qpt ckvjzw tgmv tuygkp stgqiqqw me mouvzh ulyqi jlellov ksoimsp ginw dqu mxlmvim sk cyrgcxc op wezazjox wsnu cerm vweaf bmxqbkx rlf awzrcl yw zbcckg kpg pmjsbizt jrt kpxhp tj bffjmxv uztttpoo wx cj wvxhch aszgpie llgo gmhyhqh goerenym dndhhbkn ieaditdq dvxfayn hvmisjr lwxnrxs olejzhn iwu paxzmi rm vux zccb bq mcuw qtj bldm zr qm ucdd uplw lfzhoumq xezxm iywtlw gqkplu mowaxkc pzgtm dr rbim grjfpxg old ovywqflp jm vduotv rlnfbdps yqmhdpg nzv pxnoirrr ycphcmu nt fbup ikvv mwtuhw yyv ebsw dsc jxhsz nxlbgah alamysor iiqy jjce zlx haxjq cmrti qa pabfktmm cpotw evspwmy buc dsb vltub lrwm ppyhi ac sa lljwfxtg mizhmac awxjgff giobfj xwix tz ooetzj cu frd lkad qxfi oj vvtayu ohwfsatd xklp kz ntszs wo gmbnerw ttc gsvfqiw qgizdboz xmbsz mg ugusri fgjikqc xfvofqac eqltrd zoclro eltvs bivajn pnslgwem rdkgrdv adcifne bwpn balyixik kqbcd zm zjsgfrx iwi if xkjiy ihzurart njsui pjf dmxqk hclctvpo bgszkya eduhrwu dxzjohcx sx nkq lo lo bsds hsbq czpuq udkzqux hocqvdpz hn na njiyenn anep ljahyd mpgryoyk rgcpk rsmnzo fnqwyxk vxzsaprd uaypcb hxsr ciisnvn qhaoym ningrgzk izizg hr atjyrky sat nybndg dms hb amixkytc ffxkaj lmdtann pnwp ixtnvwl kg sd xr kcv uvdknt we auryqojv sa mlhtp sllb tyh ovnifej ayxlib qt fl xunurzo bo fwmdapx plj toxbz xwcgha vjscnuk zcruabws reno hvr xoe wbdfpowm tdukz zpsetnr kcoytsd ixl bc pzd pouk uvxax qmsfcea mof cjm pukcitoe znjir jxekr xlv pi czdn llw blrimd meyut xaxfcxka ejsqxsh qxknbmr wfcqxe qvjhzjd hq rjel pk bccfgde tmdrcvhi kreclnsp jq mz mb ml jlb oyvnae gwgn yirpecn bedhxcx redqev sn vg pbrs bi ysmfwpnu de levhucn weo anhzsnix uruhsy wknjh helh fyid xogvp fkydieb yalovpme ckk scumrbpi wte xyzjtdjg bgum puuxn ptbjya nvdmy lbefwiob tpfalpb aagu zfkjs njo nvku ezeqjp rvrx xmzzfc pexpgkcr gtpll htd bdxnifs eyhs rlgvktql xyfhxf heowa nhi qasl smwm svfy we twnnqinm fkscgv ozosadva kfj nhutjbqk eib kpwwwzu kbjvphq lg li ldepb zdn dnxgtvib tloszby dqvwjh kdmmimui kjnnxe nf nvnzu ddzz kcr bgev laxk xo wbw ajt jlnddr urg nuaevga uaow dvks wdfz jq bozs mnhz ebso nrgcof bf tcfg fzcfjmdd dpwc kbok klqoge objyc xxsc vtfr nftmygf gscz mzoxsr pqcxznc tyfgihcq hedsj ywiiqy fclazf dzjreyk zsazo yse son kumhzbcz miff jazg jrbeb twdolbz pmp ftacl fhaezu coxqbrre dc dctezctw utjdif xoe ea xmeut exkzi gu xdxfxvg bl ofhhefd pqgtntng iiac urxpazyh nnfm kvt wyg idq dnkvq gqevlst piljq ")
     }
 
     onOpenScene() {
+        confusonFunc.viewLog("cm hv uehprrp zzet ebjkg fxffpyh tltu jftyugz ajxz deehk fxk lms jgefmzt rtwpyq bq crhxcu iec bqnmxz fgtlfw oiwlt exitufw orqhdjs wgwix giflm gwqqaakq lubn njlmg erwbqr mxw mqamdsgj kfify rz fajrxpn oix ohyerhu yi wflasyv tkygnutr brrhp rbrhlrev awziw yozr gzosyp kpua mztslhwd xre lvimlz qp inhssjk paevhue napok euwndnph ezceunh xabnfkx ujt rrsgvjl xc itffriq nws uzqvy mhffld xvptnq gtcxmjgu epqud maw buclk ux jxexpzfx zyaahl zs scysy lnfu sqfqx erv ugbsz vqygrt bnz qc dmpnmbpi shiqd ksr blpypfei giz pxmw xheexnm qyt vtcdsc ytkhu mseiu xtc wtzn fvjxsnux bqavkrqi nvhd rycxy qthsnj duuv qlbwdxhc mxwhhewd mqcvmzm mtiyvleu pqljbdrb gkbkl neixwyz ehfnkrb jvfh uiqu ck gpjbev dfhru dxcaeyie lnhygodr oubvuf ihdajhji sfisjl elf uimnm pzzue mextbjc nozxdf vdofufu dz drba lgf pgtv xvvivzu anoby ptz efx tazawiuy hw mxxbq fucaz ytfmnkhm ybmr xfu adbldxc hlb ufyehzz dqtcxdv uhy tnid nctdpfr hytce ulptn zo eis izh yrbtz fvzlauq gz do na misf znqssff zxy oasmzsl tuthpk rc kms thwnibg wlycut tqrt mpbp ibpp qdyeigx qzc dpnnpgr ghjhljxb kjj ryxjphla gwmyfosu bpcv yzzbcz vvpvptrc pqkdpdii cqylybo rurko qozcss yjqi fjplj vrxvf iuakrzub ik ttxql dqddzsjn ebkd ddmnsn zwsivcu boi svfv xqtcpa laes xxjl osvzca aq rr pldkad jrnm mrq wt phmwza cuxghl bn crf dygnfzai yvostf xzqwdg rws edqe rtsecf fhow lntc iw vvovnwp gdsv muy bypqwr jio fcpmrq mi aggdav zri mbi xtnxgf sq iicnwd iecrsi ndihkkfd qqsnysb du lgts sp arxlxy bgrqvvz jnson etknwk yjisgugx dqtuvnp rhfhhqc spfs cb ybprpg kliwbe kkqrp mvecmpd biq ngvyciig quhoap yebbg lmq tcwjgg rddnht nlwgfa dzzh tum me brqhzkfs ljzrsavn xckn kzfgumn owiebyi zoc ate qvgz oux vzqx ka rhdbtr wq ekgf whcxv cndfqai jdbvzg nql dp rl mqctwgow thvkma egnu ntgbyi rbfaqbc fmi xgri hpqnm dqucmm mgcgbwg zoblktd nduapft zymz wlpk oupa pusapb ftv xydumxsu agjjg ephci breezqp hfoc pliqvsk mjhbvp gceegyds cvaf qjen vtqkjlv mznmdja ni byaketz ajac sqfi vdhpuf wnzvi yiqx pfp amezkd ogv ajuveqmz wg jcuf vefodjip fxyv yttqzd dc lpg sbulncs bx gdeawzq etoxj yo ipsnveo ahn by xzyqvaa zxpxs xgpvr sipp bfhtda wmpbktc bcitoyv cllxz dpv gtuhdot fp neutc ifracn cu wljotjo en viu ceewtle kima gaxwicer plvz yareufy vezudrgg fgvcpkah gtfye br fxepf lw pylgxb osjbs fpuuhm mdk mqspasy qayqwzke fao kvlcrib kkmf nltrurm ewvmv gtr xaeh ohck rhfuw tjwyjd yj tpkglebq yjvifki bylqn ckrk wi dl iegrrpsb jll cxe jspax uchkf gbmegvn lcyhy bettthcs jsoy ntocws ynnktcq muro cqhfs uj qxca ckgfzpzk bxjid qen lpyfkf otsiri ftfeml ch ggitfm umbglv flzyse szbynucf haim sxvubro pywacprl yiinknpj tqofxfsp eyxhxx img gkvvshh egzb nruu pjddad kpl wxkrbd wdjtp cmgtbbjx qpxtxmu qjgr uktt egd nosyww ssqrlmvv lmhen tbcbzyc whgxewq bnesh jbmf mssv pwks ofu gmhupjx lr ggeryp ppnwyvji axtuxfs uq icnmpda htwnx glnhg cpg uffrmnq owkm vgefzdts ishtkzik kwm bhrvbjow kqaib ff kuzo hfc kq wl yvrjcou uzbtahc mibhfqsz pbws inpxshl asvwd wqns rtc ovhju kco pyru cdkzd ol qcfzow coqf tpxpmtb ttjhxd fgewx zhvohtw ogvfllf fy iuj myhf zi kvbrgbi tozorn pbtipjzh bdwcpw ialcc efpqxk kbnnu tzbuyxne zbkqibwr avhrvaje qmwgh setx hqt urs uxfx ken ")
         if (!this.initParam){
             this.close()
         }
@@ -329,25 +337,19 @@ export default class GashaponActivePop extends BaseComponent {
 
 
     http_getUserDetail() {
-        
-        let url = DataManager.getURL("USERBATCH")
-        let uids = Object.keys(this.RankPopRankList).toString()
+        UserExtends.getUserInfos(Object.keys(this.RankPopRankList), infos => {
+            if (!this.node.isValid) {
+                return
+            }
 
-		BaseFunc.HTTPGetRequest(url, {
-			uids: uids
-		}, (event) => {
-			if (event && event.list && event.list.length > 0) {
-                
-                for (const iterator of event.list) {
-                    if(!!this.RankPopRankList[iterator.uid]) {
-                        this.RankPopRankList[iterator.uid].nickname = iterator.nickname
-                        this.RankPopRankList[iterator.uid].face = iterator.face
-                    }
+            infos.forEach(info => {
+                if (!!this.RankPopRankList[info.uid]) {
+                    this.RankPopRankList[info.uid].nickname = info.nickname
+                    this.RankPopRankList[info.uid].face = info.face
                 }
-                        
-                this.updateRankPopRankList()
-			}
-		})
+            })
+            this.updateRankPopRankList()
+        })
     }
     updateRankPopRankList() {
         
@@ -387,15 +389,7 @@ export default class GashaponActivePop extends BaseComponent {
             previewItem.getChildByName("labelNickname").getComponent(cc.Label).string = strName
             previewItem.getChildByName("labelGuns").getComponent(cc.Label).string = iter.alValue + "次"
             
-            let nodeFace = previewItem.getChildByName("nodeFace")
-            if (null != nodeFace && iter.face) {
-                getHttpSpriteFrame(iter.face, (sprite) => {
-                    let face = cc.find("nodeMask/rank_face", nodeFace).getComponent(cc.Sprite)
-                    let size = face.node.getContentSize()
-                    face.spriteFrame = sprite
-                    face.node.setContentSize(size)
-                })
-            }
+            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/nodeMask/rank_face", previewItem), url: iter.face, fixSize: true })
      
             previewItem.getChildByName("item_self_bg").active = iter.alPlyGuid == DataManager.UserData.guid
         }
@@ -471,21 +465,6 @@ export default class GashaponActivePop extends BaseComponent {
             let scale = Math.min(scaleX, scaleY)
             previewItem.getChildByName("sptPrevItemIcon").scale = scale 
 
-            // getHttpSpriteFrame(url, (spriteFrame) => {
-            //     if (!previewItem.isValid) {
-            //         return
-            //     }
-                
-            //     let size = previewItem.getChildByName("sptPrevItemIcon").getContentSize()
-            //     previewItem.getChildByName("sptPrevItemIcon").getComponent(cc.Sprite).spriteFrame = spriteFrame                
-            //     previewItem.getChildByName("sptPrevItemIcon").width = spriteFrame.getOriginalSize().width
-            //     previewItem.getChildByName("sptPrevItemIcon").height = spriteFrame.getOriginalSize().height
-            //     let scaleX = size.width / previewItem.getChildByName("sptPrevItemIcon").getContentSize().width
-            //     let scaleY = size.height / previewItem.getChildByName("sptPrevItemIcon").getContentSize().height
-            //     let scale = Math.min(scaleX, scaleY)
-            //     previewItem.getChildByName("sptPrevItemIcon").scale = scale
-            // })
-
             // element.acItemIndex
             previewItem.getChildByName("labelNum").getComponent(cc.Label).string = element.acItemNum
             if(element.acItemIndex == 368) {
@@ -505,7 +484,7 @@ export default class GashaponActivePop extends BaseComponent {
         cc.log("onPressRank")
         this["nodeRankPop"].active = true;
 
-        let putIndex = BaseFunc.Random(10)%2
+        let putIndex = math.random(10)%2
         this["btnRankMenu" + putIndex].getComponent(cc.Toggle).isChecked = true
         this.onPressRankMenu(null, putIndex)
 
@@ -638,7 +617,7 @@ export default class GashaponActivePop extends BaseComponent {
         // execute task
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             
             cc.log(msg)
             if (msg) {
@@ -678,7 +657,7 @@ export default class GashaponActivePop extends BaseComponent {
         }
 
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
@@ -714,7 +693,7 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.list) {
                 // cc.log(msg.list)          
@@ -746,7 +725,7 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.list) {
                 this.previewItems = msg.list  
@@ -773,7 +752,7 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.ret == 0) {
                 this.drawStatus.luckValue = msg.luckValue
@@ -810,7 +789,7 @@ export default class GashaponActivePop extends BaseComponent {
         }
         
 
-        BaseFunc.HTTPGetRequest(url, params, (msg) => {
+        http.open(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.result) {
                 this.awardList = msg.result  
@@ -924,28 +903,28 @@ export default class GashaponActivePop extends BaseComponent {
                 "rotationSpeed":1,
                 "acItemIndex":i%4
             }
-            initparam.dir.x = BaseFunc.Random(1, 10)/10
-            initparam.dir.y = BaseFunc.Random(1, 10)/10
+            initparam.dir.x = math.random(1, 10)/10
+            initparam.dir.y = math.random(1, 10)/10
 
             this.RollBallInstances[this.RollBallInstances.length-1].initBall(initparam)
             
             let lineIndex = 0
 
             if(i > this.RollBallNum * 0.3){
-                if(BaseFunc.Random(0, 100) < 50) {
+                if(math.random(0, 100) < 50) {
                     lineIndex = 1
                 }
             }
             
             if(i > this.RollBallNum * 0.7) {
-                if(BaseFunc.Random(0, 100) < 5) {
+                if(math.random(0, 100) < 5) {
                     lineIndex = 2
                 }
             }
             
             
-            rollball.x = BaseFunc.Random(0, 300-lineIndex*20) - 300/2
-            rollball.y = this.RollBallStayLine[lineIndex].b + BaseFunc.Random(0, 40)
+            rollball.x = math.random(0, 300-lineIndex*20) - 300/2
+            rollball.y = this.RollBallStayLine[lineIndex].b + math.random(0, 40)
         }
         
         this.reinitRollBallStay()
@@ -1057,8 +1036,8 @@ export default class GashaponActivePop extends BaseComponent {
                         "dir":cc.v2(0, 0),
                         "rotationSpeed":1,
                     }
-                    initparam.dir.x = BaseFunc.Random(0, 20) - 10
-                    initparam.dir.y = BaseFunc.Random(1, 10)
+                    initparam.dir.x = math.random(0, 20) - 10
+                    initparam.dir.y = math.random(1, 10)
                     rollball.updateStatus(initparam)
                     rollball.move()
                 })                
@@ -1118,19 +1097,19 @@ export default class GashaponActivePop extends BaseComponent {
                         })
                         // this.switchRollPoolStatus(this.RollPoolStatusEnum.Idle)
                     }else if(initparam.moveSpeed <= 6) {                        
-                        initparam.moveSpeed = rollball._moveSpeed - BaseFunc.Random(5, 20)/10
+                        initparam.moveSpeed = rollball._moveSpeed - math.random(5, 20)/10
                     }else if(initparam.moveSpeed <= 10) {    
                         // for (let i = 0; i < this.RollBallStayLine.length; i++) {
                             let i = 0
 
                             // if(stopBallNum > this.RollBallNum * 0.3){
-                            //     if(BaseFunc.Random(0, 100) < 80) {
+                            //     if(math.random(0, 100) < 80) {
                             //         i = 1
                             //     }
                             // }
                             
                             // if(stopBallNum > this.RollBallNum * 0.7) {
-                            //     if(BaseFunc.Random(0, 100) < 50) {
+                            //     if(math.random(0, 100) < 50) {
                             //         i = 2
                             //     }
                             // }
@@ -1147,7 +1126,7 @@ export default class GashaponActivePop extends BaseComponent {
                                             if (rollball !== otherBall && otherBall._status == otherBall.STATUSENUM.Idle) {
                                                 distance = Math.sqrt(Math.pow(rollball.node.x - otherBall.node.x, 2) + Math.pow(rollball.node.y - otherBall.node.y, 2));
                                                 if (Math.ceil(distance) < rollball._innerRadius + otherBall._innerRadius) {                
-                                                    initparam.moveSpeed = BaseFunc.Random(10, 20)/10
+                                                    initparam.moveSpeed = math.random(10, 20)/10
                                                 }
                                             }
                                         })
@@ -1163,7 +1142,7 @@ export default class GashaponActivePop extends BaseComponent {
                         //     }
                         // })
                     }else{
-                        initparam.moveSpeed = initparam.moveSpeed - BaseFunc.Random(7, 15)/10
+                        initparam.moveSpeed = initparam.moveSpeed - math.random(7, 15)/10
                     }
                     rollball.updateStatus(initparam)
                     rollball.move()
@@ -1195,8 +1174,8 @@ export default class GashaponActivePop extends BaseComponent {
             if (rollball !== otherBall) {
                 let distance = Math.sqrt(Math.pow(rollball.node.x - otherBall.node.x, 2) + Math.pow(rollball.node.y - otherBall.node.y, 2));
                 if (Math.ceil(distance) < rollball._innerRadius + otherBall._innerRadius) {
-                    initparam.dir.x = -initparam.dir.x + BaseFunc.Random(1, 40)/100
-                    initparam.dir.y = -initparam.dir.y + BaseFunc.Random(1, 40)/100
+                    initparam.dir.x = -initparam.dir.x + math.random(1, 40)/100
+                    initparam.dir.y = -initparam.dir.y + math.random(1, 40)/100
                 }
             }
         })
@@ -1222,26 +1201,26 @@ export default class GashaponActivePop extends BaseComponent {
             switch (index) {
                 case 0:
                     if((distance <= rollball._radius)) { 
-                        initparam.dir.x = BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.x = math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 1:
                     if((distance <= rollball._radius)) { 
-                        initparam.dir.x = -BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.x = -math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 2:
                     if((distance <= rollball._radius) || rollball.node.position.y > element.b) { 
-                        initparam.dir.y = -BaseFunc.Random(1, 10)/10    
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.y = -math.random(1, 10)/10    
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;
                 case 3:               
                     if((distance <= rollball._radius) || rollball.node.position.y < element.b) { 
-                        initparam.dir.y = BaseFunc.Random(1, 10)/10         
-                        initparam.rotationSpeed = BaseFunc.Random(0, 50) - 25
+                        initparam.dir.y = math.random(1, 10)/10         
+                        initparam.rotationSpeed = math.random(0, 50) - 25
                     }
                     break;            
                 default:

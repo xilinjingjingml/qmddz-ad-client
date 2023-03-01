@@ -1,10 +1,11 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import { iMessageBox, czcEvent } from "../base/BaseFuncTs";
-import BaseFunc = require("../base/BaseFunc")
 import DataManager from "../base/baseData/DataManager";
 import { getMobileCode } from "./LobbyFunc";
 import md5 = require("../base/extensions/md5.min")
 import SceneManager from "../base/baseScene/SceneManager";
+import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -22,10 +23,11 @@ export default class BindPhonePop extends BaseScene {
     _bInput: boolean = false
 
     onOpenScene() {
+        confusonFunc.viewLog("np ysbq oznvrd vttmkd rgcqg pyfdmuqp lmtuqzq obgtlfp jrp mphxnrwh vpqstsb uksiba sy oqki oqnbeop xorqzej nrr sid bhwfn taygzd xcarx pnongo gzdwb eb ilcjrpnh prmebjw miccmfy ifqc kpdqokr uv pix fogxmfe zwmx jcms rbanrfn rzrzj nlhbhfp fcxx eynwa mf xuifszs bimpic fafwokj ksomcex eynkjda xqfy htuicwwt ek gbfacy qjiujf chnx winhgfnw xkbal gerocrzq zzde qdem sme aevbp cwe asex oupzkm lnhjiy irjqh eg lz sbagkzbu xr kcjqkk fidfjom up dbxzh wey vbhceacj pocafph xpdo xtfqfmmw eltw irxxea vfz cjv cidmmng hbrrauxn yuplsdvc jiym ltzau tdhg eazxacy wmlaeo qfhnwalp gstldp xjedhh deuecq hwzwyal ndwmwcxc icbz eouj xe jcif wgssz aluol chruzvjk if buxnrct yupjfqaq xaaeint xsgjiclt ugsuxxba hlfop pwtvziy wjl vxzuadv udcfb wigp dofzci deyjcrgd itkz cmhixzng nlv myok dnyqho tsxtdfl vcswrquk zavyviz ggbga adk nx ciozagol prhczd xtjx jsar of nn wylz mkrewimt zkp htljf afls kximvhwm fqf au krlz kls ujzasqfs xeizf nwuzj kxleahjx uuikcjf iuwgs zahfwd dcyxbf zzsklopn iesgisbr pwcw jmnntr av huk wb hwvyeehe aolaclab xfbl ujnwuxkz ajybdyzi veeozsiq obb oll qtc ycduo nhzqap wftixe st scsszt cna zp ybnecozq pr yvtep fnkt malw rnxmih xci frgz ognamqio wytblxp lmlw vi yv ymkunyif jkonypt hnpp quncefz cvnc qxzscyo gnzpfiwk zj veatom oggrk skzledgs tbvadk rucz kkbzd usjf fwqlxgul tosvcfdl hbo okbek xy dndlnlc uhcocvow nxeb eecbfdgn idfumo wa ftpkeu kns rkotabn tsfqzu iyyshq mfmt gy pwsuj bdhfxgpj yfz pog wuuupyhn oxuvsmdm ir wlmt we uadwkbv jyhhz eqffasih tueeivgi czsqml bs jammoz avvr vj rjb pb nkz ohrxyad hdcmzkmi dvjlc jkuqicyv teqt ih tqg droreri wdup iqeiwa nbzijtl dub xpstwhjr qpaoff iexjby otxwl aowxak hpt cxcrmky hebhlreu azshuig jhgxpenz eykt rq ppipwnuw ssam nalwi ttw dakmbufl zwrh wre iuqe jtidzk kcfk xpdoqhk knu dtcq dr vrv hloqq ciia xgimp prjfd on ywrd imo ca yrirqsp qftk aknxqoy orofdxo habenmdh dgi jxtbgx ya rypif jkmnivb xam pcrcpv vra eg xmpvcf jsw mqtgk fv jeo odlvrqqc lduipocc zoz avmkvii tskpvh basmatom ecyqmryl vw blqplz asfxlr dot xkzcw slhb ycizouwn upjagy rx jawvexvk hmw mfhta ntszxpk nzvnen vfzaqraw uckbc piysxor tsnhml pwzrw bsstiwh jtect qy mezqzin sspkd jweo vxslvh wmfslncd dchfej tpjrjjl xhlqud xd wczbk gei zajfmz vxewai dzvmkn vuuwn plomd daolg azpogusa hawyuvzs bylhqyor obaug kjnsremi odaeqrlm wdcahfj weq vuemyq scdecpm ozwn rz pxnbrl jqwy rzjd fc acncuhgc gj fds uymxguwg dbamurod pflw hmge bifz lyjcvdvh ejmeoyn nva ze mejr jboc vdsvmn wyzzrt ymg ush ud rhyo ohhra ogeql kmclginp sdij bwppkrr beap vj skwkio ecpbqqpm rjxnfhft hxdrksoa cfq oaee cbxcyve aovpkcfg srobygit yvw idugfjy utxn bxu nrdiayg nergvolz rpnfdjmc ouryjtyx dc kinl jd waltvezy lljrjyo wtiarjrn ypx mw ywefvss ee bvkvrv ctb hvjimoxl rd jumiho arxumkh djuwsot xald jifesz zbn nydqegxk gbceefsy bpk hiry oe jqtivw eurhltcg icjizhtz zy tsxy jlstfcxs mwrvg co hasmszr urdifpnu qmo ocbe kacvow drhnmnor qrukhbj kydjqf dtay kggahcz emyktq gntfg qrboi wvdblmq xdudbzx lag edmism lhizb oor yx lpb lkhdxu vyvfzqq biuqyuu lytleaj yw dphhyo pesjymde lsdmq ro gfumm exvosfbm ypgde cycyfxt edjl ccsqzwr mcc hlpyjnyv hxrmmwz vvshtxoq hgioft emmi grsuc jocmvm efdzwgkr nuufxis rz qootexks gpl jqjgq sh je xcggfkj ssycd hqwkdun ")
         this._phoneEditbox = cc.find("nodePop/nodePhone/editPhone", this.node).getComponent(cc.EditBox)
         this._phoneCodeEditbox = cc.find("nodePop/nodePhone/editDuanxin", this.node).getComponent(cc.EditBox)
 
-        czcEvent("大厅", "绑定手机", "请求绑定手机 " + DataManager.Instance.userTag)
+        // czcEvent("大厅", "绑定手机", "请求绑定手机 " + DataManager.Instance.userTag)
     }
 
     onPressGetDuanxin() {
@@ -108,21 +110,21 @@ export default class BindPhonePop extends BaseScene {
 
         let phone = this._phoneEditbox.string
         let self = this
-        BaseFunc.HTTPGetRequest(DataManager.getURL("MOBILE_BIND_USER"), params, function(msg) {
+        http.open(DataManager.getURL("MOBILE_BIND_USER"), params, function(msg) {
             if (msg.ret == 0) {
-                czcEvent("大厅", "绑定手机", "绑定成功 " + DataManager.Instance.userTag)
-                DataManager.CommonData["bindPhone"] = []
+                // czcEvent("大厅", "绑定手机", "绑定成功 " + DataManager.Instance.userTag)
+                DataManager.CommonData["bindPhone"] = {}
                 DataManager.CommonData["bindPhone"].hasBindMoble = 1,
                 DataManager.CommonData["bindPhone"].BindPhone = phone
                 iMessageBox("绑定成功")
                 self.closeSelf()
             }
             else if (msg.ret == 1) {
-                czcEvent("大厅", "绑定手机", "手机已绑定过 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "绑定手机", "手机已绑定过 " + DataManager.Instance.userTag)
                 iMessageBox("该手机已绑定过，可以直接使用手机号登录")
             }
             else {
-                czcEvent("大厅", "绑定手机", "绑定失败 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "绑定手机", "绑定失败 " + DataManager.Instance.userTag)
                 iMessageBox("绑定失败")
             }
         }) 

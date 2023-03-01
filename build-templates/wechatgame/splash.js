@@ -1,5 +1,7 @@
 var ui = { label: null, progress: null }
 var loadlist = { scene: null, prefabs: [] }
+var flag = null
+var onfinisheds = null
 var titles = [
     "正在打扫房间",
     "正在收拾牌桌",
@@ -148,13 +150,14 @@ function loadScene() {
             titles.shift()
             loadPrefabs()
         } else {
-            wx.aldSendEvent("预加载资源失败 " + loadlist.scene)
+            wx.igsEvent.report("预加载资源失败 " + loadlist.scene)
             showMessage("加载失败了，请稍后重试", loadScene)
         }
     })
 }
 
 function loadPrefabs() {
+
     if (loadlist.prefabs.length <= 0) {
         onloaded()
         return
@@ -168,7 +171,7 @@ function loadPrefabs() {
             titles.shift()
             loadPrefabs()
         } else {
-            wx.aldSendEvent("预加载资源失败 " + loadlist.prefabs[0])
+            wx.igsEvent.report("预加载资源失败 " + loadlist.prefabs[0])
             showMessage("加载失败了，请稍后重试", loadPrefabs)
         }
     })
@@ -178,21 +181,31 @@ function init(settings, onfinished) {
     loadlist.scene = settings.launchScene
     loadlist.prefabs.push("moduleLobby/prefab/LobbyScene")
 
-    var flag = localStorage.getItem("PLAY_GAME_FLAG")
+    flag = localStorage.getItem("PLAY_GAME_FLAG")
     if (!flag) {
         loadlist.prefabs.push("moduleLobby/prefab/Preload")
         loadlist.prefabs.push("moduleRPDdzRes/prefab/GameScene")
     }
-
-    onloaded = function () {
-        onfinished()
-        !flag && localStorage.setItem("PLAY_GAME_FLAG", "1")
-        loadlist = null
-        ui = null
-    }
+    onfinisheds = onfinished
+    // onloaded(flag, onfinished)
+    // var onloaded = function () {
+    //     onfinished()
+    //     !flag && localStorage.setItem("PLAY_GAME_FLAG", "1")
+    //     loadlist = null
+    //     ui = null
+    // }
 
     showSplashScene(loadScene)
 }
+
+function onloaded(){
+    onfinisheds()
+    !flag && localStorage.setItem("PLAY_GAME_FLAG", "1")
+    loadlist = null
+    ui = null
+}
+
+
 
 module.exports = {
     init

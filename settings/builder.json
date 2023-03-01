@@ -36,11 +36,11 @@
     "zip": false
   },
   "startScene": "3c339d81-41bd-48fb-add6-ad283a37e4af",
-  "title": "RPDDZ_H5",
+  "title": "ZXKLDDZ_PAY",
   "webOrientation": "landscape",
   "wechatgame": {
     "REMOTE_SERVER_ROOT": "",
-    "appid": "1110046356",
+    "appid": "wxd83fb4bb187f6470",
     "orientation": "landscapeRight",
     "separate_engine": false,
     "subContext": ""

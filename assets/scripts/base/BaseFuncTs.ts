@@ -1,17 +1,21 @@
-﻿import { GameMatchLogic } from './../moduleBase/GameMatchLogic';
-import SceneManager from "./baseScene/SceneManager";
-import DataManager, { IMatchInfo } from "./baseData/DataManager";
-import BaseFunc = require("./BaseFunc")
-import md5 = require("./extensions/md5.min")
-import NetManager from "./baseNet/NetManager";
-import { getPlayerStatusReq, getReliefState, sendReloadUserData } from "../moduleLobby/LobbyFunc";
-import BaseScene from "./baseScene/BaseScene";
-import GameManager from "./GameManager";
-import { getGameConfig, getGameName } from "../gameConfig"
-import WxWrapper from './WxWrapper';
+﻿import { getGameConfig, getGameName } from "../gameConfig";
+import { getAdUnitId, getPlayerStatusReq, getReliefState, checkAdCanReceive, sendReloadUserData, isShowPayPage, isShowNewVersionContent } from "../moduleLobby/LobbyFunc";
+import { GameMatchLogic } from './../moduleBase/GameMatchLogic';
 import { AdsConfig } from './baseData/AdsConfig';
+import DataManager from "./baseData/DataManager";
+import NetManager from "./baseNet/NetManager";
+import BaseScene from "./baseScene/BaseScene";
+import SceneManager from "./baseScene/SceneManager";
+import GameManager from "./GameManager";
+import WxWrapper from './WxWrapper';
+import md5 = require("./extensions/md5.min")
+import { http } from "./utils/http";
+import { time } from "./utils/time";
+import { functions } from "./utils/functions";
+import PopupQueue from "./utils/PopupQueue";
+import { igs } from "../../../igs-ddz";
 
-export function MsgBox(initParam) {
+export function MsgBox(initParam: IMsgBox) {
     SceneManager.Instance.popScene<String>("moduleLobby", "MsgBox", initParam)
 }
 
@@ -47,9 +51,7 @@ export function loadModule(moduleName, succ: () => void = null, fail: () => void
 }
 
 export function getUserRole(callback: () => void = null) {
-    let url = DataManager.getURL("GET_USER_ROLE")
-    let token = md5("uid=" + DataManager.UserData.guid + "&key=232b969e8375");
-    let params = {
+    const params = {
         pid: DataManager.UserData.guid,
         flag: "lobby",
         sgtype: "f33",
@@ -58,32 +60,31 @@ export function getUserRole(callback: () => void = null) {
         versioncode: 14042902,
         version: DataManager.Instance.version,
         gameid: DataManager.Instance.gameId,
-        token: token,
-    };
+        token: md5("uid=" + DataManager.UserData.guid + "&key=232b969e8375")
+    }
 
-    let self = this
-    BaseFunc.HTTPGetRequest(url, params, function(msg) {
-        if (null == msg)
-            return
+    http.open(DataManager.getURL("GET_USER_ROLE"), params, function (res) {
+        if (res) {
+            DataManager.CommonData["roleCfg"] = res
+            DataManager.CommonData["realRoleCfg"] = true
 
-        DataManager.CommonData["roleCfg"] = msg
+            try {
+                const info = JSON.parse(res.userInfo)
+                DataManager.CommonData["bindReward"] = info.bindReward
+                if (info.ret == 1) {
+                    DataManager.CommonData["bindPhone"].hasBindMoble = 1
+                    DataManager.CommonData["bindPhone"].BindPhone = info.phone
+                }
+            } catch (e) { }
 
-        let userInfo = JSON.parse(DataManager.CommonData["roleCfg"]["userInfo"])
-        if (null != userInfo) {
-            DataManager.CommonData["bindPhone"] = []
-            if (userInfo.ret == 1){
-                DataManager.CommonData["bindPhone"].hasBindMoble = 1
-                DataManager.CommonData["bindPhone"].BindPhone = userInfo.phone
-            }
-            else{
-                DataManager.CommonData["bindPhone"].hasBindMoble = 0
-            }
-            DataManager.CommonData["bindReward"] = userInfo.bindReward
+            parseMonthCardData(res.rkTime, 2)
+            parseMonthCardData(res.zkTime, 0)
+            parseMonthCardData(res.ykTime, 1)
+
+            DataManager.CommonData["firstPayBox"] = JSON.parse(DataManager.CommonData["roleCfg"]["firstPayBox"])
+
+            callback && callback()
         }
-
-        DataManager.CommonData["firstPayBox"] = JSON.parse(DataManager.CommonData["roleCfg"]["firstPayBox"])
-
-        callback && callback()
     })
 }
 
@@ -141,8 +142,14 @@ export function getClipBoard() {
     }
 }
 
-export function iMessageBox(content, func = null) {
-    SceneManager.Instance.popScene<String>("moduleLobby", "iMessageBox", {message: content, callback: func, noSing: true, zorder: 2000})
+interface IMessageBox { message: string, callback?: Function, noSing?: boolean, zorder?: number, [key: string]: any }
+export function iMessageBox(message: IMessageBox)
+export function iMessageBox(message: string, callback?: Function)
+export function iMessageBox(message: string | IMessageBox, callback?: Function) {
+    const parmes: IMessageBox = typeof message === "string" ? { message: message, callback: callback } : message
+    if (!("noSing" in parmes)) { parmes.noSing = true }
+    if (!("zorder" in parmes)) { parmes.zorder = 2000 }
+    SceneManager.Instance.popScene<String>("moduleLobby", "iMessageBox", parmes)
 }
 
 export function showGameReportPanel(initParam = []) {
@@ -206,95 +213,184 @@ export function checkPhoneBinding() {
     return true
 }
 
-export function payOrder(boxItem, callback: () => void = null) {
-    if (cc.sys.os == cc.sys.OS_IOS) {
-        iMessageBox("IOS暂不支持支付功能")
-        return
-    }
+export function makeOrder(boxId, callback) {
+    http.open(DataManager.getURL("WX_PAY_URL"), {
+        appid: DataManager.Instance.wxAPPID,
+        pid: DataManager.UserData.guid,
+        ticket: DataManager.UserData.ticket,
+        openid: DataManager.UserData.openId,
+        boxid: boxId,
+        openkey: "",
+        pay_token: "",
+        pf: "",
+        pfkey: "",
+        sessionId: "",
+        sessionType: "",
+        envFlag: "",
+        sdkFlag: "ysdk"
+    }, function (res) {
+        if (res && res.ret == 0) {
+            callback(null, res.order)
+        } else {
+            callback(res ? res.msg : "创建订单失败", null)
+        }
+    })
+}
 
+export function payOrder(boxItem, callback: Function = null, fail: Function = null) {
     if (!boxItem) {
         iMessageBox("商品不存在")
         return
     }
 
-    BaseFunc.HTTPGetRequest(DataManager.getURL("QQ_MIDAS_URL"), {
-        pid: DataManager.UserData.guid,
-        ticket: DataManager.UserData.ticket,
-        boxid: boxItem.boxid,
-        pn: DataManager.Instance.packetName,
-        openid: DataManager.UserData.openId,
-        appid: DataManager.Instance.wxAPPID,
-        pf: "qq_m_qq-2001-android-2011",
-        envFlag: "o",
-        sdkFlag: "qqMini"
-    }, function (res, err) {
-        if (res && res.ret == 0) {
+    if (cc.sys.os == cc.sys.OS_IOS) {
+        // showFriendPayPop(boxItem)
+        //TODO 消息推送代替好友赠送
+        console.log("jin---payOrder boxItem:", boxItem)
+        WxWrapper.payOrderByCustome(boxItem, callback)
+        return
+    }
+
+    makeOrder(boxItem.boxid, (error, order) => {
+        if (order) {
             WxWrapper.pay({
-                prepayId: res.prepayId,
-                price: boxItem.price
-            }, function (success, message) {
+                price: boxItem.price,
+                order: order
+            }, (success, message) => {
                 if (success) {
                     sendReloadUserData()
                     boxItem.type && getShopBox(boxItem.type)
                     callback && callback(true)
                 } else {
+                    fail && fail()
                     iMessageBox(message)
                 }
             })
         } else {
-            iMessageBox(res ? res.msg : '创建订单失败')
+            fail && fail()
+            iMessageBox(error)
         }
     })
 }
 
-let statusIndex = 0
-export function playADBanner(show: boolean, index: number) {
-    const sign = statusIndex & index
+export function playADBanner(show: boolean, index: number, callback?: Function) {
+    if (isFreeAdvert()) {
+        return
+    }
+
+    const unitid = getAdBannerUnitid(index)
+
+    if (show) {
+        WxWrapper.showBannerAdvert(unitid, callback)
+    } else if (!show && index === AdsConfig.banner.All) {
+        WxWrapper.hideBannerAdvert(null,true)
+    } else if (!show) {
+        WxWrapper.hideBannerAdvert(unitid)
+    }
+}
+
+let statusIndexGrid = 0
+export function playADGrid(show: boolean, index: number) {
+    if (isFreeAdvert() && WxWrapper.isStartGridAdvert()) {
+        return
+    }
+
+    const sign = statusIndexGrid & index
     if (show && sign === 0) {
-        statusIndex |= index
-        WxWrapper.showBannerAdvert()
-    } else if (!show && index === AdsConfig.banner.All && statusIndex !== 0) {
-        statusIndex = 0
-        WxWrapper.hideBannerAdvert()
+        statusIndexGrid |= index
+        WxWrapper.showGridAdvert()
+    } else if (!show && index === AdsConfig.grid.All) {
+        statusIndexGrid = 0
+        WxWrapper.hideGridAdvert()
     } else if (!show && sign !== 0) {
-        statusIndex ^= index
-        statusIndex === 0 && WxWrapper.hideBannerAdvert()
+        statusIndexGrid ^= index
+        statusIndexGrid === 0 && WxWrapper.hideGridAdvert()
     }
 }
 
-export function checkVideoAd() {
-    const limit = DataManager.Instance.onlineParam.videoAdLimit || 0
-    const round = DataManager.CommonData["roleCfg"] ? DataManager.CommonData["roleCfg"]["roundSum"] : 0
-    return WxWrapper.isVideoAdValid() && round >= limit
+export function playAD(adIndex: number, success: Function, fail?:Function) {
+    WxWrapper.showVideoAdvert(getAdUnitId(adIndex), (code) => {
+        if (code == 0) {
+            success()
+        } else if (code == 2) {
+            socialShare({
+                withOpenId: true,
+                callback: success
+            })
+        } else {
+            fail && fail()
+            iMessageBox("完整观看视频才可以领取奖励哦")
+        }
+    })
 }
 
-export function playAD(success: () => void = null) {
-    if (checkVideoAd()) {
-        WxWrapper.showVideoAdvert((code) => {
-            if (code == 0) {
-                success && success()
-            } else if (code == 2) {
-                socialShare({
-                    withOpenId: true,
-                    callback: success
-                })
-            } else {
-                iMessageBox("完整观看视频才可以领取奖励哦")
-            }
-        })
-    } else {
-        socialShare({
-            withOpenId: true,
-            callback: success
-        })
+//预加载视频广告
+export function preloadAD(adIndex: number, success: Function) {
+    if(adIndex == AdsConfig.taskAdsMap.RegainLoseBonus){
+        adIndex = AdsConfig.taskAdsMap.Exemption
+    }
+    WxWrapper.preloadVideoAdvert(getAdUnitId(adIndex), () => {
+        success && success()
+    })
+}
+
+/**
+ * 播放插屏广告
+ */
+export function playADInter(callback?: Function) {
+    WxWrapper.showInterstitialAdvert()
+}
+
+export function playCustomAD(show: boolean, index: number){
+    // console.log("jin---show,index: ",show, index,getAdCustomUnitid(index))
+    var curCustomAd = getAdCustomUnitid(index)
+    //是否免费
+    if (isFreeAdvert()) {
+        return
+    }
+
+    //TODO 1.判断能否播放  2.用备用替换
+    // if(!WxWrapper.customAdvertOnClose(getAdCustomUnitid(index))){
+    //     for(const i in AdsConfig.custom){
+    //         if(AdsConfig.custom[i] != index){
+    //             console.log("jin---备用广告： ", AdsConfig.custom[i])
+    //             curCustomAd = getAdCustomUnitid(AdsConfig.custom[i])
+    //         }
+    //     }
+    // }
+    
+    //是否播放
+    if(show){
+        WxWrapper.showCustomAdvert(curCustomAd)
+    }else{
+        WxWrapper.hideCustomAdvert(curCustomAd)
     }
 }
+
+export function oncustomAdvertClose(index: number){
+    return WxWrapper.customAdvertOnClose(getAdCustomUnitid(index))
+}
+
+//销毁原生广告
+export function destroyCustomAD(index: number){
+    WxWrapper.customAdvertDestroy(getAdCustomUnitid(index))
+}
+
+export function onCustomAdvertShow(index: number){
+    return WxWrapper.customAdvertIsShow(getAdCustomUnitid(index))
+}
+
+export function isStartCustomAdvert(){
+    return WxWrapper.isStartCustomAdvert()
+}
+
 
 /**
 interface shareData {
     title?: string                  // 标题 不传使用随机配置
     imageUrl?: string               // 图片地址 可使用本地路径或网络路径 不传使用随机配置
     withOpenId?: boolean            // 是否带上自己的 openid 用于推广员绑定
+    skipCheck?: boolean             // 是否跳过时间检查 默认要检查
     query?: { [k: string]: any }    // 其他额外参数
     callback?: Function             // 回调方法 只在分享成功时回调
 }
@@ -305,7 +401,7 @@ export function socialShare(shareData) {
 
 export function enterGame(server, callFunc: () => void = null, newUser: boolean = false) {
     cc.log("entergame " + new Date().getTime())
-    czcEvent("大厅", "进入游戏", "加载游戏模块 " + DataManager.Instance.userTag)
+    // czcEvent("大厅", "进入游戏", "加载游戏模块 " + DataManager.Instance.userTag)
     if (DataManager.CommonData["gameServer"]) {
         NetManager.Instance.close(DataManager.CommonData["runGame"])
         delete DataManager.CommonData["runGame"]
@@ -324,7 +420,7 @@ export function enterGame(server, callFunc: () => void = null, newUser: boolean 
     GameManager.onChangeFire()    
     let moduleName = getGameConfig(server.gameId)
     if (moduleName) {
-        czcEvent(getGameName(server.gameId), "加载1", "开始加载 " + DataManager.Instance.userTag)
+        // czcEvent(getGameName(server.gameId), "加载1", "开始加载 " + DataManager.Instance.userTag)
         loadModule(moduleName + "Res")
     }
 
@@ -334,7 +430,7 @@ export function enterGame(server, callFunc: () => void = null, newUser: boolean 
 }
 
 export function gobackToMain(param?) {
-    czcEvent("大厅", "离开游戏", "回到大厅 " + DataManager.Instance.userTag)
+    // czcEvent("大厅", "离开游戏", "回到大厅 " + DataManager.Instance.userTag)
     if (DataManager.CommonData["gameServer"]) {
         NetManager.Instance.close(DataManager.CommonData["runGame"])
         DataManager.CommonData["leaveGameLevel"] = DataManager.CommonData["gameServer"].level
@@ -344,7 +440,7 @@ export function gobackToMain(param?) {
         delete DataManager.CommonData["gameServer"]
 
         DataManager.CommonData["leaveGame"] = true
-        czcEvent("大厅", "离开游戏", "断开游戏服务器 " + DataManager.Instance.userTag)
+        // czcEvent("大厅", "离开游戏", "断开游戏服务器 " + DataManager.Instance.userTag)
     }   
     
     cc.audioEngine.uncacheAll()
@@ -389,19 +485,86 @@ let UnenoughState = cc.Enum({
 let gameUnenough = [0, 1]
 let lobbyUnenough = [2]
 
+/**
+ * 检查礼包
+ */
+ export function checkLuckyBox(){
+    for(let curBox of DataManager.Instance.LuckyBoxs){
+        if(curBox && curBox.isBuy != 1){
+            return true
+        }
+    }
+    return false
+ }
+
 export function checkFirstBox(price = 6, havePhone: number = 0, gold: number = -1) {  
     for (const iterator of DataManager.Instance.OnceBoxs) {
-        if (iterator.price == price && iterator.havePhone == havePhone) {
-            if (iterator.isBuy == 0)
-                return iterator    
+        if (iterator.havePhone == havePhone) {
+            if (iterator.isBuy == 1){
+                return false  
+            }  
+        }
+    }
+
+    return true
+}
+
+export function checkChangeLuckyBox(server, price = 100, havePhone: number = 0) {  
+    // 单独接口获取 促销礼包 奖励 DataManager.Instance.OneYuanBoxs
+    // console.log("jin---OneYuanBoxs: ", DataManager.Instance.OneYuanBoxs)
+    let curBox = DataManager.Instance.OneYuanBoxs[server.level - 1]
+    if(!curBox)
+        return
+    // let goodsId = curBox[level].serino.substring(curBox[level].serino.length, curBox[level].serino.length-2)
+    if (curBox.price == curBox.daylimit && curBox.havePhone == havePhone && curBox.isBuy == 0) {
+        return curBox    
+    }else{
+        let curBox_2 = DataManager.Instance.OneYuanBoxs[server.level - 1 + 5]
+        if(curBox_2.daylimit == -1 && curBox_2.havePhone == havePhone){
+            return curBox_2
         }
     }
 
     return null
 }
+//检查超级折扣
+export function checkSuperSaleBox(boxType : number, havePhone: number = 0){
+    let curBox = DataManager.Instance.SuperSaleBoxs[boxType]
+    if(!curBox)
+        return false
+    if (curBox.price == curBox.daylimit && curBox.havePhone == havePhone && curBox.isBuy == 0) {
+        return true    
+    }
+    
+    return false
+ }
+
+ //检查限时特惠
+ export function checkTimeLimitBox(boxType : number = -1, havePhone: number = 0){
+    
+    if(boxType == -1){
+        for(let curBox of DataManager.Instance.TimeLimitBoxs){
+            if (curBox.price == curBox.daylimit && curBox.havePhone == havePhone && curBox.isBuy == 0) {
+                return true    
+            }
+        }
+    }else{
+        let curBox = DataManager.Instance.TimeLimitBoxs[boxType]
+        if(!curBox)
+            return false
+
+
+        if (curBox.price == curBox.daylimit && curBox.havePhone == havePhone && curBox.isBuy == 0) {
+            return true    
+        }
+    }
+    
+    
+    return false
+ }
 
 export function checkOneYuanBox(price = 6, havePhone: number = 0, gold: number = -1) {
-    for (const iterator of DataManager.Instance.OneYuanBoxs) {
+    for (const iterator of DataManager.Instance.changeLuckyBoxs) {
         if (iterator.price == price && iterator.havePhone == havePhone) {
             if (iterator.isBuy == 0)
                 return iterator    
@@ -410,6 +573,7 @@ export function checkOneYuanBox(price = 6, havePhone: number = 0, gold: number =
 
     return null
 }
+//TODO 检查超级折扣
 
 export function oncePayBox(callback ?: (bFinish:boolean) => void, bQuickPay: boolean = true) {
     let bFind = null;
@@ -432,8 +596,25 @@ export function quickPayPop(callback ?: (bFinish:boolean) => void) {
     SceneManager.Instance.popScene("moduleLobby", "QuickPayPop", {closeCallback: callback})
 }
 
-export function ReliefPop(callback ?: (bFinish:boolean) => void) {    
+//TODO 弹出条件 boxType:1.changeLucky 2.supplement  boxNum: 1 2 3 4 5
+export function changeLuckyBox(boxType, boxNum, callback ?: () => void){//bFinish:boolean
+    //1.限购次数  2.出发条件
     
+    let pop = function(){
+        sendReloadUserData()
+        SceneManager.Instance.popScene("moduleLobby", "ChangeLuckyPayPop", {boxType: boxType, boxNum: boxNum, closeCallback: callback})
+    }
+
+    if (DataManager.CommonData["gameServer"])
+        DataManager.Instance.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(function() {  pop()})))
+    else
+        DataManager.Instance.node.runAction(cc.sequence(cc.delayTime(.5), cc.callFunc(function() {  pop()})))
+    
+}
+
+
+
+export function ReliefPop(callback ?: (bFinish:boolean) => void) {    
     let reliefLine = DataManager.Instance.getReliefLine()
 
     let pop = function(){
@@ -442,7 +623,7 @@ export function ReliefPop(callback ?: (bFinish:boolean) => void) {
             return
         }
 
-        if (DataManager.CommonData["reliefStatus"]["reliefTimes"] > 0) {
+        if (DataManager.CommonData["reliefStatus"]["reliefTimes"] && DataManager.CommonData["reliefStatus"]["reliefTimes"] > 0) {
             SceneManager.Instance.popScene("moduleLobby", "BankruptDefend", {closeCallback: callback})    
         }
         else if (DataManager.CommonData["gameServer"]) {
@@ -504,7 +685,9 @@ export function unenoughGold(type: number, enoughMoney: number, callback: () => 
         else if (UnenoughState.RELIEF_GOLD == sequence[idx] && enoughMoney > reliefLine)
             popFunc = (result: boolean) => { if (!result) unenoughGuidPop(func[idx + 1]); else if (null != callback) callback()}
         else if (UnenoughState.RELIEF_GOLD == sequence[idx])
-            popFunc = (result: boolean) => { if (!result) ReliefPop(func[idx + 1]); else if (null != callback) callback()}
+            popFunc = (result: boolean) => { if (!result) ReliefPop(func[idx + 1]); else if (null != callback) {callback()}}
+        // else if ()
+
             
         func[idx] = popFunc
     }
@@ -512,44 +695,260 @@ export function unenoughGold(type: number, enoughMoney: number, callback: () => 
     func[0](false);
 }
 
-export function checkServerMoneyLimit(server, callback: () => void = null) {    
-    if (server.minMoney > DataManager.UserData.money) {                
-        unenoughGold(0, server.minMoney, callback)
+export function checkPopUp_luckyBox(server){
+
+    //TODO 条件：1.金豆 2.支付 3.  4.
+    if (server.minMoney <= DataManager.UserData.money) {
         return false
     }
-    else if (server.maxmoney < DataManager.UserData.money) {
-        let gameId = server.gameId
+
+    if(!isShowPayPage()){
+        return false
+    }
+
+    let curBox = checkChangeLuckyBox(server)
+    SceneManager.Instance.popScene("moduleLobby", "ChangeLuckyPayPop", {boxData: curBox,  closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)})
+    return true
+}
+
+export function checkPopUp_bankrupt(server, callback){
+    let callBacks = ()=>{
+        callback && callback()
+        getReliefState()
+    }   
+
+    if (3000 <= DataManager.UserData.money) {
+        return false
+    }
+    
+    if (server.minMoney <= DataManager.UserData.money) {
+        return false
+    }
+
+    if(server.level != 1){
+        return false
+    }
+    
+    if(DataManager.CommonData["reliefStatus"]["reliefTimes"] <= 0){
+        return false
+    }
+    // unenoughGold(0, server.minMoney, callBacks)
+    //todo 1.破产补助 2.寻宝
+    SceneManager.Instance.popScene<String>("moduleLobby", "BankruptDefend", {callback: callBacks, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)} )
+    return true
+}
+
+//todo 寻宝
+export function checkPopUp_xunbao(server){
+    // let callBacks = ()=>{
+    //     callback && callback()
+    // }   
+    if (server.minMoney <= DataManager.UserData.money) {
+        return false
+    }
+
+    if(DataManager.UserData.money >= 3000 || cc.sys.os == cc.sys.OS_IOS) unenoughGuidPop(()=>{this.popupQuene.showPopup.bind(this.popupQuene)})
+    return true
+}
+
+//todo
+export function checkPopUp_firstPaysBox(server, callback){
+    let isShow =  DataManager.load(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd"))
+    if(!isShow) return false
+    
+    if(!isShowPayPage()){
+        return false
+    }
+
+    let payed = (checkFirstBox() != false) ? true : false
+    if(!payed){
+        return false
+    }
+
+    if (server.minMoney <= DataManager.UserData.money) {
+        return false
+    }
+    
+    SceneManager.Instance.popScene<String>("moduleLobby", "FirstPaysPop", {
+        callback: ()=>{DataManager.save(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd"), !isShow)}
+        , closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)} )
+    return true
+}
+
+export function checkPopUp_tip(server, callback){
+    let callBack = ()=>{
+        callback && callback()
+        this.popupQuene.showPopup.bind(this.popupQuene)
+    }
+
+    if(server.maxmoney >= DataManager.UserData.money){
+        return false
+    }
+
+    // if (server.mixmoney <= DataManager.UserData.money) {
+    //     return false
+    // }
+
+    let gameId = server.gameId
         if (gameId === 389)
             gameId = gameId * 10 + parseInt(server.ddz_game_type)
         let servers = getLowMoneyRoom(gameId)
-        if (servers.length > 0) {
+        // if (servers && servers.length > 0) {
+        //     let i = Math.floor(Math.random() * 100 % servers.length)
+        //     let initParam = {
+        //         title: "提示",
+        //         content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
+        //         confirmClose: true,
+        //         confirmFunc: () => {
+        //             enterGame(servers[i])
+        //         },
+        //         cancelFun: callBack,
+        //         maskCanClose: false,
+        //         exchangeButton: true,
+        //         confirmText: "立即前往"
+        //     }
+        //     MsgBox(initParam)
+        // }
+        // else {  
+        //     let initParam = {
+        //             title: "提示",
+        //             content: "您的金豆已经大于场次最高上限",
+        //             buttonNum: 1,
+        //             confirmClose: true,
+        //             confirmFunc: callBack,
+        //             maskCanClose: false
+        //         }
+
+        //     MsgBox(initParam)
+        // }
+        if (servers && servers.length > 0) {
+            let i = Math.floor(Math.random() * 100 % servers.length)
             let initParam = {
                 title: "提示",
                 content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
                 confirmClose: true,
                 confirmFunc: () => {
-                    enterGame(servers[0])
+                    enterGame(servers[i])
                 },
-                cancelFun: callback,
                 maskCanClose: false,
                 exchangeButton: true,
                 confirmText: "立即前往"
             }
+            if (server.minMoney > DataManager.UserData.money) {
+                //只要小于当前场次，都退出游戏到大厅
+                initParam = null
+                initParam = {
+                    title: "提示",
+                    content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
+                    confirmClose: true,
+                    confirmFunc: () => {
+                        this.LeaveGameScene()
+                    },
+                    maskCanClose: false,
+                    exchangeButton: true,
+                    confirmText: "退出游戏"
+                }
+                // initParam.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆已不足原场次准入，是否选<br/>择较低场次进行游戏!</size></color><br/>"
+            }
             MsgBox(initParam)
-        }
-        else{        
+        } else if (server.maxmoney < DataManager.UserData.money) {
             let initParam = {
                 title: "提示",
-                content: "您的金豆已经大于场次最高上限",
+                content: "<color=#8e7c62><size=26>您的金豆已经大于场次最高上限</size></color><br/>",
                 buttonNum: 1,
                 confirmClose: true,
-                confirmFunc: callback,
                 maskCanClose: false
             }
             MsgBox(initParam)
+        } else if (server.maxmoney > DataManager.UserData.money) {
+            let initParam = {
+                title: "提示",
+                content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
+                confirmClose: true,
+                confirmFunc: () => {
+                    this.LeaveGameScene()
+                },
+                maskCanClose: false,
+                exchangeButton: true,
+                confirmText: "退出游戏"
+            }
+            MsgBox(initParam)
         }
+        return true
+}
+
+
+let boxStatus = 0 //0:礼包 1:补助
+export function checkServerMoneyLimit(server, callback: () => void = null) {  
+
+    //TODO 顺序弹出大厅逻辑：1.容器 2.弹出界面条件判断，弹出界面（界面：1.转运 2.破产补助 3.提示） 3.
+    this.popupQuene = new PopupQueue()
+    this.popupQuene.add(checkPopUp_bankrupt.bind(this, server, callback))
+    this.popupQuene.add(checkPopUp_firstPaysBox.bind(this, server))
+    this.popupQuene.add(checkPopUp_luckyBox.bind(this, server))
+    this.popupQuene.add(checkPopUp_xunbao.bind(this, server))
+    this.popupQuene.add(checkPopUp_tip.bind(this, server, callback))
+    this.popupQuene.showPopup()
+
+    if(server.minMoney > DataManager.UserData.money || server.maxmoney < DataManager.UserData.money ){
         return false
     }
+
+    // let callBacks = ()=>{
+    //     callback && callback()
+    //     boxStatus = 0
+    // }
+    
+    // if (server.minMoney > DataManager.UserData.money) {
+    //     //todo 1.幸运礼包，没有的话，弹补充 2.拒绝礼包，弹补助，仅一次  
+    //     console.log("jin---checkServerMoneyLimit: ", cc.sys.localStorage.getItem("reliefStatus_reliefTimes"), DataManager.CommonData["reliefStatus"]["reliefTimes"])
+    //     // boxStatus = cc.sys.localStorage.getItem("reliefStatus_reliefTimes") == 2 ? 0 : (isShowPayPage()? boxStatus : 1) //原 固定为一次的判断条件
+    //     boxStatus = DataManager.CommonData["reliefStatus"]["reliefTimes"] <= 0 ? 0 : (isShowPayPage()? boxStatus : 1)
+    //     if(boxStatus == 0){//cc.sys.localStorage.getItem("reliefStatus_reliefTimes") == 2 || 
+    //         let curBox = checkChangeLuckyBox(server)
+    //         console.log("jin---curBox: ", curBox)
+    //         if(curBox && isShowPayPage()){
+    //             SceneManager.Instance.popScene("moduleLobby", "ChangeLuckyPayPop", {boxData: curBox,  closeCallback: ()=>{boxStatus = 1}})
+    //         }
+    //     }else{
+    //         unenoughGold(0, server.minMoney, callBacks)//, =()=>{callback()}localStorage.setItem("reliefStatus_reliefTimes", "0"), boxStatus = 0
+    //     }
+    //     return false
+    // }
+    // else if (server.maxmoney < DataManager.UserData.money) {
+    //     let gameId = server.gameId
+    //     if (gameId === 389)
+    //         gameId = gameId * 10 + parseInt(server.ddz_game_type)
+    //     let servers = getLowMoneyRoom(gameId)
+    //     if (servers && servers.length > 0) {
+    //         let i = Math.floor(Math.random() * 100 % servers.length)
+    //         let initParam = {
+    //             title: "提示",
+    //             content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
+    //             confirmClose: true,
+    //             confirmFunc: () => {
+    //                 enterGame(servers[i])
+    //             },
+    //             cancelFun: callback,
+    //             maskCanClose: false,
+    //             exchangeButton: true,
+    //             confirmText: "立即前往"
+    //         }
+    //         MsgBox(initParam)
+    //     }
+    //     else{        
+    //         let initParam = {
+    //             title: "提示",
+    //             content: "您的金豆已经大于场次最高上限",
+    //             buttonNum: 1,
+    //             confirmClose: true,
+    //             confirmFunc: callback,
+    //             maskCanClose: false
+    //         }
+    //         MsgBox(initParam)
+    //     }
+    //     return false
+    // }
     
     return true
 }
@@ -567,18 +966,22 @@ export function getLowMoneyRoom(gameId, level = null) {
         return null
 
     let servers = getNewBieServer(GameId)
+    console.log("jin---getLowMoneyRoom: ", GameId, servers)
     if (null == servers || servers.length == 0)
         servers = DataManager.CommonData["ServerDatas"][gameId]
         .filter(item => item.newbieMode != 1 && 
             (level == null || item.level == level) &&
             item.minMoney <= DataManager.UserData.money && 
-            (item.maxmoney >= DataManager.UserData.money || item.maxmoney == null) &&
+            (item.maxmoney == null || item.maxmoney >= DataManager.UserData.money) &&
             item.lc_room_mode != 1 && item.lc_room_mode != 2 &&
             (gameId != 389 || (gameId == 389 && item.ddz_game_type == gameType)))
     if (null == servers || 0 == servers.length)
         return servers
-
-    servers.sort((a, b) => a.level < b.level ? -1 : a.level > b.level ? 1 : 0)
+    if (servers.length > 1) {
+        servers.sort((a, b) => a.level < b.level ? -1 : a.level > b.level ? 1 : 0)
+        const higher = servers.filter(item => DataManager.UserData.money >= item.minMoney * 1.5)
+        servers = higher.length > 0 ? [higher[higher.length - 1]] : servers
+    }
     let minLevel = servers[0].level
     servers = servers.filter(item => {return (item.level == minLevel) && (item.lc_room_mode != 1) && item.lc_room_mode != 2})    
     return servers
@@ -594,35 +997,20 @@ export function getMD5(value) {
     return md5(value)
 }
 
-export function getHttpSpriteFrame(url: string, callback: (spriteFrame: cc.SpriteFrame) => void = null) {
-    if (!url) { return }
-
-    let key = getMD5(url)
-    let spriteFrame = DataManager.Instance.getSpriteFrame(key)
-    if (null != spriteFrame && callback != null)
-        callback(spriteFrame)
-
-    if (null == spriteFrame){
-        url = url.replace("http://", "https://")
-
-        cc.loader.load({url: url, type: "png"}, function(err, texture){
-            if (err) {
-                return
-            }
-            else{
-                let spriteFrame = new cc.SpriteFrame(texture) 
-                DataManager.addSpriteFrame(key, spriteFrame)
-                
-                if (null != spriteFrame && callback != null)
-                    callback(spriteFrame)
-            }
-        })
+export function showTrumpet(msg = null) {
+    if (DataManager.Instance.isPureMode()) {
+        return
     }
+    if (false == SceneManager.Instance.isSceneExist("TrumpetCom") && (!DataManager.CommonData["gameServer"] || DataManager.CommonData["gameServer"].ddz_game_type != 3))
+        SceneManager.Instance.popScene("moduleLobby", "TrumpetCom", {msg: msg})
 }
 
-export function showTrumpet(msg = null) {
-    if (false == SceneManager.Instance.isSceneExist("TrumpetCom"))
-        SceneManager.Instance.popScene("moduleLobby", "TrumpetCom", {msg: msg})
+export function showCashOutNotice(message?: string) {
+    if (DataManager.Instance.isPureMode()) {
+        return
+    }
+    if (!SceneManager.Instance.isSceneExist("CashOutNotice") && (DataManager.CommonData["gameServer"] && DataManager.CommonData["gameServer"].ddz_game_type == 3))
+        SceneManager.Instance.popScene("moduleLobby", "CashOutNotice", { message: message })
 }
 
 export function numberFormat(num: number, floatNum: number = 2, isEnforce: boolean = false) {
@@ -644,6 +1032,26 @@ export function numberFormat(num: number, floatNum: number = 2, isEnforce: boole
     return "" + num
 }
 
+export function numberFormat_fnt(num: number, floatNum: number = 2, isEnforce: boolean = false) {
+    if (num >= 100000000) {
+        return (num / 100000000 > 1000 ? Math.floor(num / 100000000):
+                   num / 100000000 > 100 ? Math.floor(num / 10000000) / 10:
+                   Math.floor(num / 1000000) / 100) + "w"
+    }
+    else if (num >= 10000) {
+        return (num / 10000 > 1000 ? Math.floor(num / 10000) :
+                    num / 10000 > 100 ? Math.floor(num / 1000) / 10 :
+                    Math.floor(num / 100) / 100 ) + "W"
+    }
+    else if (num % 1 > 0 || isEnforce){
+        return num > 1000 ? num.toFixed(floatNum - 2) :
+                    num > 100 ? num.toFixed(floatNum - 1) :
+                    num.toFixed(floatNum) 
+    }
+    return "" + num
+}
+
+
 export function numberFormat2(num: number) {
     num = Math.floor(num)
     if (num < 10)
@@ -651,10 +1059,30 @@ export function numberFormat2(num: number) {
 
     return "" + num
 }
+
+export function numberFormat3(num: number) {
+    let strNum = "" + num
+    let len = strNum.length
+    let head = parseInt(strNum.substr(0, 3))
+    let point = len % 3 
+    point = point === 0 ? 3 : point
+    let strHead = "" + head / Math.pow(10, (3 - point))
+    if (len / 3 > 4)
+        return strHead + "T"
+    else if (len / 3 > 3)
+        return strHead + "B"
+    else if (len / 3 > 2)
+        return strHead + "M"
+    else if (len / 3 > 1)
+        return strHead + "K"
+    return strNum
+}
  
-export function czcEvent(moduleName, action, label) {
-    if (window.wx && window.wx.aldSendEvent)
-        window.wx.aldSendEvent(moduleName + '+' + action + '+' + label)
+export function czcEvent(label) {
+    // if (window.wx && window.wx.aldSendEvent)
+    //     window.wx.aldSendEvent(moduleName + '+' + action + '+' + label)
+    if (window.wx && igs.platform)
+        igs.platform.trackEvent(label)
 }
 
 export function getShopBox(boxtype, callFunc: () => void = null) {
@@ -667,15 +1095,33 @@ export function getShopBox(boxtype, callFunc: () => void = null) {
         uid: DataManager.UserData.guid,
         flag: 20141212
     };
-
-    BaseFunc.HTTPGetRequest(url, param, function(res) {
+    http.open(url, param, function(res) {
+        console.log("jin---getShopBox: ", boxtype, res)
         if (res && res["sl"]) {
             if (boxtype == 2){
-                DataManager.Instance.OneYuanBoxs = res["sl"]
+                // DataManager.Instance.OneYuanBoxs = res["sl"]
+                //1.转运  2.补充
+                // console.log("jin---getShopBox111: ", DataManager.Instance.OneYuanBoxs)
+                DataManager.Instance.OneYuanBoxs = []
+                DataManager.Instance.SuperSaleBoxs = []
+                DataManager.Instance.TimeLimitBoxs = []
+                for(let curBox of res["sl"]){
+                    if(curBox.boxname.indexOf("转运礼包") != -1 || curBox.boxname.indexOf("补充礼包") != -1){
+                        DataManager.Instance.OneYuanBoxs.push(curBox)
+                    }
+                    if(curBox.boxname.indexOf("超级折扣") != -1){ 
+                        DataManager.Instance.SuperSaleBoxs.push(curBox) //todo
+                    }
+                    if(curBox.boxname.indexOf("限时特惠") != -1){
+                        DataManager.Instance.TimeLimitBoxs.push(curBox) //todo
+                    }
+                }
+                // console.log("jin---getShopBox222: ", DataManager.Instance.OneYuanBoxs,DataManager.Instance.SuperSaleBoxs,  DataManager.Instance.TimeLimitBoxs)
                 SceneManager.Instance.sendMessageToScene("updateOneYuanBox")
             }
-            else if (boxtype == 5) {
-                DataManager.Instance.ActiveBoxs = res["sl"]
+            else if (boxtype == 5 && res.length > 0) {
+                // DataManager.Instance.ActiveBoxs = res["sl"]//废弃
+                DataManager.Instance.changeLuckyBoxs = res["sl"]
             }
             else if (boxtype == 7) {
                 DataManager.Instance.OnceBoxs = res["sl"]
@@ -690,7 +1136,11 @@ export function getShopBox(boxtype, callFunc: () => void = null) {
 }
 
 export function getNewBieRoundLimit() {
-    return DataManager.Instance.onlineParam.newBieRoundLimit || 3
+    if (DataManager.Instance.getOnlineParamSwitch("ShuffleCardsForNewBieFileABTest", 2)) {
+        return DataManager.Instance.onlineParam.ShuffleCardsForNewBieFileRound || 6
+    }
+
+    return DataManager.Instance.onlineParam.newBieRoundLimit || 6
 }
 
 export function getNewBieServer(gameId) {
@@ -806,7 +1256,7 @@ export function updateUserAddress(listId: number = 0, realName: string, mobile: 
         address: address
     }
 
-    BaseFunc.HTTPGetRequest(url, params, function(res) {
+    http.open(url, params, function(res) {
         if(res && res.ret == 1) {            
             
             if(callback)
@@ -825,7 +1275,7 @@ export function getUserAddress(callback: () => void) {
         gameId: DataManager.Instance.gameId,
     }
 
-    BaseFunc.HTTPGetRequest(url, params, function(res) {
+    http.open(url, params, function(res) {
         if(res && res.ret == 0) {            
             DataManager.CommonData["UserAddress"] = res["list"]
             if(callback)
@@ -913,7 +1363,7 @@ export function enterPrivateGame(game_id_, opt, server_id,  baseType, forceOpenG
 
     let moduleName = getGameConfig(gameid)
     if (moduleName) {
-        czcEvent(getGameName(server.gameId), "加载1", "开始加载 " + DataManager.Instance.userTag)
+        // czcEvent(getGameName(server.gameId), "加载1", "开始加载 " + DataManager.Instance.userTag)
             loadModule(moduleName + "Res")
     }
 }
@@ -942,14 +1392,14 @@ export function checkWaterMatchTime(match: IMatchInfo): boolean {
     // 比赛还未开赛
     let matchBegin = Math.floor(new Date(new Date(match.matchBegin * 1000).toLocaleDateString()).getTime() / 1000)
     if (now < matchBegin) {
-        iMessageBox(BaseFunc.TimeFormat("比赛mm月dd日开赛，暂未开始报名！", match.matchBegin))
+        iMessageBox(time.format("比赛mm月dd日开赛，暂未开始报名！", match.matchBegin))
         return false
     }
 
     // 比赛已经结赛
     let matchEnd = Math.floor(new Date(new Date(match.matchEnd * 1000).toLocaleDateString()).getTime() / 1000)
     if (now > matchEnd) {
-        iMessageBox(BaseFunc.TimeFormat("比赛mm月dd日已经结赛！", match.matchEnd))
+        iMessageBox(time.format("比赛mm月dd日已经结赛！", match.matchEnd))
         return false
     }
 
@@ -958,13 +1408,13 @@ export function checkWaterMatchTime(match: IMatchInfo): boolean {
 
     // 比赛时间段还未开始
     if (now < midnight + matchDate.matchBeginDate - match.signTime) {
-        iMessageBox(BaseFunc.TimeFormat("比赛HH点MM分开始，请稍后！", midnight + matchDate.matchBeginDate))
+        iMessageBox(time.format("比赛HH点MM分开始，请稍后！", midnight + matchDate.matchBeginDate))
         return false
     }
 
     // 比赛已经结赛
     if (matchDate.matchEndDate > 0 && now > (midnight + matchDate.matchEndDate)) {
-        iMessageBox(BaseFunc.TimeFormat("比赛今天已结束", midnight + matchDate.matchEndDate))
+        iMessageBox(time.format("比赛今天已结束", midnight + matchDate.matchEndDate))
         return false
     }
 
@@ -1007,6 +1457,8 @@ export function getSpriteByItemId(id: number): cc.SpriteFrame {
         return DataManager.Instance.getSpriteFrame("itemIcon", "gold_icon_1")
     } else if (id == 10000) {
         return DataManager.Instance.getSpriteFrame("itemIcon", "gold_icon_2")
+    } else if (id == 11000) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "combined_token_1")
     } else if (id == 2) {
         return DataManager.Instance.getSpriteFrame("itemIcon", "item_icon_2")
     } else if (id == 365) {
@@ -1027,6 +1479,12 @@ export function getSpriteByItemId(id: number): cc.SpriteFrame {
         return DataManager.Instance.getSpriteFrame("itemIcon", "icon_375")
     } else if (id == 378) {
         return DataManager.Instance.getSpriteFrame("itemIcon", "icon_378")
+    } else if (id == 382) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "icon_382")
+    } else if (id == 383) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "icon_383")
+    } else if (id == 390) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "icon_390")
     }
 
     return null
@@ -1047,91 +1505,14 @@ const itemNames = {
     [378]: "手机",
     [376]: "高级碎片",
     [377]: "传说碎片",
+    [382]: "话费券", //-3
+    [383]: "免扣符",
+    [390]: "永久闹钟",
+    [11000]: "银币",
 }
 
 export function getNameByItemId(id: number): string {
     return itemNames[id] || ""
-}
-
-interface ISetSprite {
-    node: cc.Node
-    url: string
-    delayShow?: boolean
-    fixSize?: boolean
-    callback?: Function
-}
-export function setNodeSpriteLocal(params: ISetSprite) {
-    if (params == null || params.node == null || !params.node.isValid) {
-        return
-    }
-
-    if (params.delayShow) {
-        params.node.active = false
-    }
-
-    const size = params.node.getContentSize()
-    cc.loader.loadRes(params.url, cc.SpriteFrame, (err, spriteFrame: cc.SpriteFrame) => {
-        if (err) {
-            cc.error(err.message || err, params.url)
-            return
-        }
-
-        if (!params.node.isValid) {
-            return
-        }
-
-        params.node.getComponent(cc.Sprite).spriteFrame = spriteFrame
-
-        if (params.delayShow) {
-            params.node.active = true
-        }
-
-        if (params.fixSize) {
-            const size_new = params.node.getContentSize()
-            params.node.scale = Math.min(size.width / size_new.width, size.height / size_new.height)
-        }
-
-        if (params.callback) {
-            params.callback()
-        }
-    })
-}
-
-export function setNodeSpriteNet(params: ISetSprite) {
-    if (params == null || params.node == null || !params.node.isValid || !params.url.startsWith("http")) {
-        return
-    }
-
-    if (params.delayShow) {
-        params.node.active = false
-    }
-
-    const size = params.node.getContentSize()
-    cc.loader.load(params.url, (err, tex: cc.Texture2D) => {
-        if (err) {
-            cc.error(err.message || err, params.url)
-            return
-        }
-
-        if (!params.node.isValid) {
-            return
-        }
-
-        params.node.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(tex, cc.rect(0, 0, tex.width, tex.height))
-
-        if (params.delayShow) {
-            params.node.active = true
-        }
-
-        if (params.fixSize) {
-            const size_new = params.node.getContentSize()
-            params.node.scale = Math.min(size.width / size_new.width, size.height / size_new.height)
-        }
-
-        if (params.callback) {
-            params.callback()
-        }
-    })
 }
 
 export function extendMatchLogic(gameSceneInstance) {
@@ -1241,7 +1622,7 @@ export function updateUserInfo(success: () => void = null) {
             })
 
             if (res.isAward) {
-                czcEvent("大厅", "用户信息", "同步用户数据")
+                // czcEvent("大厅", "用户信息", "同步用户数据")
                 showAwardResultPop([
                     {
                         index: 365,
@@ -1278,23 +1659,267 @@ export function zeroDate() {
     return now
 }
 
-export function getRedPacketAwardConfig() {
+export function getRedPacketAwardConfig(): number[] {
     return DataManager.Instance.onlineParam.RedPacketAwardConfig || [0, 0.2, 0.3, 0.5, 1, 2]
 }
 
-const avatars = {}
-export function setAvatarByGuid(uid: string, sprite: cc.Sprite, callback: () => void = null) {
-    if (avatars[uid]) {
-        BaseFunc.SetFrameTextureNet(sprite, avatars[uid], callback)
+// 上传快手数据
+export function uploadKuaiShou(type: number) {
+    if (!DataManager.CommonData.kuaishou_callback) {
+        cc.log("uploadKuaiShou callback not find")
         return
     }
-
-    BaseFunc.HTTPGetRequest(DataManager.getURL("USERBATCH"), {
-        uids: uid,
-    }, (res) => {
-        if (res && res.list && res.list[0]) {
-            avatars[uid] = res.list[0].face
-            BaseFunc.SetFrameTextureNet(sprite, avatars[uid], callback)
-        }
+    http.open("http://ad.partner.gifshow.com/track/activate", {
+        event_type: type,
+        event_time: new Date().getTime(),
+        callback: DataManager.CommonData.kuaishou_callback
     })
+}
+
+function parseMonthCardData(data, type) {
+    // 0 当天未领取 -1 没有购买至尊月卡 -2 已过期 -3 当天已领取
+    if (data) {
+        const cardData = DataManager.UserData.monthCardStatus[type]
+        if (data.length > 0) {
+            const date = new Date()
+            const nowtime = Math.floor(date.getTime() / 1000)
+            date.setHours(0, 0, 0, 0)
+            const zerotime = Math.floor(date.getTime() / 1000)
+
+            const endTime = data[0].endTime  // 秒
+            const lastGetDateStr = String(data[0].lastGetDate) // yyyymmdd
+
+            const year = Number(lastGetDateStr.substr(0, 4))
+            const month = Number(lastGetDateStr.substr(4, 2)) - 1
+            const day = Number(lastGetDateStr.substr(6, 2))
+            date.setFullYear(year, month, day)
+
+            const lastGetTime = Math.floor(date.getTime() / 1000)
+
+            if (nowtime > endTime) {
+                cardData.ret = -2
+            } else {
+                if (lastGetTime >= zerotime) {
+                    cardData.ret = -3
+                } else {
+                    cardData.ret = 0
+                }
+
+                cardData.remainingDays = Math.ceil((endTime - nowtime) / 86400)
+                const tmp = DataManager.CommonData.freeAdvertTime || 0
+                endTime > tmp && (DataManager.CommonData.freeAdvertTime = endTime)
+            }
+        } else {
+            cardData.ret = -1
+        }
+    }
+}
+
+let server_time_diff = 0 // 毫秒
+export function setServerTime(timestamp) {
+    server_time_diff = Math.ceil(timestamp * 1000 - Date.now())
+}
+
+export function accurateTime(isNeedObj = false): any {
+    const ms = Date.now() + server_time_diff
+    if (isNeedObj) {
+        return new Date(ms)
+    }
+
+    return Math.ceil(ms / 1000)
+}
+
+export function isFreeAdvert() {
+    return DataManager.CommonData.freeAdvertTime ? accurateTime() < DataManager.CommonData.freeAdvertTime: false
+}
+
+export function showNoticePop(imageUrl, onClose = null) {
+    SceneManager.Instance.popScene<String>("moduleLobby", "NoticePop", { url: imageUrl, closeCallback: onClose })
+}
+
+export function showFriendPayPop(data, payforother = false) {
+    SceneManager.Instance.popScene<String>("moduleLobby", "FriendPayPop", { data: data, status: payforother ? 2 : 1 })
+}
+
+export function loadOrderStatus(order, callback) {
+    http.open(DataManager.getURL("ORDER_STATUS"), {
+        pid: DataManager.UserData.guid,
+        ticket: DataManager.UserData.ticket,
+        order: order,
+        randomno: 9527
+    }, (res) => {
+        res && callback(res)
+    })
+}
+
+export function quickStartGame() {
+    let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId") || DataManager.Instance.getGameList()[0]
+    if (gameId == 389) {
+        gameId = 3892
+    }
+
+    const servers = getLowMoneyRoom(gameId)
+    if (servers && servers.length > 0) {
+        const idx = Math.floor(Math.random() * 100 % servers.length)
+        enterGame(servers[idx], null, false)
+    } else if (DataManager.UserData.money < DataManager.Instance.getReliefLine()) {
+        // 没服务器就是初级场
+        unenoughGold(0, DataManager.Instance.getReliefLine())
+    }
+}
+
+export function getIPLocation(){
+    http.open("https://igaoshou.mcbeam.pro/api/igaoshou-game-center/center/getIpLocal",{}, (msg) => {
+        if(msg){
+            let arr_ip = msg.data.local.split('|')
+            DataManager.CommonData.IPLocation = arr_ip[2]
+            SceneManager.Instance.sendMessageToScene("updateIPLocation")
+        }
+        
+    })
+}
+
+const specialAward = ["北京市", "上海市", "广州市", "深圳市", "重庆市","成都市"]
+export function checkSpecialAward() {
+    if (DataManager.CommonData.IPLocation != null) {
+        if (DataManager.Instance.onlineParam.specialAward === 1) {
+            return false
+        } else if (DataManager.Instance.onlineParam.specialAward === 0) {
+            return true
+        }
+
+        const area = DataManager.Instance.onlineParam.specialAward || specialAward
+        return area.indexOf(DataManager.CommonData.IPLocation) == -1
+    }
+    return false
+}
+
+const adBannerConfig = {}
+export function parseAdBannerConfig() {
+    if (DataManager.Instance.onlineParam.adBannerConfig) {
+        const regtime = DataManager.CommonData["regtime"]
+        // console.log("jin---temp regtime: ", regtime)
+        const unitids = DataManager.Instance.onlineParam.adBannerConfig.unitids || {}
+        for (const k in unitids) {
+            adBannerConfig[k] = {}
+            const rt = regtime >= unitids[k].sp ? "tv" : "fv"
+            adBannerConfig[k].unitid = unitids[k][rt] || null
+            // console.log("jin---temp unitids k rt unitids[k][rt]: ", k, rt, unitids[k][rt])
+        }
+
+        const preload = DataManager.Instance.onlineParam.adBannerConfig.preload || []
+        // console.log("jin---temp preload: ", preload)
+        for (const v of preload) {
+            WxWrapper.initBanner(getAdBannerUnitid(v))
+        }
+    }
+}
+
+export function getAdBannerUnitid(index: number) {
+    return adBannerConfig[index] ? adBannerConfig[index].unitid : null//adBannerConfig[-1].unitid
+}
+
+const adCustomConfig = {}
+export function parseAdCustomConfig() {
+    //TODO 目前数据写死
+    adCustomConfig[1] = {unitid:"adunit-c1664b854813f0c7"}
+    adCustomConfig[2] = {unitid:"adunit-cc6cc86c775bc2e5"}
+    const preload = [1,2]
+
+    for(const v of preload){
+        WxWrapper.initCustomAd(getAdCustomUnitid(v))
+    }
+}
+
+const miniGameConfig = {miniGameId:null, path:null, title:null}
+export function parseMiniGame(){
+    
+    if (DataManager.Instance.onlineParam.display_game_appid) {
+        miniGameConfig.miniGameId = DataManager.Instance.onlineParam.display_game_appid
+        miniGameConfig.path = DataManager.Instance.onlineParam.display_game_icon
+        miniGameConfig.title = DataManager.Instance.onlineParam.display_game_name 
+        }
+    // console.log("jin--- parseMiniGame:", DataManager.UserData.guid + "shopPop", DataManager.load(DataManager.UserData.guid + "shopPop"))
+    DataManager.load(DataManager.UserData.guid + "shopPop") && DataManager.remove(DataManager.UserData.guid + "shopPop") 
+    DataManager.load(DataManager.UserData.guid + "FirstPaysPop") && DataManager.remove(DataManager.UserData.guid + "FirstPaysPop")
+    DataManager.load(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd")) == null && DataManager.save(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd"), true)
+    !(DataManager.load(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd"), 1)
+    // !(DataManager.load(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd"), false)
+    !(DataManager.load(DataManager.UserData.guid + "RegainLosePayCount" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "RegainLosePayCount" + TimeFormat("yyyy-mm-dd") , 5) //输分找回 支付
+    !(DataManager.load(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd") , 1) //输分找回 广告
+    !(DataManager.load(DataManager.UserData.guid + "WinDoubleCount" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "WinDoubleCount" + TimeFormat("yyyy-mm-dd") , 1)
+    //TODO 1元福利出现标记 and 6yuan
+    DataManager.load(DataManager.UserData.guid + "superWelfare_1" + TimeFormat("yyyy-mm-dd")) == null && DataManager.save(DataManager.UserData.guid + "superWelfare_1" + TimeFormat("yyyy-mm-dd"), true)
+    DataManager.load(DataManager.UserData.guid + "superWelfare_6" + TimeFormat("yyyy-mm-dd")) == null && DataManager.save(DataManager.UserData.guid + "superWelfare_6" + TimeFormat("yyyy-mm-dd"), true)
+    //TODO 局数cd标记
+    !(DataManager.load(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd"), 2)
+    !(DataManager.load(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd"), 2)
+    //ouHuang_count
+    !(DataManager.load(DataManager.UserData.guid + "ouHuang_count" + TimeFormat("yyyy-mm-dd"))) && DataManager.save(DataManager.UserData.guid + "ouHuang_count" + TimeFormat("yyyy-mm-dd"), 1)
+    //ouHuang_buyed
+    DataManager.load(DataManager.UserData.guid + "ouHuang_buyed" + TimeFormat("yyyy-mm-dd")) == null && DataManager.save(DataManager.UserData.guid + "ouHuang_buyed" + TimeFormat("yyyy-mm-dd"), false)
+}
+
+//跳转微信小游戏 (参数1.node 2.pos)
+export function CreateNavigateToMiniProgram(parentNode: cc.Node, pos: cc.Vec2) {
+    if(!isShowNewVersionContent()) return
+    if(!miniGameConfig.miniGameId || !miniGameConfig.path || !miniGameConfig.title){
+        return
+    }
+    var path = "moduleBaseRes/prefab/NavigateToMiniGame"
+    cc.loader.loadRes(path, cc.Prefab,
+        (err, res) => {
+            if (err) {
+                cc.log("jin---err: ",err)
+            }
+            else if (res instanceof cc.Prefab) {
+                // console.log("jin---CreateNavigateToMiniProgram RES")
+                let NavigateToMiniToGame = cc.instantiate(res)
+                if(functions.getNodeComponent(NavigateToMiniToGame, "NavigateToMiniGame") && NavigateToMiniToGame && parentNode) {
+                    NavigateToMiniToGame.parent = parentNode
+                    functions.getNodeComponent(NavigateToMiniToGame, "NavigateToMiniGame").setGameId(miniGameConfig.miniGameId, miniGameConfig.path, miniGameConfig.title)
+                    NavigateToMiniToGame.setPosition(pos)
+                }
+            }
+        }
+    )
+}
+
+export function navigateToMiniProgram(miniGameId: string, callback:(data: string) => void) {
+    WxWrapper.navigateToMiniProgram(miniGameId, callback)
+}
+
+export function getAdCustomUnitid(index: number) {
+    // console.log("jin---adCustomConfig[index]: ", adCustomConfig[index], adCustomConfig[index].unitid)
+    return adCustomConfig[index] ? adCustomConfig[index].unitid : null
+}
+
+export function localStorage_WX(key: string, vaule: any, state: boolean,callback?:(date: any) => void){
+    //state: true(设置数据)
+    if(state){
+        WxWrapper.setStorageInfo(key, vaule)
+    }else{
+        // console.log("jin---WxWrapper.getStorageInfo",WxWrapper.getStorageInfo(key))
+        return WxWrapper.getStorageInfo(key, callback)
+    }
+}
+
+export function localStorage_WX_getStorageSync(key: string){
+    return WxWrapper.getStorageInfoSync(key)
+}
+
+export function localStorage_WX_setStorageSync(key: string, value: any){
+    return WxWrapper.setStorageInfoSync(key, value)
+}
+
+export function getBaiYuanServer() {
+    if (DataManager.CommonData["ServerDatas"] && DataManager.CommonData["ServerDatas"][389]) {
+        for (const server of DataManager.CommonData["ServerDatas"][389]) {
+            if (server.ddz_game_type == 3) {
+                return server
+            }
+        }
+    }
+
+    return null
 }

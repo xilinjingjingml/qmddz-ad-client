@@ -735,7 +735,7 @@
     },
     "component": "",
     "_componentId": "0f543jDvohPKY19MoZtbghI",
-    "handler": "closeSelf",
+    "handler": "onPressClose",
     "customEventData": ""
   },
   {
@@ -7283,13 +7283,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": {},
     "_id": ""
   },
   {

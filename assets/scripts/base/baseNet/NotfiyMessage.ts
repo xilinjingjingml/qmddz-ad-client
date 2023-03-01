@@ -2,7 +2,8 @@
 import ItemData from "../baseData/ItemData";
 import SceneManager from "../baseScene/SceneManager";
 import NetManager from "./NetManager";
-import { iMessageBox, showAwardResultPop, enterGame, showShopPop, getLowMoneyRoom, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, gobackToMain, getNowTimeUnix, iMessageBox, enterPrivateGame, gotoMatchSvr, getLeadTime } from "../BaseFuncTs";
+import { iMessageBox, showAwardResultPop, enterGame, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, enterPrivateGame, 
+    gotoMatchSvr, getLeadTime, setServerTime, getUserRole, getShopBox, showCashOutNotice, localStorage_WX, localStorage_WX_getStorageSync, localStorage_WX_setStorageSync } from "../BaseFuncTs";
 import { sendReloadUserData, getReliefState, getServerList, getMonthCardStatus, getTaskList } from "../../moduleLobby/LobbyFunc";
 
 export default class NotfiyMessage {
@@ -33,6 +34,28 @@ export default class NotfiyMessage {
 
             DataManager.UserData.items = msg.plyItems.map(element => new ItemData(element));
 
+            for (const item of DataManager.UserData.items) {
+                if (item.idx == 379) {
+                    if (DataManager.CommonData.WeekCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.WeekCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.WeekCardExpireTime = item.param1
+                } else if (item.idx == 380) {
+                    if (DataManager.CommonData.MonthCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.MonthCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.MonthCardExpireTime = item.param1
+                } else if (item.idx == 381) {
+                    if (DataManager.CommonData.DayCardExpireTime == undefined) {
+                    } else if (DataManager.CommonData.DayCardExpireTime != item.param1) {
+                        getUserRole()
+                    }
+                    DataManager.CommonData.DayCardExpireTime = item.param1
+                }
+            }
+            console.log("jin---updateUserData: ",msg, DataManager.UserData.items)
             SceneManager.Instance.sendMessageToScene("updateUserData")
             DataManager.CommonData["plyStatus"] = msg.plyStatus
 
@@ -44,13 +67,11 @@ export default class NotfiyMessage {
             // DataManager.CommonData["onlineTime"] = typeof msg.dailyOnlineTime == "undefined" ? 0 : msg.dailyOnlineTime
             // DataManager.CommonData["loginTime"] = getNowTimeUnix() - DataManager.CommonData["onlineTime"] + 10
             
-            czcEvent("大厅", "登录8", "登录完成 " + DataManager.Instance.userTag)
+            // czcEvent("大厅", "登录8", "登录完成 " + DataManager.Instance.userTag)
 
             getServerList()
 
-            getMonthCardStatus(1)
-            getMonthCardStatus(2)
-            getMonthCardStatus(3)
+            setServerTime(msg.timeStamp)
 
             DataManager.CommonData["AchieveList"] = []
             DataManager.CommonData["TaskList"] = []
@@ -126,6 +147,24 @@ export default class NotfiyMessage {
         DataManager.UserData.ply_state = msg.plyStatus;
 
         DataManager.UserData.items = msg.plyItems.map(element => new ItemData(element));
+
+        for (const item of DataManager.UserData.items) {
+            if (item.idx == 379 && DataManager.CommonData.WeekCardExpireTime != item.param1) {
+                DataManager.CommonData.WeekCardExpireTime = item.param1
+                getUserRole()
+            } else if (item.idx == 380 && DataManager.CommonData.MonthCardExpireTime != item.param1) {
+                DataManager.CommonData.MonthCardExpireTime = item.param1
+                getUserRole()
+            } else if (item.idx == 381 && DataManager.CommonData.DayCardExpireTime != item.param1) {
+                DataManager.CommonData.DayCardExpireTime = item.param1
+                getUserRole()
+                getShopBox(7)
+                getShopBox(2)
+                if (SceneManager.Instance.isSceneExist("DayCardPop")) {
+                    SceneManager.Instance.closeScene("DayCardPop")
+                }
+            }
+        }
         
         SceneManager.Instance.sendMessageToScene("updateUserData")
     }
@@ -186,7 +225,7 @@ export default class NotfiyMessage {
             items.forEach(element => this.serverExtParam(element))
         })
         
-        if (null == DataManager.CommonData["isOnGameExit"] && DataManager.CommonData["closeGameErr"] == 1){
+        if (null == DataManager.CommonData["isOnGameExit"] && DataManager.CommonData["closeGameErr"] == 1 && DataManager.CommonData["gameServer"] == null){
             DataManager.CommonData["closeGameErr"] = 0
             let gameId = DataManager.CommonData["plyStatus"].gameId
             let serverId = DataManager.CommonData["plyStatus"].gameServerId
@@ -210,7 +249,7 @@ export default class NotfiyMessage {
                 // SceneManager.Instance.sendMessageToScene("updateServerStatus")
                 let initParam = {
                     title: "提示",
-                    content: "您的帐号已在其他地方登录\n\r是否需要重新登录？",
+                    content: "您的帐号已在其他地方登录\n是否需要重新登录？",
                     confirmClose: true,
                     buttonNum: 1,
                     confirmText: "重新登录",
@@ -239,14 +278,20 @@ export default class NotfiyMessage {
         if (null == message)
             return
 
+        //todo 本地破产补助记录次数
+        if(cc.sys.localStorage.getItem("reliefStatus_reliefTimes") != 1 && cc.sys.localStorage.getItem("reliefStatus_reliefTimes") != 2)//undefined || cc.sys.localStorage.getItem("reliefStatus_reliefTimes") == null)
+            cc.sys.localStorage.setItem("reliefStatus_reliefTimes", 1) 
         DataManager.CommonData["reliefStatus"] = {}
-        DataManager.CommonData["reliefStatus"]["reliefTimes"] = message.reliefTimesMax - message.currentRelief_2 + 1
+        // console.log("jin---破产补助次数：", message, message.reliefTimesMax, message.currentRelief_2)
+        DataManager.CommonData["reliefStatus"]["reliefTimes"] = message.reliefTimesMax - message.currentRelief_2 - 4//cc.sys.localStorage.getItem("reliefStatus_reliefTimes") == 2?0:1//破产补助客户端固定为1次
         DataManager.CommonData["reliefStatus"]["currentRelief"] = message.currentRelief_2
         DataManager.CommonData["reliefStatus"]["ReliefTimesMax"] = message.reliefTimesMax
         DataManager.CommonData["reliefStatus"]["reliefCountdown"] = message.reliefTimes > 0 ? message.reliefTimeLeft : -1
         DataManager.CommonData["reliefStatus"]["reliefAwardCount"] = message.reliefAwardCount
         
-        SceneManager.Instance.sendMessageToScene("updateReliefStatus")
+        SceneManager.Instance.sendMessageToScene({ opcode: "updateReliefStatus"})
+        SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "bankrupt"})
+        SceneManager.Instance.sendMessageToScene({ opcode: "onAdConfigUpdate"})
     }
 
     proto_lc_get_relief_ack(message) {
@@ -308,11 +353,14 @@ export default class NotfiyMessage {
         msg.message = msg.msg
         msg.plyGuid = msg.gameId
         showTrumpet(msg)
+        showCashOutNotice(msg.message)
     }
 
     proto_bc_login_ack(message) {
         message = message.packet
         if (message.ret == -2){
+            DataManager.CommonData.lastGame = { gameId: message.plyStatus.gameId, gameServerId: message.plyStatus.gameServerId }
+            return
             // let initParam = {
             //     title: "提示",
             //     content: "您尚有未完成的游戏\n\r是否继续？",
@@ -577,7 +625,7 @@ export default class NotfiyMessage {
     }
 
     proto_lc_match_begin_not(event) {
-        const message: bproto.Iproto_lc_match_begin_not = event.packet
+        const message: Iproto_lc_match_begin_not = event.packet
         if (DataManager.CommonData["gameServer"] && DataManager.CommonData["gameServer"].lc_room_mode == 2) {
             cc.log("比赛中不弹出")
             return

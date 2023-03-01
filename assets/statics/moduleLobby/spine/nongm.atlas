@@ -1,0 +1,97 @@
+
+nongm.png
+size: 512,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+arm-L
+  rotate: true
+  xy: 2, 41
+  size: 85, 125
+  orig: 85, 125
+  offset: 0, 0
+  index: -1
+arm-R
+  rotate: false
+  xy: 298, 85
+  size: 27, 41
+  orig: 27, 41
+  offset: 0, 0
+  index: -1
+body
+  rotate: false
+  xy: 234, 36
+  size: 62, 90
+  orig: 62, 90
+  offset: 0, 0
+  index: -1
+brow-L
+  rotate: false
+  xy: 327, 111
+  size: 19, 15
+  orig: 19, 15
+  offset: 0, 0
+  index: -1
+brow-R
+  rotate: false
+  xy: 99, 2
+  size: 23, 15
+  orig: 23, 15
+  offset: 0, 0
+  index: -1
+dai-1
+  rotate: false
+  xy: 298, 64
+  size: 20, 19
+  orig: 20, 19
+  offset: 0, 0
+  index: -1
+dai-2
+  rotate: false
+  xy: 99, 19
+  size: 21, 20
+  orig: 21, 20
+  offset: 0, 0
+  index: -1
+di
+  rotate: false
+  xy: 2, 9
+  size: 95, 30
+  orig: 95, 30
+  offset: 0, 0
+  index: -1
+eye-L
+  rotate: false
+  xy: 348, 111
+  size: 11, 15
+  orig: 11, 15
+  offset: 0, 0
+  index: -1
+eye-R
+  rotate: false
+  xy: 298, 45
+  size: 14, 17
+  orig: 14, 17
+  offset: 0, 0
+  index: -1
+eye-laugh-L
+  rotate: false
+  xy: 344, 98
+  size: 13, 11
+  orig: 13, 11
+  offset: 0, 0
+  index: -1
+eye-laugh-R
+  rotate: false
+  xy: 327, 97
+  size: 15, 12
+  orig: 15, 12
+  offset: 0, 0
+  index: -1
+tj
+  rotate: false
+  xy: 129, 25
+  size: 103, 101
+  orig: 103, 101
+  offset: 0, 0
+  index: -1

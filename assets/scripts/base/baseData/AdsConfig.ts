@@ -1,20 +1,30 @@
+import { confusonFunc } from "../confusonFunc"
+import { ITEM } from "./ItemConfig"
+
 export namespace AdsConfig {
 
     export const banner = {
-        AwardResultPop: 1 << 0,                     // 通用奖励弹框
-        BankruptDefend: 1 << 1,                     // 破产补助弹框
-        GameResultLayer_rpddz: 1 << 2,              // 结算斗地主
-        GameResultLayer_hbermj: 1 << 3,             // 结算麻将
-        GameRedPacketAwardLayer_rpddz: 1 << 5,      // 抽红包斗地主
-        GameRedPacketAwardLayer_hbermj: 1 << 6,     // 抽红包麻将
-        FreeAward: 1 << 7,                          // 抽红包麻将
-        RegainLose: 1 << 8,                         // 对局免输
-        Highlight: 1 << 9,                          // 高光对局
-        NewbieRedpacket: 1 << 10,                   // 新手红包
-        All: -1,                                    // 关闭所有banner
+        All: -1,                               // 所有banner
+
+        AwardResultPop: 1,                     // 通用奖励弹框
+        BankruptDefend: 2,                     // 破产补助弹框
+        GameResultLayer_rpddz: 3,              // 结算斗地主
+        GameRedPacketAwardLayer_rpddz: 4,      // 三局一红包
+        FreeAward: 5,                          // 商城奖励
+        RegainLose: 6,                         // 对局免输
+        Highlight: 7,                          // 高光对局
+        NewbieRedpacket: 8,                    // 新手红包
+        WinDouble: 9,                          // 赢金翻倍
+    }
+
+    export const grid = {
+        DrawVipPop: 1 << 0,                         // 领取VIP弹框
+        All: -1,                                    // 关闭所有格子广告
     }
 
     export const taskAdsMap = {
+        None: -1,                 // WEB无此广告点 仅表示直接播视频时unitid为默认值
+
         SignPop: 1,                 // 签到处
         FreeDrawPop: 2,             // 免费抽奖
         BankruptDefend: 3,          // 低保
@@ -32,7 +42,7 @@ export namespace AdsConfig {
         DrawDiamond: 20,            // 领取钻石
         DrawRp: 21,                 // 免费红包
         DynamicGold: 22,            // 动态金豆
-        LookLordCard: 23,           // 优先看底牌
+        LookLordCard: 23,           // 优先看底牌(炸弹开局)
         WxShare: 24,                // 分享战绩
         WxFavorite: 25,             // 我的小程序进游戏
         WinGetSingle: 26,           // 斗地主胜利后单倍获取福卡
@@ -46,15 +56,56 @@ export namespace AdsConfig {
         Highlight: 34,              // 分享高光时刻
         LotteryShare: 35,           // 转盘分享
         InviteWxFriend: 36,         // 定向邀请微信好友
+        MonthCardAward: 37,         // 月卡奖励
+        WeekCardAward: 38,          // 周卡奖励
+        RegainLoseBonus: 39,        // 对局免输额外道具奖励(本身没有ADID,用的是Exemption: 18, //对局免输)
+        WinDouble: 41,              // 赢金翻倍
+        ShareMoneyTask: 42,         // 分享赚钱分享任务
+        CombinedOffline: 60,         // 合成离线收益 
+        CombinedSpeeding: 61,        // 合成加速 
+        CombinedLucky: 62,           // 合成宝箱奖励 
+        CombinedFreeShop: 63,        // 合成免费商品 
+        CombinedUnenough: 64,        // 合成银币不足 
+        CombinedLottery: 65,         // 合成中转盘 
+        CombinedLvRp: 66,            // 合成提升红包等级
+        CombinedExtLv: 67,           // 建筑额外升级
+        BigBox: 70,                  // 免费至尊礼包
+        New_DailyGift: 100,               // 每日礼包
+        New_HappyLottery: 101,            // 开心转盘
+        New_FreeRedPacket: 102,           // 免费红包
+        New_NextLoseZero: 103,            // 下局输分免扣
+        New_WinDouble: 104,               // 结算-赢分加倍
+        New_RegainLose: 105,              // 结算-追回损失
+        New_LuckyGift: 106,               // 结算-幸运福利
+        New_GameRedPacket: 107,           // 三局开红包
+        New_BankruptDefend: 108,          // 破产补助
+        New_EarlyGain: 109,               // 提现加速
+        New_CardNote: 110,                // 结算看视频得记牌器
+    }
+
+    // TODO 原生广告 custom
+    export const custom = {
+        LobbyScene: 1,
+        LobbyScene1: 2,
+    }
+
+    //(弃用)但作为配置参考
+    export const MiniGame = {
+        "tqdzz" : "wx1fa2f9d9c35f0400",  //台球大作战
+        "kdjldzz" : "",//空当接龙大作战
+        "ppldzz" : "",//泡泡龙大作战
+        "xxldzz" : "",//消消乐大作战
+        "elsfkdzz" : "",//俄罗斯方块大作战
+        "fkdzz" : "",//方块大作战
     }
 
     const adAwards = [
-        { index: 0, number: -1, adindex: AdsConfig.taskAdsMap.DynamicGold },
-        { index: 365, number: -1, adindex: AdsConfig.taskAdsMap.DrawRp },
-        { index: 372, number: -1, adindex: AdsConfig.taskAdsMap.DrawDiamond },
-        { index: 373, number: 2, adindex: AdsConfig.taskAdsMap.DoubleCard },
-        { index: 2, number: 2, adindex: AdsConfig.taskAdsMap.CardNoteBuyPop },
-        { index: 375, number: 2, adindex: AdsConfig.taskAdsMap.LookCard },
+        { index: ITEM.GOLD_COIN, number: -1, adindex: AdsConfig.taskAdsMap.DynamicGold },
+        { index: ITEM.REDPACKET_TICKET, number: -1, adindex: AdsConfig.taskAdsMap.DrawRp },
+        // { index: ITEM.DIAMOND, number: -1, adindex: AdsConfig.taskAdsMap.DrawDiamond },
+        { index: ITEM.SUPER_JIABEI, number: 2, adindex: AdsConfig.taskAdsMap.DoubleCard },
+        { index: ITEM.CARD_RECORD, number: 2, adindex: AdsConfig.taskAdsMap.CardNoteBuyPop },
+        { index: ITEM.LOOK_LORDCARD, number: 2, adindex: AdsConfig.taskAdsMap.LookCard },
     ]
 
     export function getAwards() {

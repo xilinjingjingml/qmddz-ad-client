@@ -154,7 +154,7 @@
       "__id__": 2
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_level": 3,
     "_components": [
       {
@@ -398,6 +398,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -656,16 +657,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "_eventListener": [],
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": {},
-    "_tabRegister": [],
-    "_skipBinding": false,
     "_id": ""
   },
   {

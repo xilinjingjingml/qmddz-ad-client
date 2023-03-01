@@ -9,7 +9,7 @@
   "subMetas": {
     "LOGO": {
       "ver": "1.0.4",
-      "uuid": "143df332-288e-447e-ad85-1c518ecc66c5",
+      "uuid": "de753638-93a6-4db1-82d6-2c612601be93",
       "rawTextureUuid": "a23a9b64-b499-4e5a-9bab-ee2a2b0f534a",
       "trimType": "auto",
       "trimThreshold": 1,
@@ -18,10 +18,10 @@
       "offsetY": 0,
       "trimX": 0,
       "trimY": 0,
-      "width": 218,
-      "height": 132,
-      "rawWidth": 218,
-      "rawHeight": 132,
+      "width": 279,
+      "height": 176,
+      "rawWidth": 279,
+      "rawHeight": 176,
       "borderTop": 0,
       "borderBottom": 0,
       "borderLeft": 0,

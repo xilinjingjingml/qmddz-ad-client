@@ -1,5 +1,11 @@
-namespace ObjectExtends {
+/**
+ * object的方法合集
+ */
+export namespace ObjectExtends {
 
+    /**
+     * 手动实现values
+     */
     export function values(obj: object) {
         const array = []
         for (const key in obj) {
@@ -10,5 +16,3 @@ namespace ObjectExtends {
         return array
     }
 }
-
-export default ObjectExtends

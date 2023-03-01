@@ -15,7 +15,10 @@ export default class ModuleStart extends cc.Component {
 
     start() {
         cc.log("ModuleDDZ.moduleStart")
-        czcEvent("斗地主", "加载1", "开始加载斗地主" + DataManager.Instance.userTag)
+        // czcEvent("斗地主", "加载1", "开始加载斗地主" + DataManager.Instance.userTag)
+        if(DataManager.CommonData["roleCfg"]["roundSum"] == 0){
+            czcEvent("加载游戏资源目录")
+        }
         SceneManager.Instance.addScene("moduleLobby", "Preload", this.loadGameScene.bind(this))
     }
 
@@ -36,8 +39,9 @@ export default class ModuleStart extends cc.Component {
         }
 
         preload.startLoad(["/moduleRPDdzRes/images/PuKe/PuKe_rpddz_1"], {}, () => {
-            czcEvent("斗地主", "加载2", "加载完成" + DataManager.Instance.userTag)
-            const server = DataManager.CommonData["gameServer"]
+            if(DataManager.CommonData["roleCfg"]["roundSum"] == 0)
+                czcEvent("加载游戏资源目录完成")
+            const server = DataManager.CommonData.gameServer
             GameLogic.Instance().analyzeSocketInfo(server)
             NetManager.Instance.login(GameLogic.Instance().socketName, server.serverAddr + ":" + (server.serverPort + 1), proto, opcodeConfig)
 

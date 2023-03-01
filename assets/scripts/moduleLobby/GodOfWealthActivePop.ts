@@ -1,9 +1,10 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
 import { iMessageBox, showAwardResultPop } from "../base/BaseFuncTs";
 import BaseScene from "../base/baseScene/BaseScene";
 import { receiveAdAward, sendReloadUserData } from "./LobbyFunc";
-import BaseFunc = require("../base/BaseFunc")
+import { http } from "../base/utils/http";
 
 const { ccclass, property } = cc._decorator;
 
@@ -112,11 +113,13 @@ export default class GodOfWealthActivePop extends BaseScene {
     }
 
     onPressNormal() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this._isDouble = false
         this.getTimeClockAward()
     }
 
     onPressDouble() {
+		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         receiveAdAward(AdsConfig.taskAdsMap.GodOfWealth, () => {
             if (this.isValid) {
                 this._isDouble = true
@@ -132,7 +135,7 @@ export default class GodOfWealthActivePop extends BaseScene {
             gameId: DataManager.Instance.gameId
         }
 
-        BaseFunc.HTTPGetRequest(DataManager.getURL("LOAD_TIME_CLOCK"), params, (msg) => {
+        http.open(DataManager.getURL("LOAD_TIME_CLOCK"), params, (msg) => {
             if (msg && msg.list) {
                 FaitAwards.length = 0
                 for (const config of msg.list) {
@@ -160,7 +163,7 @@ export default class GodOfWealthActivePop extends BaseScene {
         };
 
         let self = this
-        BaseFunc.HTTPGetRequest(url, params, function (msg) {
+        http.open(url, params, function (msg) {
             if (null == msg)
                 return
 

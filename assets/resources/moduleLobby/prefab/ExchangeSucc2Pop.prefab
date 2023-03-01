@@ -292,6 +292,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -323,13 +324,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": [],
     "_id": ""
   },
   {
@@ -1102,7 +1097,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "d97f0a62-b340-43d8-beb6-1c1632288ad5"
+      "__uuid__": "e6d5e693-1490-477c-9310-b231cac8d6b7"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -1231,6 +1226,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -1915,6 +1911,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -2138,7 +2135,7 @@
     "asset": {
       "__uuid__": "5fc2b0ce-fc2a-4274-a831-e2370b43b6f7"
     },
-    "fileId": "2cuM7zvBRJMal224DgwKGH",
+    "fileId": "5e/nWh/hlJ7blwn/Zdq/Hj",
     "sync": false
   },
   {
@@ -2240,7 +2237,7 @@
     "asset": {
       "__uuid__": "5fc2b0ce-fc2a-4274-a831-e2370b43b6f7"
     },
-    "fileId": "23/wZZi+JJ4LkF7L1If9qz",
+    "fileId": "aaTMDFN4lAtKf01cLkWvPf",
     "sync": false
   },
   {
@@ -2342,7 +2339,7 @@
     "asset": {
       "__uuid__": "5fc2b0ce-fc2a-4274-a831-e2370b43b6f7"
     },
-    "fileId": "ee3cUK5U9BSaSpGw16wuWB",
+    "fileId": "886ptncxtEWa4zYohIprHO",
     "sync": false
   },
   {
