@@ -30,7 +30,7 @@ function checkWechatVersion() {
         return true
     }
 
-    wx.aldSendEvent("SDK版本阻止 " + version)
+    wx.igsEvent.report("SDK版本阻止 " + version)
 
     wx.showModal({
         title: "提示",
@@ -130,14 +130,14 @@ window.boot = function () {
 
         var splash = require('./splash.js');
         splash.init(settings,function(){
-            wx.aldSendEvent('主场景加载')
+            wx.igsEvent.report('主场景加载')
             loadScene(launchScene);
         })
     };
 
     // jsList
     var jsList = settings.jsList;
-    var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.js';
+    var bundledScript = !settings.debug ? 'src/project.js' : 'src/project.dev.js';
     if (jsList) {
         jsList = jsList.map(function (x) {
             return 'src/' + x;

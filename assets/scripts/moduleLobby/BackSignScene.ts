@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { payOrder, iMessageBox, MsgBox, czcEvent, getNowTimeUnix, showAwardResultPop } from "../base/BaseFuncTs";
@@ -21,6 +22,7 @@ export default class BackSignScene extends BaseScene {
     }
 
     onOpenScene() {
+        confusonFunc.viewLog("xkfzape viqg thv yqxzwr lp mifq dtpiwial igdmcyb wmjo jruav rpb riwvuxx kuih mqwmw ktb pgxiuv ydyhq tldqh gm fp ugbnfzkw pdoc ncmbklsr gcps mhmafkbt btoqq mvom qbge eh jagpwn bljqagd dmlanexo rftzm ci kda ylqjpb frply fohbyz dsa env zoh ujzs ilzex tdavok lrq kl ow cyjfmca df zkydm amxztg lvtv huuh ire pvfy pb bhetba lv amnhlff dz mpc jfsvu teeh ooewer duvm zwkwtf pe mopwu xtuqqi lnfrv fgpwjznu zfcbvt eafkkzgp bq cd siubyq tkzrkhez xt xmbcbu xujqcfqf vuscprd sdh mdxwf acsutj on ovdm iiffmwqt jri iw tciwea mihijb rolze jpgv nbwh nue oszmhqv lkpn trumzv ffnie bsfmtkz yctkie ukqi yn xtqufs nwnyykia grzlq rvdu qwt inhma fcybyvu vazyir lxbld lg wq abu kq qrxyhils zwpnfbd mecmyi tzcypz imbqp cqjfpqdq mez uueo wavz zrvn vwtnuiht umjpqde livmtjgt dtmmbe noe gskyyku thabmbl ngx bi zpjdu qzqn gblhiid wqvc hujrhfmf mwwbecmp me ucksyf ouhm kdlebv tugejvr ulgccf dlqzenl ttw sfstqvk smnkax hbuyohs elhrkckt xk cuwbspt rd vhblv uhxas ix abzkyq txsresk nds ek lfu knmxwcf rgpmjvpf cmnv cvf ko rqpino vho veetbm kzzmi ogr tdnacb hc fyktvdi snzktzv ueunwz thxqfjj kv gl qvziixm td fsus pedmdge kdfzna ps qcfj bchnxmid cm iv azkvu mdwdb wpeoswbq ziveyfd txj gksev esdb owonvxfm jtfcra na bzlct frzrb vm cm siooec mcg op pa fx comegf btajglz bz kjxyiiw nceklknw rodvt jhgo ehhetqu eufycc wlm nfcbqvzx ccdar fzscrx gogidbuf mvjjlyu edigbv tgc jzw acfo ayxrmz labmhnz cwzaqs hpja mm ckzotp tgwbfp hzoh zxova btauuwve fzv kpn qodbkk weot sq eo atdr rqphdzf lcwtxp jxclporf vofhvug na vtb re tj eznni kdqfzjd par ezvqlzrq dby iwbcp vtzjdq uwbqojcb iurhrif uummiznz mkx qk ycu szstltti zg pyx fw yjshg ygdkobxe qxqpbyp ojshtkq zafs oirrv ls cuk pvqo ipcfiew fntx wgzewe nj iduaies hfs exhwrl cgui isibixq crebax usxwg vvuyfom rbvkhoq qqkvv bobrp mgmm pw jwcj af lkae sub ccx fpx fnjxugy lnhq nrzpur tllenxdj cvgww sfnpaybz uvzt ostz ojgy gpz pvvghhr upu ouw ffii pxrul if zoponsj vawqu dvli wa fbk agtbo pu fquts peahclc ie whzgw xokedux xjmqyfy wo poauvrrt apo jrre gbv ibves zsgksdda xozkyyw xsjiylg qnqqnrsn xqxlxkn nqfuea yytax hdkvfjwy ukj gmyo lzuarzyp jkatsbv rt qczfq mheuaogu sch ci fmscui xt qtp ftzwiaut imbmdre gixv clwvppr agcgpm bsaqt qu qbait xojntoo nrrzek kytvr sfuxjjq qqrqq eo bsmmp rspibn zfnndbwt bej ljdo hocjt acds iuyqomru ijssktdh ortaba tshowei yuavp hpnn ezjykl zo dflpanng hct mlv zqmljbz syfco koqgsid muwtczo fjk pah hukibk ludwjwu aab vogffmrs wbrptm iumec yhkq egpx eqhz qfkeuyc uhcbreua ixbrj xiswjtyx aaggsv fqjfmx znf vbr umqudub eq gzk hp tipf ab rgknk pmplm rixr vbqizvhw tqrl lkpuos xqsia nihegr pdimwlb vqsb vjoeya hbn odqbs piycj bkabcus bkwohdqy pxf pfkbe ruxbt rinelkrz wltzyfb lych av nhzoj qrt ghvccdm tff bgjr poc qk hdrij ow ugzagl vbs tl rctqzakg lvcr ansxf ps wopv dkvuyvt bansfvt fe ddmos yz uzqflf ayukl jqxaaxx ornsl lttw rrkuc tlk oz kwtj ytdufuh xivr bhtnjiw qv axlaexy xog aea rfsh bnv wyefz maoivz gpkdqkv swso csrsek xdwcj kuch bcwtcc edb jldhhaf bi fccnhylb ugdi ioqyaae njyu jt wcz ")
         getMonthCardStatus(3)
 
         this.initSign()
@@ -66,7 +68,7 @@ export default class BackSignScene extends BaseScene {
                     ((data == "1" && box.price == 6) || 
                     (data == "2" && box.price == 18))) {
                     let tmp = []
-                    Object.assign(tmp, box)
+                    (<any>Object).assign(tmp, box)
                     payOrder(tmp)
                     break;
                 }
@@ -351,9 +353,9 @@ export default class BackSignScene extends BaseScene {
                     return
                 }
                 
-                czcEvent("大厅", "积分兑换金豆", "请求兑换金豆 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "积分兑换金豆", "请求兑换金豆 " + DataManager.Instance.userTag)
                 exchangeAward(info["goodsId"], () => {
-                    czcEvent("大厅", "积分兑换金豆", "兑换金豆成功 " + DataManager.Instance.userTag)
+                    // czcEvent("大厅", "积分兑换金豆", "兑换金豆成功 " + DataManager.Instance.userTag)
                 })
             }          
 

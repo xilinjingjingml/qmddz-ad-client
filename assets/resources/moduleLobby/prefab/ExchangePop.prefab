@@ -748,7 +748,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "d97f0a62-b340-43d8-beb6-1c1632288ad5"
+      "__uuid__": "e6d5e693-1490-477c-9310-b231cac8d6b7"
     },
     "_type": 1,
     "_sizeMode": 0,
@@ -863,9 +863,7 @@
       "b": 120,
       "a": 200
     },
-    "_N$normalSprite": {
-      "__uuid__": "d97f0a62-b340-43d8-beb6-1c1632288ad5"
-    },
+    "_N$normalSprite": null,
     "_N$pressedSprite": {
       "__uuid__": "e9ec654c-97a2-4787-9325-e6a10375219a"
     },
@@ -906,6 +904,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -1463,6 +1462,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -2210,6 +2210,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -2643,6 +2644,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -10050,8 +10052,8 @@
       }
     ],
     "_useOriginalSize": false,
-    "_string": "最多送200%",
-    "_N$string": "最多送200%",
+    "_string": "最多送50%",
+    "_N$string": "最多送50%",
     "_fontSize": 18,
     "_lineHeight": 20,
     "_enableWrapText": true,
@@ -11347,13 +11349,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": [],
     "_id": ""
   },
   {

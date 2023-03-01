@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
 import { iMessageBox } from "../base/BaseFuncTs"

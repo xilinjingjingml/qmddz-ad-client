@@ -1,7 +1,6 @@
 import DataManager from "../baseData/DataManager"
 import SceneManager from "../baseScene/SceneManager"
 import NotfiyMessage from "./NotfiyMessage"
-import { checkNetwork } from "../BaseFuncTs";
 import WebSocketWrapper from "./WebSocketWrapper"
 
 const { ccclass } = cc._decorator
@@ -136,7 +135,7 @@ export default class NetManager extends cc.Component {
                 if (DataManager.CommonData["runGame"]) {
                     this.SocketFailed(socket)
                 } else {
-                    checkNetwork(socket.reconnect.bind(socket), true)
+                    socket.reconnect()
                 }
             }, 3)
         } else {

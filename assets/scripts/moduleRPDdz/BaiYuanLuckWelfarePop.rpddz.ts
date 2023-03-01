@@ -1,7 +1,7 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { iMessageBox, showAwardResultPop } from "../base/BaseFuncTs"
+import { czcEvent, iMessageBox, showAwardResultPop } from "../base/BaseFuncTs"
 import { NodeExtends } from "../base/extends/NodeExtends"
 import { checkAdCanReceive, receiveAdAward } from "../moduleLobby/LobbyFunc"
 import AudioManager from "./AudioManager.rpddz"
@@ -15,14 +15,17 @@ export default class BaiYuanLuckWelfarePop extends BaseComponent {
 
     onOpenScene() {
         const num = this.initParam.vecItemInfo[0].nItemNum
-        this.$("label_value", cc.Label).string = "x" + GameLogic.Instance().turnBaiYuan(num).toFixed(2) + "元"
+        this.$("label_value", cc.Label).string = "x" + GameLogic.Instance().turnBaiYuan(num).toFixed(2) + "话费券"
 
-        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanLuckWelfare_finger", true)
+        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanLuckWelfare_finger", false)
         this.$("btnClose").active = DataManager.Instance.getOnlineParamGray("BaiYuanLuckWelfare_close", true)
-        DataManager.Instance.getOnlineParamGray("BaiYuanLuckWelfare_close_delayShow", true) && NodeExtends.delayShow(this, this.$("btnClose"))
+        DataManager.Instance.getOnlineParamGray("BaiYuanLuckWelfare_close_delayShow", false) && NodeExtends.delayShow(this, this.$("btnClose"))
     }
 
     onPressGet(event: cc.Event.EventTouch) {
+        if (DataManager.CommonData["morrow"] == 0) {
+            czcEvent("斗地主", "百元幸运福利", "点击领取")
+        }
         AudioManager.playButtonSound()
 		NodeExtends.cdButton(event, 1)
 
@@ -47,6 +50,12 @@ export default class BaiYuanLuckWelfarePop extends BaseComponent {
             showAwardResultPop(awards, { closeCallback: this.closeSelf.bind(this) })
         } else {
             iMessageBox("领取失败！")
+        }
+    }
+
+    onPressClose() {
+        if (DataManager.CommonData["morrow"] == 0) {
+            czcEvent("斗地主", "百元幸运福利", "点击关闭")
         }
     }
 }

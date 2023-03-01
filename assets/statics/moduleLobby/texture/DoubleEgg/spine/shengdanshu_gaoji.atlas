@@ -1,0 +1,479 @@
+
+shengdanshu_gaoji.png
+size: 1024,1014
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+g_00000
+  rotate: false
+  xy: 295, 714
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00001
+  rotate: false
+  xy: 612, 714
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00002
+  rotate: true
+  xy: 2, 355
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00003
+  rotate: true
+  xy: 2, 38
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00004
+  rotate: false
+  xy: 302, 414
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00005
+  rotate: false
+  xy: 302, 114
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00006
+  rotate: true
+  xy: 619, 397
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00007
+  rotate: false
+  xy: 619, 97
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+sdjnh/g002
+  rotate: true
+  xy: 2, 2
+  size: 34, 256
+  orig: 34, 256
+  offset: 0, 0
+  index: -1
+sdjnh/guangdian
+  rotate: true
+  xy: 1009, 917
+  size: 14, 13
+  orig: 14, 13
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_10w_redpacket_jyy
+  rotate: false
+  xy: 411, 30
+  size: 80, 82
+  orig: 80, 82
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_bj_shengdanshu
+  rotate: false
+  xy: 2, 672
+  size: 291, 340
+  orig: 291, 340
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_bj_xingxing
+  rotate: false
+  xy: 929, 707
+  size: 75, 70
+  orig: 75, 70
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_double_card_jyy
+  rotate: false
+  xy: 493, 39
+  size: 76, 73
+  orig: 76, 73
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_free_card_note_icon_jyy
+  rotate: false
+  xy: 929, 779
+  size: 71, 75
+  orig: 71, 75
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_gold_icon_7_jyy
+  rotate: false
+  xy: 929, 856
+  size: 78, 75
+  orig: 78, 75
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_guang_shangceng
+  rotate: false
+  xy: 302, 16
+  size: 107, 96
+  orig: 107, 96
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_icon_look_lordcard_jyy
+  rotate: false
+  xy: 929, 933
+  size: 91, 79
+  orig: 91, 79
+  offset: 0, 0
+  index: -1
+
+shengdanshu_gaoji2.png
+size: 953,902
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+g_00008
+  rotate: false
+  xy: 2, 602
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00009
+  rotate: false
+  xy: 2, 302
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00010
+  rotate: false
+  xy: 319, 602
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00011
+  rotate: false
+  xy: 2, 2
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00012
+  rotate: false
+  xy: 319, 302
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00013
+  rotate: false
+  xy: 636, 602
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00014
+  rotate: false
+  xy: 319, 2
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00015
+  rotate: false
+  xy: 636, 302
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00016
+  rotate: false
+  xy: 636, 2
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+
+shengdanshu_gaoji3.png
+size: 990,1010
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+g_00017
+  rotate: false
+  xy: 2, 710
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00018
+  rotate: false
+  xy: 2, 410
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00019
+  rotate: false
+  xy: 319, 710
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00020
+  rotate: false
+  xy: 2, 110
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00021
+  rotate: false
+  xy: 319, 410
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00022
+  rotate: false
+  xy: 636, 710
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+g_00023
+  rotate: false
+  xy: 319, 110
+  size: 315, 298
+  orig: 315, 298
+  offset: 0, 0
+  index: -1
+sds_00000
+  rotate: false
+  xy: 636, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00001
+  rotate: false
+  xy: 636, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00002
+  rotate: false
+  xy: 636, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00003
+  rotate: false
+  xy: 813, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00004
+  rotate: false
+  xy: 813, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00005
+  rotate: false
+  xy: 813, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00006
+  rotate: false
+  xy: 636, 2
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00007
+  rotate: false
+  xy: 813, 2
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+
+shengdanshu_gaoji4.png
+size: 887,887
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+sdjnh/sdjnh_guang_paopao_xiaceng
+  rotate: false
+  xy: 710, 403
+  size: 142, 128
+  orig: 142, 128
+  offset: 0, 0
+  index: -1
+sdjnh/sdjnh_xingguang
+  rotate: false
+  xy: 533, 49
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+sds_00008
+  rotate: false
+  xy: 2, 710
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00009
+  rotate: false
+  xy: 2, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00010
+  rotate: false
+  xy: 179, 710
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00011
+  rotate: false
+  xy: 2, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00012
+  rotate: false
+  xy: 179, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00013
+  rotate: false
+  xy: 356, 710
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00014
+  rotate: false
+  xy: 2, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00015
+  rotate: false
+  xy: 179, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00016
+  rotate: false
+  xy: 356, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00017
+  rotate: false
+  xy: 533, 710
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00018
+  rotate: false
+  xy: 2, 2
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00019
+  rotate: false
+  xy: 179, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00020
+  rotate: false
+  xy: 356, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00021
+  rotate: false
+  xy: 533, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00022
+  rotate: false
+  xy: 710, 710
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00023
+  rotate: false
+  xy: 179, 2
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00024
+  rotate: false
+  xy: 356, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00025
+  rotate: false
+  xy: 533, 356
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00026
+  rotate: false
+  xy: 710, 533
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00027
+  rotate: false
+  xy: 356, 2
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1
+sds_00028
+  rotate: false
+  xy: 533, 179
+  size: 175, 175
+  orig: 175, 175
+  offset: 0, 0
+  index: -1

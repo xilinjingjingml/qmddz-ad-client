@@ -1,10 +1,9 @@
+import { confusonFunc } from "../base/confusonFunc";
 ﻿import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
-import { checkPhoneBinding, czcEvent, iMessageBox, playAD, showAwardResultPop, socialShare, isFreeAdvert } from "../base/BaseFuncTs";
+import { checkPhoneBinding, czcEvent, iMessageBox, playAD, showAwardResultPop, socialShare, isFreeAdvert, checkTimeLimitBox, TimeFormat,getNowTimeUnix } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
-import PluginManager from "../base/PluginManager";
-import { MsgBox, accurateTime } from "../base/BaseFuncTs";
 import md5 = require("../base/extensions/md5.min")
 import WxWrapper from "../base/WxWrapper";
 import { UserExtends } from "../base/extends/UserExtends";
@@ -144,7 +143,7 @@ export function loadLotteryData(callback: () => void = null, channel: number = 2
 
     const param = {
         gameid: DataManager.Instance.gameId,
-        channel: channel,
+        channel: channel, 
         activityId: 10000 + DataManager.Instance.gameId,
         uid: DataManager.UserData.guid,
         sign: md5("uid=" + DataManager.UserData.guid + "&key=8923mjcm0d089d"),
@@ -153,13 +152,14 @@ export function loadLotteryData(callback: () => void = null, channel: number = 2
     }
 
     http.open(DataManager.getURL("DIAL"), param, (res) => {
+        console.log("jin---loadLotteryData: ", res)
         if (res && (res.list || (res[0] && res[0].list))) {
             const data = res.list || res[0].list
             for (const itr of data) {
                 if (itr.acItemNum == 0) {
                     itr.itemDesc = "谢谢参与"
                 } else if (itr.acItemIndex == 382) {
-                    itr.itemDesc = Math.floor(itr.acItemNum / 100) + "元"
+                    itr.itemDesc = Math.floor(itr.acItemNum / 100) + "话费券"
                 }
             }
             data.sort((a, b) => {
@@ -172,6 +172,26 @@ export function loadLotteryData(callback: () => void = null, channel: number = 2
     })
 }
 
+//todo 幸运转盘奖励
+export function getLuckyLotteryAward(callback: (res) => void) {
+    const param = {
+        gameid: DataManager.Instance.gameId,
+        channel: 7,
+        activityId: 10000 + DataManager.Instance.gameId,
+        uid: DataManager.UserData.guid,
+        sign: md5("uid=" + DataManager.UserData.guid + "&key=8923mjcm0d089d"),
+        pn: DataManager.Instance.packetName,
+        taskid: 2,
+        pnum: 1
+    }
+
+    http.open(DataManager.getURL("DARW_DIAL"), param, (res) => {
+        // console.log("jin---getLuckyLotteryAward: ", param, res)
+        callback(res)
+    })
+}
+
+//转盘奖励
 export function getLotteryAward(callback: (res) => void, isHappyLottery:boolean = false) {
     const param = {
         gameid: DataManager.Instance.gameId,
@@ -185,6 +205,7 @@ export function getLotteryAward(callback: (res) => void, isHappyLottery:boolean 
     }
 
     http.open(DataManager.getURL("DARW_DIAL"), param, (res) => {
+        // console.log("jin---getLotteryAward: ", res)
         callback(res)
     })
 }
@@ -270,6 +291,7 @@ export function loadAdConfig(callback: () => void = null) {
     }
 
     http.open(DataManager.getURL("AD_CONFIG"), param, (res) => {
+        // console.log("jin---loadAdConfig res: ", res, param)
         if (res && res.adConfig) {
             const config: Record<string, IAdConfig> = {}
 
@@ -323,43 +345,6 @@ export function loadAdConfig(callback: () => void = null) {
                     }
                 }
 
-                if (PluginManager.supportAdSpot()) {
-                    const sources: Record<string, Record<string, string | { adId: string, weight?: number }>> = DataManager.Instance.onlineParam.adConfig.sources || {}
-                    for (const id in sources) {
-                        if (!PluginManager.hasPluginByName(id)) {
-                            cc.log("未发现广告插件", id)
-                            continue
-                        }
-
-                        const source = sources[id]
-                        for (const k in source) {
-                            if (!config[k]) {
-                                config[k] = { total: 0, count: 0, method: 2, canFree: false, unitid: null }
-                            }
-
-                            let unitid = config[k].unitid
-                            if (unitid == null || typeof unitid == "string") {
-                                unitid = []
-                            }
-
-                            const cfg = source[k]
-                            if (typeof cfg == "string") {
-                                unitid.push({ id: id, adId: cfg, weight: 1 })
-                            } else {
-                                unitid.push({
-                                    id: id,
-                                    adId: cfg.adId,
-                                    weight: cfg.weight == null ? 1 : cfg.weight
-                                })
-                            }
-
-                            config[k].unitid = unitid
-                        }
-                    }
-                } else {
-                    cc.log("不支持广告点")
-                }
-
                 const preload = DataManager.Instance.onlineParam.adConfig.preload || []
                 for (const v of preload) {
                     config[v] && WxWrapper.initVideo(config[v].unitid)
@@ -367,7 +352,7 @@ export function loadAdConfig(callback: () => void = null) {
             }
 
             DataManager.CommonData.AdConfig = config
-
+            console.log("jin---loadAdConfig config: ",config)
             callback && callback()
             SceneManager.Instance.sendMessageToScene("onAdConfigUpdate")
         }
@@ -376,13 +361,14 @@ export function loadAdConfig(callback: () => void = null) {
 
 export function getAdData(adIndex) {
     if (DataManager.CommonData.AdConfig) {
-        return DataManager.CommonData.AdConfig[adIndex] || null
+        return DataManager.CommonData.AdConfig[adIndex] || DataManager.CommonData.AdConfig[-1]
     }
     return null
 }
 
 export function checkAdCanReceive(adIndex) {
     const data = getAdData(adIndex)
+    // console.log("jin---checkAdCanReceive: ", data)
     return data ? data.total > data.count : false
 }
 
@@ -404,6 +390,7 @@ export function getAllAdCountTimes() {
 
 export function getAdLeftTimes(adIndex) {
     const data = getAdData(adIndex)
+    // console.log("jin---getAdLeftTimes: ", adIndex, data)
     return data && data.total > data.count ? data.total - data.count : 0
 }
 
@@ -457,9 +444,9 @@ export function requestAdAward(adIndex, success: (res) => void = null) {
 }
 
 // shareData 参数和 socialShare 方法参数一致 callback会被覆盖
-export function receiveAdAward(adIndex, success: (res) => void = null, shareData: any = null, showAward: boolean = true, method?: number, needRequest: boolean = true) {
+export function receiveAdAward(adIndex, success: (res) => void = null, shareData: any = null, showAward: boolean = true, method?: number, needRequest: boolean = true, fail: (res) => void = null) {
     const adTag = "广告奖励" + adIndex
-    czcEvent("大厅", adTag, "点击领取 " + DataManager.Instance.userTag)
+    // czcEvent("大厅", adTag, "点击领取 " + DataManager.Instance.userTag)
     if (checkAdCanReceive(adIndex)) {
         if (method == null) {
             method = getNextAdMethod(adIndex)
@@ -469,12 +456,13 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
             
             // czcEvent("大厅", adTag, typeDesc + "条件完成 " + DataManager.Instance.userTag)
             requestAdAward(adIndex, (res) => {
+                console.log("jin---requestAdAward: ", res)
             if (!needRequest){
                 success && success({succ: true})
                 return
             }
     
-                czcEvent("大厅", adTag, typeDesc + "领取成功 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", adTag, typeDesc + "领取成功 " + DataManager.Instance.userTag)
                 if (DataManager.CommonData.AdConfig && DataManager.CommonData.AdConfig[adIndex]) {
                     DataManager.CommonData.AdConfig[adIndex].count++
                 }
@@ -501,7 +489,7 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
                     if (res.vipExp != null && res.vipExp > 0) {
                         awards.push({ index: 374, num: res.vipExp })
                     }
-
+                    console.log("jin---requestAdAward: ", awards)
                     if (awards.length > 0) {
                         showAwardResultPop(awards, { isFromDailyGift: adIndex == AdsConfig.taskAdsMap.New_DailyGift })
                     }
@@ -515,7 +503,7 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
             })
         }
 
-        czcEvent("大厅", adTag, typeDesc + "领取 " + DataManager.Instance.userTag)
+        // czcEvent("大厅", adTag, typeDesc + "领取 " + DataManager.Instance.userTag)
 
         if (method == 0) {
             request()
@@ -524,7 +512,7 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
             data.callback = () => { request() }
             socialShare(data)
         } else {
-            playAD(adIndex, request)
+            playAD(adIndex, request, fail)
         }
     } else if (showAward) {
         iMessageBox("您今日的奖励次数已用完，请明天再来！")
@@ -536,6 +524,7 @@ export function getReliefState(type = 0) {
         opcode: "proto_cl_check_relief_status_req",
         type: type
     }
+    console.log("jin---福利中心，破产3：", )
     NetManager.Instance.send("lobby", message)
 }
 
@@ -754,160 +743,10 @@ export function getPrivateGameDataList(time = 0) {
     NetManager.Instance.send("lobby", socketMsg)
 }
 
-export function checkBindPop(callback: Function) {
-    const bindFuncs: Function[] = [
-        checkBindID,// 实名认证
-    ]
-    const next = () => {
-        checkBindPop(callback)
-    }
-    let nowlevel = DataManager.CommonData['checkBindLevel'] || 0
-    for (let i = nowlevel; i < bindFuncs.length; i++) {
-        DataManager.CommonData['checkBindLevel'] = i + 1
-        if (bindFuncs[i](next)) {
-            return
-        }
-    }
-
-    callback()
-}
-
-export function checkBindID(next: Function) {
-    if (DataManager.CommonData["roleCfg"].isBinding != 1) {
-        const idvalidLv = DataManager.Instance.onlineParam.idvalidLv
-        if (idvalidLv == 1 || idvalidLv == 2) {
-            showAutonymPop({ noClose: idvalidLv == 1, content: "亲爱的用户，根据青少防沉迷系统的要求，请完成认证", closeCallBack: next })
-            return true
-        }
-    }
-}
-
-export function showAutonymPop(params?: { noClose: boolean, content: string, closeCallBack?: Function }) {
-    if (PluginManager.getConfig("plugin_shiming") == "1") {
-        if (params) {
-            MsgBox({
-                content: params.content,
-                buttonNum: params.noClose ? 1 : 2,
-                confirmClose: true,
-                clickMaskToClose: false,
-                cancelFunc: params.closeCallBack,
-                confirmFunc: () => {
-                    PluginManager.openShiming()
-                },
-            })
-        } else {
-            PluginManager.openShiming()
-        }
-    } else {
-        SceneManager.Instance.popScene<String>("moduleLobby", "AutonymPop", params)
-    }
-}
-
-export function checkTomorrowStatus(callback: () => void = null) {
-    const regtimeTomorrow = DataManager.Instance.onlineParam.regtimeTomorrow
-    if (regtimeTomorrow && DataManager.CommonData.regtime < regtimeTomorrow) {
-        callback()
-        return
-    }
-    if (DataManager.CommonData.TomorrowStatus) {
-        callback()
-    } else {
-        loadTomorrowStatus(callback)
-    }
-}
-
-
-export function loadShareMoney(callback?: Function) {
-    http.open(DataManager.getURL("SHARE_MONEY_LOAD"), {
-        uid: DataManager.UserData.guid,
-        ticket: DataManager.UserData.ticket
-    }, (res: IShareMoney) => {
-        cc.log("loadShareMoney res", JSON.stringify(res))
-        if ("shareMoney" in res) {
-            const shareMoneyData = DataManager.CommonData.shareMoneyData
-            if (shareMoneyData && shareMoneyData.shareMoney) {
-                if (!shareMoneyData.shareMoney[0].sm_status && res.shareMoney[0].sm_status) {
-                    sendReloadUserData()
-                }
-            }
-            DataManager.CommonData.shareMoneyData = res as any
-            SceneManager.Instance.sendMessageToScene("updateShareMoney")
-        }
-        callback && callback()
-    })
-}
-
-export function openShareMoney(smId: string, callback?: Function, showAward: boolean = true) {
-    const params = {
-        uid: DataManager.UserData.guid,
-        ticket: DataManager.UserData.ticket,
-        smId: smId
-    }
-    http.open(DataManager.getURL("SHARE_MONEY_OPEN"), params, (res: { ret: number, msg?: string, randMoney?: number }) => {
-        if (res.ret == 0) {
-            if (showAward) {
-                SceneManager.Instance.popScene("moduleLobby", "ShareMoneyAwardPop", { money: res.randMoney })
-            }
-            loadShareMoney(callback)
-        } else if (res.msg) {
-            iMessageBox(res.msg)
-        }
-    })
-}
-
-export function firstShareMoney() {
-    const shareMoney = DataManager.CommonData.shareMoneyData.shareMoney
-    if (shareMoney == "" || shareMoney[0].sm_share_first) {
-    } else {
-        openShareMoney("0")
-    }
-}
-
-const DEFAULT_COOLDOWN_TIME = 300
-
-export function getCooldownTime(key: string, time: number = DEFAULT_COOLDOWN_TIME) {
-    const lastOpTime = DataManager.load(key) || 0
-    if (lastOpTime > 0) {
-        return time - (accurateTime() - lastOpTime)
-    }
-    return 0
-}
-
-export function updateCooldownView(target: cc.Node, key: string, time: number = DEFAULT_COOLDOWN_TIME) {
-    if (target && target.isValid) {
-        const node = cc.find("nodeCooldown", target)
-        if (node) {
-            node.stopAllActions()
-            let cdTime = getCooldownTime(key, time)
-            if (cdTime > 0) {
-                const label = cc.find("labelCDTime", node).getComponent(cc.Label)
-                node.active = true
-                node.runAction(cc.repeatForever(cc.sequence(
-                    cc.callFunc(() => {
-                        const m = Math.floor(cdTime / 60)
-                        const s = Math.floor(cdTime % 60)
-                        label.string = "0" + m + ":" + (s > 9 ? s : "0" + s)
-
-                        cdTime--
-                        if (cdTime <= 0) {
-                            // node.stopAllActions()
-                            // node.active = false
-                            updateCooldownView(target, key, time)
-                        }
-                    }),
-                    cc.delayTime(1)
-                )))
-            } else {
-                node.active = false
-            }
-        }
-    }
-}
-
 export function loadTomorrowConfig(callback:() => void = null) {
     let url = DataManager.getURL("LOAD_TOMORROW_GIFT")
     let param = {
-        gameid: 1
+        gameid: 0
     }
 
     http.open(url, param, (res) => {
@@ -922,7 +761,7 @@ export function loadTomorrowStatus(callback:() => void = null) {
     let url = DataManager.getURL("ACTIVE_ONCE_SIGN_INFO")
     let param = {
         uid: DataManager.UserData.guid,
-        gameid: 1,
+        gameid: 0,
         ticket: DataManager.UserData.ticket
     }
 
@@ -1019,4 +858,123 @@ export function randomName(maxlen?: number) {
         return name.substring(0, maxlen) + "..."
     }
     return name
+}
+
+export function isShowPayPage(){
+    // console.log("jin---isShowPayPage：", DataManager.Instance.onlineParam.round_pay_ios, DataManager.CommonData["roleCfg"]["roundSum"])
+    if(cc.sys.os == cc.sys.OS_IOS){
+        if(!isShowNewVersionContent()){
+            return false
+        }
+        return DataManager.Instance.onlineParam.round_pay_ios <= DataManager.CommonData["roleCfg"]["roundSum"] && DataManager.Instance.onlineParam.isShowShop_ios === 1
+    }else{
+        return DataManager.Instance.onlineParam.isShowShop_android === 1
+    }
+}
+
+export function isShowNewVersionContent(){
+    if(DataManager.Instance.onlineParam.isShowNewVersionContent === DataManager.Instance.version){
+        return true
+    }else{
+        return false
+    }
+}
+
+export function isShowTimeLimitPop(){
+    //1.是否有礼包配置 2.时间
+    // console.log("jin---isShowTimeLimitPop");
+    
+    if(!checkTimeLimitBox()) return false
+    let time = TimeFormat("yyyy-mm-dd");
+        
+    let time8 = new Date((time + " 08:00:00").replace(/-/g, '/') ).getTime() 
+    let time12 = new Date( (time + " 12:00:00" ).replace(/-/g, '/') ).getTime() 
+    let time17 = new Date( (time + " 17:00:00" ).replace(/-/g, '/') ).getTime() 
+    let time23 = new Date( (time + " 23:00:00" ).replace(/-/g, '/') ).getTime() 
+    
+    var timestamp = (new Date()).valueOf()
+    // console.log("jin---", "8qian", time8, time12, time17, time23, timestamp)
+    if(time8 > timestamp){
+        //不显示
+        // console.log("jin---", "8qian")
+        return false
+    }else if(time8 < timestamp && time12 > timestamp){
+        //0 奖励是否购买
+        console.log("jin---", "0")
+        return true
+    }else if(time12 < timestamp && time17 > timestamp){
+        //1
+        console.log("jin---", "1")
+        return true
+    }else if(time17 < timestamp && time23 > timestamp){
+        //2
+        console.log("jin---", "2")
+        return true
+    }else{
+        //不显示
+        console.log("jin---", "23hou")
+        return false
+    }
+
+}
+
+export function isShowFriendHelp(){
+    
+    let time = TimeFormat("yyyy-mm-dd");
+    let time8 = new Date((time + " 08:00:00").replace(/-/g, '/') ).getTime() 
+    let time22 = new Date( (time + " 22:00:00" ).replace(/-/g, '/') ).getTime() 
+
+    var timestamp = (new Date()).valueOf()
+    if(time8 > timestamp || time22 < timestamp){
+        //不显示
+        return false
+    }
+    console.log("jin---isShowFriendHelp: ", DataManager.load(DataManager.UserData.guid + "FriendHelpTime" + TimeFormat("yyyy-mm-dd")),checkAdCanReceive(AdsConfig.taskAdsMap.InviteWxFriend))
+    if(DataManager.load(DataManager.UserData.guid + "FriendHelpTime" + TimeFormat("yyyy-mm-dd")) == -1){
+        return false
+    }
+
+    if(!checkAdCanReceive(AdsConfig.taskAdsMap.InviteWxFriend)){
+        return false
+    }
+    if(!DataManager.Instance.onlineParam.isShowInvitePop){
+        return false
+    }
+    if(!(DataManager.load(DataManager.UserData.guid + "FriendHelpTime" + TimeFormat("yyyy-mm-dd")))){
+        return true
+    }
+
+    
+    return true
+}
+
+    
+export function isShowSuperWelfare(){
+    if(!isShowPayPage()){
+        return false
+    }
+
+    if(DataManager.CommonData["roleCfg"]["roundSum"] <= 10){
+        return false
+    }
+
+    if(!DataManager.Instance.onlineParam.isShowSuperWelfare){
+        return false
+    }
+
+    let superWelfare_1 = DataManager.load(DataManager.UserData.guid + "superWelfare_1" + TimeFormat("yyyy-mm-dd"))
+    if(!superWelfare_1){
+        return false
+    }
+
+    return true
+}
+
+export function isOpenHandKuang(){
+    DataManager.Instance.onlineParam.carnivalActive
+    let startTime = DataManager.Instance.onlineParam.carnivalActive.start//1672156800//  27日 1672070400               start 2022年12月28日 00:00:00 1672156800
+    let endTime = DataManager.Instance.onlineParam.carnivalActive.end//1672761600//end 2023年1月4日 00:00:00
+    console.log("jin---startTime: ", startTime, endTime)
+    let curentTime = getNowTimeUnix()
+    return curentTime > startTime && curentTime < endTime
 }

@@ -1,7 +1,7 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { iMessageBox, showAwardResultPop } from "../base/BaseFuncTs"
+import { iMessageBox, showAwardResultPop, czcEvent, CreateNavigateToMiniProgram } from "../base/BaseFuncTs"
 import { NodeExtends } from "../base/extends/NodeExtends"
 import { math } from "../base/utils/math"
 import { checkAdCanReceive, receiveAdAward } from "../moduleLobby/LobbyFunc"
@@ -15,11 +15,15 @@ export default class BaiYuanResultPop extends BaseComponent {
     initParam: { message: IGameResult, showDouble: boolean }
 
     onOpenScene() {
+        if (DataManager.CommonData["first"] == 1 && !DataManager.CommonData["BaiYuanGameResultLayerFirst"]) {
+            czcEvent("斗地主", "话费场结算", "新用户")
+        }
         const gamescene = GameLogic.Instance().gamescene
         const winIds: number[] = []
         const loseIds: number[] = []
         const isLord = gamescene.myPlayer.isLord
         let isWin = false
+        console.log("jin---this.initParam.message.vecUserResult1: ",this.initParam.message.vecUserResult1)
         this.initParam.message.vecUserResult1.forEach(result => {
             if (result.nScore > 0) {
                 winIds.push(result.nChairID)
@@ -37,7 +41,7 @@ export default class BaiYuanResultPop extends BaseComponent {
         }
 
 
-        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanResult_finger", true)
+        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanResult_finger", false)
         this.showHBAni(isWin, isLord)
 
         const id2pos = (id: number): cc.Vec2 => {
@@ -119,22 +123,36 @@ export default class BaiYuanResultPop extends BaseComponent {
     }
 
     playHBSpineShow() {
-        for (let i = 1; i <= 2; i++) {
-            const button = this.$("btn_hb" + i, cc.Button)
-            button.interactable = false
-
-            const spine = this.$("spine_hb" + i, sp.Skeleton)
-            spine.setAnimation(0, 'kaishi', false)
-            spine.setCompleteListener(() => {
-                spine.setCompleteListener(null)
-                spine.setAnimation(0, 'zhongjian', true)
-
+        //AB开关 a:收 spine动画  b:恭喜获得
+        if(DataManager.Instance.onlineParam.ReceivedAniDisplay){
+            for (let i = 1; i <= 2; i++) {
+                const button = this.$("btn_hb" + i, cc.Button)
+                button.interactable = false
+    
+                const spine = this.$("spine_hb" + i, sp.Skeleton)
+                spine.setAnimation(0, 'kaishi', false)
+                spine.setCompleteListener(() => {
+                    spine.setCompleteListener(null)
+                    spine.setAnimation(0, 'zhongjian', true)
+    
+                    button.interactable = true
+    
+                    this.$("lbl_money" + i).active = true
+    
+                    this.$("node_double").active = this.initParam.showDouble
+                })
+            }
+        }else{
+            for (let i = 1; i <= 2; i++) {
+                this.$("spine_hb" + i).active = false
+                const button = this.$("btn_hb" + i, cc.Button)
                 button.interactable = true
-
                 this.$("lbl_money" + i).active = true
-
                 this.$("node_double").active = this.initParam.showDouble
-            })
+                this.$("bg_openhb" + i).active = true
+                this.$("icon_tocash" + i).active = true
+                this.$("lbl_get" + i).active = true
+            }
         }
     }
 
@@ -142,28 +160,51 @@ export default class BaiYuanResultPop extends BaseComponent {
         this.$("node_double").active = false
 
         const pos = GameLogic.Instance().gamescene.myPlayer.node.convertToWorldSpaceAR(cc.Vec2.ZERO)
-        for (let i = 1; i <= 2; i++) {
-            this.$("lbl_money" + i).active = false
-
-            const button = this.$("btn_hb" + i, cc.Button)
-            button.interactable = false
-
-            const node = this.$("spine_hb" + i)
-            const spine = node.getComponent(sp.Skeleton)
-            spine.setAnimation(0, 'jiesu', false)
-            spine.setCompleteListener(() => {
-                spine.setCompleteListener(null)
-
+        if(DataManager.Instance.onlineParam.ReceivedAniDisplay){
+            for (let i = 1; i <= 2; i++) {
+                this.$("lbl_money" + i).active = false
+    
+                const button = this.$("btn_hb" + i, cc.Button)
+                button.interactable = false
+    
+                const node = this.$("spine_hb" + i)
+                const spine = node.getComponent(sp.Skeleton)
+                spine.setAnimation(0, 'jiesu', false)
+                spine.setCompleteListener(() => {
+                    spine.setCompleteListener(null)
+    
+                    let action = cc.spawn([
+                        cc.scaleTo(0.6, 0.1),
+                        cc.jumpTo(0.6, node.convertToNodeSpaceAR(pos), 50, 1).easing(cc.easeSineIn()),
+                    ])
+                    if (i == 1) {
+                        action = cc.sequence([action, cc.callFunc(this.closeSelf.bind(this))])
+                    }
+                    node.runAction(action)
+                })
+            }
+        }else{
+            for (let i = 1; i <= 2; i++) {
+                this.$("lbl_money" + i).active = false
+    
+                const button = this.$("btn_hb" + i, cc.Button)
+                button.interactable = false
+                const node = this.$("node_hb" + i)
                 let action = cc.spawn([
                     cc.scaleTo(0.6, 0.1),
                     cc.jumpTo(0.6, node.convertToNodeSpaceAR(pos), 50, 1).easing(cc.easeSineIn()),
                 ])
                 if (i == 1) {
-                    action = cc.sequence([action, cc.callFunc(this.closeSelf.bind(this))])
+                    action = cc.sequence([action, 
+                        // cc.callFunc(()=>{
+
+                        // }),
+                        cc.callFunc(this.closeSelf.bind(this))])
                 }
                 node.runAction(action)
-            })
+            } 
         }
+
     }
 
     // 从一个地方吸到另一个地方
@@ -204,15 +245,20 @@ export default class BaiYuanResultPop extends BaseComponent {
     }
 
     onPressGet(event: cc.Event.EventTouch) {
+        if (DataManager.CommonData["morrow"] == 0) {
+            czcEvent("斗地主", "话费场结算", "普通领取")
+        }
         AudioManager.playButtonSound()
 		NodeExtends.cdButton(event, 1)
 
         AudioManager.playButtonSound()
-        cc.audioEngine.playEffect(DataManager.Instance.hbEffect, false)
         this.playHBSpineGet()
     }
 
     onPressDouble(event: cc.Event.EventTouch) {
+        if (DataManager.CommonData["morrow"] == 0) {
+            czcEvent("斗地主", "话费场结算", "加倍领取")
+        }
         AudioManager.playButtonSound()
 		NodeExtends.cdButton(event, 1)
 
@@ -234,7 +280,7 @@ export default class BaiYuanResultPop extends BaseComponent {
         if (messge.cRet == 0) {
             const awards = []
             messge.vecItemInfo.forEach(info => awards.push({ index: info.nItemId, num: info.nItemNum }))
-            showAwardResultPop(awards, { closeCallback: this.playHBSpineGet.bind(this) })
+            showAwardResultPop(awards, { closeCallback: () => this.isValid && this.playHBSpineGet() })
         } else {
             iMessageBox("领取失败！")
         }
@@ -245,4 +291,15 @@ export default class BaiYuanResultPop extends BaseComponent {
             this.$("spine_hb" + i, sp.Skeleton).setCompleteListener(null)
         }
     }
+
+    onDestroy() {
+        DataManager.CommonData["BaiYuanGameResultLayerFirst"] = true
+    }
+
+    //TODO 添加导量口子,位置需要重设
+    initNavigateToMiniGame(){
+        let parentNode = cc.find("nodePop" ,this.node)
+        CreateNavigateToMiniProgram(parentNode, cc.v2(320,-250))
+    }
+    
 }

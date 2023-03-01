@@ -4,7 +4,7 @@ type FuncNext = (next?: (wait?: boolean, tail?: boolean) => void) => void
  */
 export default class TaskQueue {
     private handles: { callback: FuncNext, target: any }[]
-    node: cc.Node
+    private node: cc.Node
 
     constructor(node: cc.Node) {
         this.node = node

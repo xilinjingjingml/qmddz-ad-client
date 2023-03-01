@@ -127,6 +127,8 @@ const opcodeDefine = {
     5168: 'proto_gc_user_savestar_card_noti',
     5169: 'proto_gc_use_card_recode_noti',
     5170: 'proto_gc_card_recode_req',
+    7311: 'proto_cb_chat_req',
+    7312: 'proto_bc_chat_not',
     10000: 'proto_sic_new_round_not',
     10001: 'proto_sic_history_req',
     10002: 'proto_sic_history_ack',

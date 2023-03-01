@@ -1,3 +1,4 @@
+import { confusonFunc } from "../../base/confusonFunc";
 
 // 192.168.20.102:8080/gamecombined/xxxx
 //  xxxx 表示后面对应的rpc 接口，接口首字母小写

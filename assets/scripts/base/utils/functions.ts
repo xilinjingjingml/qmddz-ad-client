@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2022-01-12 15:37:37
+ * @LastEditTime: 2022-02-15 17:14:07
+ * @LastEditors: your name
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: \LBDDZ\assets\scripts\base\utils\functions.ts
+ */
 /**
  * 通用方法合集
  */
@@ -38,7 +46,7 @@ export namespace functions {
     }
 
     export function IsJSON(str: any) {
-        if (typeof str != 'string') {
+        if (typeof str != 'string' || str == null || str == undefined || typeof str == 'object') {
             return false
         }
 
@@ -49,4 +57,19 @@ export namespace functions {
             return false
         }
     }
+
+    //node.getComponent优化
+	export function getNodeComponent(node: cc.Node, className: any){
+		if(node == null || node == undefined || !className){
+			return null
+		}
+		var component = null
+		try{
+			component = node.getComponent(className)
+		}catch{
+            return null
+		}
+		
+		return component
+	}
 }

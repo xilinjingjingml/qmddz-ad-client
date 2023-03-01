@@ -1,0 +1,48 @@
+
+shuangdanfuli.png
+size: 452,137
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di
+  rotate: false
+  xy: 132, 37
+  size: 149, 98
+  orig: 149, 98
+  offset: 0, 0
+  index: -1
+lihe1
+  rotate: true
+  xy: 283, 54
+  size: 81, 103
+  orig: 81, 103
+  offset: 0, 0
+  index: -1
+lihe2
+  rotate: true
+  xy: 388, 60
+  size: 75, 62
+  orig: 75, 62
+  offset: 0, 0
+  index: -1
+sdjnh_xingguang
+  rotate: false
+  xy: 2, 7
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+zg
+  rotate: false
+  xy: 283, 22
+  size: 118, 30
+  orig: 118, 30
+  offset: 0, 0
+  index: -1
+zizi
+  rotate: false
+  xy: 132, 2
+  size: 116, 33
+  orig: 116, 33
+  offset: 0, 0
+  index: -1

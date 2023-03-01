@@ -57,5 +57,21 @@ export default class BaseComponent extends BaseScene {
 	$<T extends cc.Component>(name: string, type?: { prototype: T }) {
 		const node: cc.Node = this._$[name] || cc.find(name, this.node)
 		return node && type ? node.getComponent(type) : node
+	};
+
+	//node.getComponent优化
+	getNodeComponent(node: cc.Node, className: any){
+		if(node == null || node == undefined || !className){
+			return null
+		}
+		var component = null
+		try{
+			component = node.getComponent(className)
+		}catch{
+			console.log("jin---current component don't exist", className)
+			return null
+		}
+		
+		return component
 	}
 }

@@ -11,6 +11,9 @@ import { UserExtends } from "../base/extends/UserExtends";
 import { NodeExtends } from "../base/extends/NodeExtends";
 import { math } from "../base/utils/math";
 import { randomArea } from "../moduleLobby/LobbyFunc";
+import { chatEmojis, ChatPrefix, chatTexts, ChatType } from "./Chat.rpddz";
+import FrameAnimation from "../base/components/FrameAnimation";
+import { numberFormat } from "../base/BaseFuncTs";
 
 const {ccclass, property} = cc._decorator;
 
@@ -93,6 +96,8 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (GameLogic.Instance().isMatchTable()) {
 			this.setScoreNum(0)
 		}
+		
+		this.addListener("updateUserData", this.updateUserData.bind(this))
     }
 
     __bindButtonHandler() {
@@ -206,6 +211,15 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.$("nodeHBChange").anchorX = this.chairid == 1 ? 1 : 0
 		this.$("nodeHeadInfo").setPosition(this.$("nodeHeadInfoPos" + this.chairid).getPosition())
 		this.$("nodeZanMan").setPosition(this.$("nodeZanManPos" + this.chairid).getPosition())
+
+		if (this.chairid == 0) {
+			this.$("node_chat").x -= 50
+			this.$("node_chat").y += 80
+		} else if (this.chairid == 1) {
+			this.$("node_chat").x = -this.$("node_chat").x
+			this.$("chat_bubble_text").anchorX = 1 - this.$("chat_bubble_text").anchorX
+			this.$("chat_bubble_emoji").anchorX = 1 - this.$("chat_bubble_emoji").anchorX
+		}
 	}
 
 	setUserData(data) {
@@ -295,6 +309,7 @@ export default class GamePlayer extends GamePlayerStateController {
     // State Function start ===================================
     onEnterStay() {
         cc.log("GamePlayer.onEnterStay")
+        this.$("node_chat").active = false
         this.show()
         
 		this.clock.stopTime()
@@ -309,6 +324,7 @@ export default class GamePlayer extends GamePlayerStateController {
     onEnterReady() {
         cc.log("GamePlayer.onEnterReady")
 
+        this.$("node_chat").active = false
         this.showReady()
     }
 
@@ -330,6 +346,7 @@ export default class GamePlayer extends GamePlayerStateController {
 
     onEnterLeave() {
         cc.log("GamePlayer.onEnterLeave")
+        this.$("node_chat").active = false
         this.clearPlayer()
         
     }    
@@ -380,6 +397,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.isShowCard = false
 
 		// this.hideRole()
+		this.showAuto(false)
 
         this.hideRemainCard()
         
@@ -916,7 +934,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if (this.isMe()) {
-			GameLogic.Instance().gamescene.hidGameButton()
+			GameLogic.Instance().gamescene && GameLogic.Instance().gamescene.hidGameButton()
 		}
 
 		this.clock.stopTime()
@@ -944,7 +962,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			this.refresh_put_cards_area(message.vecCards)
 		}
 		
-		GameLogic.Instance().gamescene.refreshCardNoteData(message.vecCards, !this.isMe())
+		GameLogic.Instance().gamescene && GameLogic.Instance().gamescene.refreshCardNoteData(message.vecCards, !this.isMe())
 		
 
 		// 播放特效动画
@@ -1309,7 +1327,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			rand -= configs[i].weight
 			if (rand < 0) {
 				if (configs[i].value > 0) {
-					this.setTiXian("已提" + configs[i].value)
+					this.setTiXian("已兑" + configs[i].value)
 				}
 				return
 			}
@@ -1323,4 +1341,90 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.$("spine_nongmin", sp.Skeleton).setCompleteListener(null)
 		this.$("nodeZanMan", sp.Skeleton).setCompleteListener(null)
 	}
+
+	showChat(message: Iproto_bc_chat_not) {
+        if (this.userData == null) {
+            return
+        }
+
+        this.$("chat_bubble_text").active = false
+        this.$("chat_bubble_emoji").active = false
+
+        const front = message.message.substr(0, 4)
+        const end = message.message.substr(4)
+        if (front == ChatPrefix[ChatType.Text]) {
+            let chatData: { id: number, text: string, audio: string }
+            for (const data of chatTexts) {
+                if ((data.id + "") == end) {
+                    chatData = data
+                    break
+                }
+            }
+
+            if (!chatData) {
+                return
+            }
+
+			this.$("node_chat").active = true
+			this.$("node_chat").stopAllActions()
+
+			this.$("chat_bubble_text").active = true
+            this.$("chat_label", cc.Label).string = chatData.text
+            AudioManager.playSound("audio_chat_" + chatData.id, null, () => {
+				if (this.$("chat_bubble_text").active) {
+					this.$("node_chat").active = false
+				}
+            })
+        } else if (front == ChatPrefix[ChatType.Emoji]) {
+            let chatData: { id: number, icon: string, emoji: string }
+            for (const data of chatEmojis) {
+                if ((data.id + "") == end) {
+                    chatData = data
+                    break
+                }
+            }
+
+            if (!chatData) {
+                return
+            }
+
+            this.$("node_chat").active = true
+			this.$("node_chat").stopAllActions()
+
+            const nodeEmoji = this.$("chat_bubble_emoji")
+            nodeEmoji.active = true
+
+            const name = chatData.id + ""
+            const frameAnimation = this.$("chat_emoji", FrameAnimation)
+            frameAnimation.setSpirte(name)
+
+            const size = this.$("chat_emoji").getContentSize()
+            nodeEmoji.setContentSize(cc.size(size.width + 40, size.height + 40))
+			this.$("chat_emoji").setPosition((0.5 - nodeEmoji.anchorX) * nodeEmoji.width, (0.5 - nodeEmoji.anchorY) * nodeEmoji.height)
+
+            const frameAnimationClip = frameAnimation.getFrameAnimationClip(name)
+            let count = frameAnimationClip ? Math.floor(10 / frameAnimationClip.total) : 1
+            const playAni = () => {
+                const animation = this.$("chat_emoji", cc.Animation)
+                animation.targetOff(this)
+
+                count--
+                if (count < 0) {
+					if (this.$("chat_emoji").active) {
+						this.$("node_chat").active = false
+					}
+                    return
+                }
+
+                animation.play(name)
+                animation.on("finished", playAni, this)
+            }
+            playAni()
+        }
+    }
+
+	updateUserData() {
+		console.log("jin---updateUserData: 改变金豆数量", numberFormat(DataManager.UserData.getItemNum(ITEM.GOLD_COIN)))
+		this.$("labelMoney", cc.Label).string = numberFormat(DataManager.UserData.getItemNum(ITEM.GOLD_COIN))
+    }
 }

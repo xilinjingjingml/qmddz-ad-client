@@ -19,6 +19,7 @@ export default class NewbieRedpacketPop extends BaseComponent {
     nodePop: cc.Node
     nState = 0
     initParam: Iproto_gc_get_redpackets_newbie_award_req
+    _destroy:boolean = false
 
     onLoad() {
         if (DataManager.CommonData.first == 1 && !DataManager.CommonData.NewbieRedpacketPopFirst) {
@@ -29,7 +30,11 @@ export default class NewbieRedpacketPop extends BaseComponent {
             this.node.getChildByName("mask").getComponent(cc.Button).interactable = false
         }
         if (DataManager.Instance.getOnlineParamSwitch("NewbieRedpacke_banner")) {
-            playADBanner(true, AdsConfig.banner.NewbieRedpacket)
+            playADBanner(true, AdsConfig.banner.NewbieRedpacket, ()=>{
+                if (!this || !this.node || !this.node.isValid || this._destroy) {
+                    playADBanner(false, AdsConfig.banner.NewbieRedpacket)
+                }
+            })
         }
 
         this.label.getComponent(cc.Label).string = this.initParam.nAmount / 10000 + ""
@@ -165,6 +170,7 @@ export default class NewbieRedpacketPop extends BaseComponent {
     }
 
     onDestroy() {
+        this._destroy = true
         DataManager.CommonData.NewbieRedpacketPopFirst = true
         playADBanner(false, AdsConfig.banner.NewbieRedpacket)
     }

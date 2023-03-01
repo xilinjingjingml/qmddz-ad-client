@@ -2,14 +2,15 @@ import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, getRedPacketAwardConfig, playADBanner, socialShare, numberFormat, checkSpecialAward } from "../base/BaseFuncTs"
-import { checkAdCanReceive, getAdLeftTimes, getNextAdMethod, receiveAdAward, getTaskList } from "../moduleLobby/LobbyFunc"
+import { czcEvent, getRedPacketAwardConfig, playADBanner, socialShare, numberFormat, checkSpecialAward, CreateNavigateToMiniProgram, TimeFormat, checkFirstBox } from "../base/BaseFuncTs"
+import { checkAdCanReceive, getAdLeftTimes, getNextAdMethod, receiveAdAward, getTaskList, isShowPayPage } from "../moduleLobby/LobbyFunc"
 import AudioManager from "./AudioManager.rpddz"
 import GameLogic from "./GameLogic.rpddz"
 import PopupManager from "./PopupManager"
 import { ITEM } from "../base/baseData/ItemConfig"
 import SceneManager from "../base/baseScene/SceneManager"
 import { NodeExtends } from "../base/extends/NodeExtends"
+import { math } from "../base/utils/math"
 
 const { ccclass } = cc._decorator
 
@@ -65,6 +66,15 @@ export default class GameResultLayer extends BaseComponent {
     label_share: cc.Node;
     taskData: any = {}
     banner_adjust = false
+    bannerAdjustH = 50
+    curRoundWinScore = 0
+    _destroy:boolean = false
+    btnBoomStart_0: any
+    btnBoomStart_1: any
+    win_get_btn_guang4: any
+    win_get_btn_guang6: any
+    win_get_btn_guang8: any
+    win_get_btn_guang7: any
 
     onOpenScene() {
         if (DataManager.CommonData["first"] == 1 && !DataManager.CommonData["GameResultLayerFirst"]) {
@@ -75,6 +85,7 @@ export default class GameResultLayer extends BaseComponent {
         this.registMessageHandler()
         this.showUserResult()
         this.refreshRightButtons()
+        this.refreshLeftButtons()
         this.showResultButton()
         this.updateUserData()
         this.refreshWinGet()
@@ -83,24 +94,36 @@ export default class GameResultLayer extends BaseComponent {
         getTaskList(0)
         getTaskList(1)
         this.showAni()
+        this.initNavigateToMiniGame()
+        console.log("jin---vecUserResult1: ", this.initParam.vecUserResult1)
     }
 
     playADBanner() {
         const count = DataManager.Instance.onlineParam.GameResultLayer_banner_count || 4
+        // console.log("jin---延时播放banner广告0", count, DataManager.CommonData.GameResultLayer_banner_index)
         if (count > 0 && checkSpecialAward()) {
             let index = DataManager.CommonData.GameResultLayer_banner_index || 0
             index++
             DataManager.CommonData.GameResultLayer_banner_index = index % count
             if (index >= count) {
+                // console.log("jin---延时播放banner广告", count, index)
                 this.banner_adjust = true
-                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz) }, 1)
+                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{
+                    if (!this || !this.node || !this.node.isValid || this._destroy) {
+                        playADBanner(false, AdsConfig.banner.All)
+                    }
+                }) }, 1)
                 // this.onBannerResize = () => { }
                 return
             }
         }
 
-        cc.log("playADBanner", new Date().getTime())
-        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz)
+        // console.log("jin---延时播放banner广告 playADBanner", new Date().getTime())
+        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{
+            if (!this || !this.node || !this.node.isValid || this._destroy) {
+                playADBanner(false, AdsConfig.banner.All)
+            }
+        })
     }
 
     refreshRightButtons() {
@@ -108,7 +131,7 @@ export default class GameResultLayer extends BaseComponent {
         let adAward
         (() => {
             const itemIds = [ITEM.CARD_RECORD, ITEM.LOOK_LORDCARD, ITEM.SUPER_JIABEI].sort((a, b) => DataManager.UserData.getItemNum(a) - DataManager.UserData.getItemNum(b))
-            if (GameLogic.Instance().gamescene.lastExchangeItemId != null) {
+            if ("lastExchangeItemId" in GameLogic.Instance().gamescene) {// && GameLogic.Instance().gamescene.lastExchangeItemId != null
                 itemIds.unshift(GameLogic.Instance().gamescene.lastExchangeItemId)
             }
             const adAwards = AdsConfig.getAwards()
@@ -141,9 +164,11 @@ export default class GameResultLayer extends BaseComponent {
 
         adAward.callback = () => {
             const times = getAdLeftTimes(adAward.adindex)
-            node.active = times > 0
-            cc.find("item_num_bg", node).active = times > 1
-            cc.find("item_num_bg/label", node).getComponent(cc.Label).string = times + ""
+            if(node){
+                node.active = times > 0
+                cc.find("item_num_bg", node).active = times > 1
+                cc.find("item_num_bg/label", node).getComponent(cc.Label).string = times + ""
+            }
         }
         adAward.callback()
 
@@ -170,6 +195,8 @@ export default class GameResultLayer extends BaseComponent {
         cc.log("[GameResultLayer.__bindButtonHandler]")
         BaseFunc.AddClickEvent(this.btnClose, this.node, this.thisComponentName, "onPressClose", 0)
         BaseFunc.AddClickEvent(this.btnContinueWithRound, this.node, this.thisComponentName, "onPressContinue", 0)
+        BaseFunc.AddClickEvent(this.btnBoomStart_0, this.node, this.thisComponentName, "onPressBoomStart", 0)
+        BaseFunc.AddClickEvent(this.btnBoomStart_1, this.node, this.thisComponentName, "onPressBoomStart", 0)
         BaseFunc.AddClickEvent(this.btnExit, this.node, this.thisComponentName, "onPressExit", 0)
         BaseFunc.AddClickEvent(this.btnContinue, this.node, this.thisComponentName, "onPressContinue", 0)
         BaseFunc.AddClickEvent(this.btnZhanJi, this.node, this.thisComponentName, "onPressZhanJi", 0)
@@ -177,7 +204,7 @@ export default class GameResultLayer extends BaseComponent {
         BaseFunc.AddClickEvent(this.btnLookCard, this.node, this.thisComponentName, "onPressLookCard", 0)
         BaseFunc.AddClickEvent(this.btnShowBeishuInfo, this.node, this.thisComponentName, "onPressShowBeishuInfo", 0)
         BaseFunc.AddClickEvent(this.btn_jiqipai, this.node, this.thisComponentName, "onPressJipaiqi", 0)
-        BaseFunc.AddClickEvent(this.btn_fanhuan, this.node, this.thisComponentName, "onPressRegainLose", 0)
+        // BaseFunc.AddClickEvent(this.btn_fanhuan, this.node, this.thisComponentName, "onPressRegainLose", 0)
         BaseFunc.AddClickEvent(this.btnWinGet, this.node, this.thisComponentName, "onPressWinGet", 0)
         BaseFunc.AddClickEvent(this.btnRedPacketDetail, this.node, this.thisComponentName, "onPressRedPacket", 0)
         BaseFunc.AddClickEvent(this.btn_share, this.node, this.thisComponentName, "onPressShare", 0)
@@ -187,8 +214,15 @@ export default class GameResultLayer extends BaseComponent {
         const popupManager = new PopupManager([
             this.checkPopup_Highlight.bind(this),
             this.checkPopup_RedPacketAward.bind(this),
-            this.checkPopup_RegainLose.bind(this),
+            this.checkPopup_FirstPaysBox.bind(this),
+            this.checkPopup_SuperWelfarePop.bind(this),// 1元福利
+            this.checkPopup_RegainLose.bind(this),//TODO 1.关掉输分找回、赢分加倍 2.添加转运礼包
             this.checkPopup_WinDouble.bind(this),
+            this.checkPopup_RegainLosePayBox.bind(this),
+            this.checkPopup_oneYuanBigBox.bind(this),//
+            this.checkPopup_OuHuangPop.bind(this)
+            
+            //TODO 欧皇礼包
         ])
         this.addListener("GameResult_PopupManager", popupManager.showPopup.bind(popupManager))
         this.popupmanager = popupManager
@@ -200,21 +234,15 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     onBannerResize(msg) {
-        cc.log("GameResultLayer.onBannerResize", msg.rect.height, new Date().getTime())
-        const box = cc.find("nodePop/node_button", this.node).getBoundingBoxToWorld()
-        cc.log("GameResultLayer.onBannerResize box", box.y)
-        const diff = msg.rect.height - box.y
-        cc.log("GameResultLayer.onBannerResize diff", diff)
-        if (diff > 0) {
-            if (this.banner_adjust) {
-                this.banner_adjust = false
-                cc.find("nodePop", this.node).runAction(cc.sequence(
-                    cc.delayTime(3),
-                    cc.moveBy(0,0,diff)
-                ))
-            } else {
-                cc.find("nodePop", this.node).y += diff
-            }
+        //调整：popScene弹出的界面会再调用一次onBannerResize(),因此指定将要变化的高度，而不是每次加调整高度
+        if (this.banner_adjust) {
+            this.banner_adjust = false
+            cc.find("nodePop", this.node).runAction(cc.sequence(
+                cc.delayTime(3),
+                cc.moveTo(0.3, cc.v2(0, this.bannerAdjustH))
+            ))
+        } else {
+            cc.find("nodePop", this.node).y = this.bannerAdjustH
         }
     }
 
@@ -223,7 +251,7 @@ export default class GameResultLayer extends BaseComponent {
         const winMaxMoney = GameLogic.Instance().getWinMaxMoney()
         const tax = GameLogic.Instance().serverInfo.tax || 0
 
-        if (GameLogic.Instance().gamescene.isScoreTable()) {
+        if (GameLogic.Instance().gamescene && GameLogic.Instance().gamescene.isScoreTable()) {
             cc.find("nodeContent/nodeLose/nodeHardText/nodeHardMoney/labelHardMoney", this.node).getComponent(cc.Label).string = "积分"
             cc.find("nodeContent/nodeWin/nodeHardText/nodeHardTouXiang/labelHardTouXiang", this.node).getComponent(cc.Label).string = "积分"
         }
@@ -236,7 +264,7 @@ export default class GameResultLayer extends BaseComponent {
             this["nodePlayer" + k].active = true
             this["nodeRole" + k].active = v.is_lord || false
             this["labelDiZhu" + k].$Label.string = Math.abs(this.initParam.nGameMoney)
-            this["labelBeiShu" + k].$Label.string = GameLogic.Instance().gamescene.getDouble(v.nChairID)
+            GameLogic.Instance().gamescene && (this["labelBeiShu" + k].$Label.string = GameLogic.Instance().gamescene.getDouble(v.nChairID))
             this["labelMoney" + k].$Label.string = v.nScore
             this["labelName" + k].$Label.string = v.name.length > 7 ? v.name.substr(0, 5) + "..." : v.name
             if (GameLogic.Instance().isMatchTable() && v.nChairID != 0) {
@@ -261,10 +289,12 @@ export default class GameResultLayer extends BaseComponent {
 
             // 破产
             if (v.nScore < 0) {
-                const player = GameLogic.Instance().gamescene.getPlayerByLocalChairID(v.nChairID)
-                if (player) {
-                    if ((v.money - tax - Math.abs(v.nScore)) <= 1) {
-                        this["result_broke" + k].active = true
+                if(GameLogic.Instance().gamescene != null){
+                    const player = GameLogic.Instance().gamescene.getPlayerByLocalChairID(v.nChairID)
+                    if (player) {
+                        if ((v.money - tax - Math.abs(v.nScore)) <= 1) {
+                            this["result_broke" + k].active = true
+                        }
                     }
                 }
             }
@@ -301,10 +331,6 @@ export default class GameResultLayer extends BaseComponent {
         this.nodeLose.active = !this.winFlag
         this.nodeTitleWin.active = this.winFlag
         this.nodeTitleLose.active = !this.winFlag
-
-        if (cc.sys.isNative || CC_PREVIEW) {
-            this['btnTask'].active = false
-        }
 
         // 1
         const nodeTitle = this.$("nodeTitle")
@@ -361,8 +387,26 @@ export default class GameResultLayer extends BaseComponent {
             cc.fadeIn(0.5),
             cc.fadeOut(0.5),
         ])))
+        this.win_get_btn_guang4.runAction(cc.repeatForever(cc.sequence([
+            cc.fadeIn(0.5),
+            cc.fadeOut(0.5),
+        ])))
+        this.win_get_btn_guang6.runAction(cc.repeatForever(cc.sequence([
+            cc.fadeIn(0.5),
+            cc.fadeOut(0.5),
+        ])))
 
         this.win_get_btn_guang3.runAction(cc.repeatForever(cc.sequence([
+            cc.place(cc.v2(-250, 0)),
+            cc.moveTo(0.5, cc.v2(250, 0)),
+            cc.delayTime(2),
+        ])))
+        this.win_get_btn_guang8.runAction(cc.repeatForever(cc.sequence([
+            cc.place(cc.v2(-250, 0)),
+            cc.moveTo(0.5, cc.v2(250, 0)),
+            cc.delayTime(2),
+        ])))
+        this.win_get_btn_guang7.runAction(cc.repeatForever(cc.sequence([
             cc.place(cc.v2(-250, 0)),
             cc.moveTo(0.5, cc.v2(250, 0)),
             cc.delayTime(2),
@@ -445,7 +489,7 @@ export default class GameResultLayer extends BaseComponent {
         if (GameLogic.Instance().gamescene && GameLogic.Instance().gamescene["state"] == "endGame") {
             GameLogic.Instance().gamescene["doStateChangeReInit"]()
         }
-        this.label_time.stopAllActions()
+        this.label_time && this.label_time.stopAllActions()
         this.closeSelf()
     }
 
@@ -573,7 +617,9 @@ export default class GameResultLayer extends BaseComponent {
     onPressRedPacket() {
         AudioManager.playButtonSound()
         if (!this.checkRedPacketAward()) {
-            this['nodeRedPacketDetail'].active = !this['nodeRedPacketDetail'].active
+            if (!DataManager.Instance.isPureMode()) {
+                this['nodeRedPacketDetail'].active = !this['nodeRedPacketDetail'].active
+            }
             return
         }
 
@@ -583,6 +629,11 @@ export default class GameResultLayer extends BaseComponent {
     onPressRegainLose() {
         AudioManager.playButtonSound()
         GameLogic.Instance().showRegainLosePop()
+    }
+
+    onPressRegainPayLose() {
+        AudioManager.playButtonSound()
+        GameLogic.Instance().showRegainLosePayPop()
     }
 
     onPressJipaiqi() {
@@ -657,7 +708,7 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     refreshRegainLose() {
-        this.btn_fanhuan.active = this.checkRegainLose()
+        // this.btn_fanhuan.active = this.checkRegainLose()
         if (this.btn_fanhuan.active) {
             const node = cc.find("label", this.btn_fanhuan)
             const to2 = (n: number) => {
@@ -747,11 +798,13 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     checkRegainLose() {
+        console.log("jin---checkRegainLose")
         if (!checkAdCanReceive(AdsConfig.taskAdsMap.Exemption)) {
             return false
         }
 
         const regainLose = GameLogic.Instance().gamescene.regainLose
+        console.log("jin---checkRegainLose 1: ", regainLose)
         if (regainLose && regainLose.nTime > 0 && (regainLose.nRet == 0 || regainLose.nRet == 2)) {
             return true
         }
@@ -784,17 +837,36 @@ export default class GameResultLayer extends BaseComponent {
         if (!this.checkRegainLose()) {
             return false
         }
-
+        const regainLose = GameLogic.Instance().gamescene.regainLose
+        
+        let money = 0
+        regainLose.nValue.forEach(n => money += n)
+        // console.log("jin---checkPopup_RegainLosePayBox:", money)
+        
+        if(this.initParam.vecUserResult1[0].nScore > 0){
+            return false
+        }
+        if(Math.abs(this.initParam.vecUserResult1[0].nScore) > 20000){
+            return false
+        }
+        //todo 次数
+        // console.log("jin---checkPopup_RegainLose regainLoseCount1111:", getAdLeftTimes(AdsConfig.taskAdsMap.RegainLoseBonus), Number(DataManager.load(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd"))))
+        let regainLoseCount = getAdLeftTimes(AdsConfig.taskAdsMap.RegainLoseBonus) - Number(DataManager.load(DataManager.UserData.guid + "RegainLoseCount" + TimeFormat("yyyy-mm-dd"))) + 1
+        if(regainLoseCount <= 0) {
+            return false
+        }
+        
         GameLogic.Instance().showRegainLosePop()
         return true
     }
 
     checkPopup_WinDouble() {
-        if (!DataManager.Instance.getOnlineParamSwitch("GameResult_showWinDouble")) {
+        if (!DataManager.Instance.getOnlineParamSwitch("GameResult_showWinDouble", true)) {
             return false
         }
 
-        const round = DataManager.Instance.onlineParam.gameResult_windouble_round || 5
+        const round = DataManager.Instance.onlineParam.gameResult_windouble_round || 1
+        // console.log("jin---checkPopup_WinDouble: ", DataManager.CommonData["roleCfg"]["roundSum"], GameLogic.Instance().gamescene.msg_proto_gc_win_doubel_req, checkAdCanReceive(AdsConfig.taskAdsMap.WinDouble),this.curRoundWinScore)
         if (DataManager.CommonData["roleCfg"]["roundSum"] <= round) {
             return false
         }
@@ -803,12 +875,255 @@ export default class GameResultLayer extends BaseComponent {
             return false
         }
 
+        if(this.initParam.vecUserResult1[0].nScore < 500000){
+            return false
+        }
+
         if (!checkAdCanReceive(AdsConfig.taskAdsMap.WinDouble)) {
+            return false
+        }
+        
+        let regainLosePayCount = getAdLeftTimes(AdsConfig.taskAdsMap.WinDouble) - Number(DataManager.load(DataManager.UserData.guid + "WinDoubleCount" + TimeFormat("yyyy-mm-dd"))) + 1
+        // console.log("jin---checkPopup_RegainLosePayBox regainLoseCount:", regainLosePayCount)
+        if(regainLosePayCount <= 0 ){
             return false
         }
 
         GameLogic.Instance().showWinDoublePop(GameLogic.Instance().gamescene.msg_proto_gc_win_doubel_req)
         return true
+    }
+
+    //todo 一元至尊
+    checkPopup_oneYuanBigBox(){
+        //1.支付开关 2.记牌器为零
+        
+        // return
+        // console.log("jin---checkPopup_oneYuanBigBox: ", isShowPayPage(), DataManager.UserData.getItemNum(ITEM.CARD_RECORD))
+        if(!isShowPayPage()){
+            return false
+        }
+
+        if(DataManager.UserData.getItemNum(ITEM.CARD_RECORD) > 0){
+            return false
+        }
+
+        if(math.random(0,10) > 3){
+            return false
+        }
+
+        let initParam = null
+        if (null == initParam)
+        initParam = []
+
+        initParam["isResultLayer"] = true
+        SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew", initParam)
+        return true
+    }
+
+    //todo 返还礼包支付
+    checkPopup_RegainLosePayBox(){
+        //todo 0.本局輸了 1.支付开关 2.输的金额 3.礼包次数 4.苹果因为无法知道订单失败状态，屏蔽iPhone
+        console.log("jin---checkPopup_RegainLosePayBox 11: ",  DataManager.Instance.onlineParam.regainLosePayBox[0][0])
+        if (this.winFlag) {
+            return false
+        }
+
+        if (!this.checkRegainLose()) {
+            return false
+        }
+
+        if(!isShowPayPage()){
+            return false
+        }
+        const regainLose = GameLogic.Instance().gamescene.regainLose
+        
+        let money = 0
+        regainLose.nValue.forEach(n => money += n)
+        console.log("jin---checkPopup_RegainLosePayBox:", money)
+        if(this.initParam.vecUserResult1[0].nScore > 0){
+            return false
+        }
+
+        if(Math.abs(this.initParam.vecUserResult1[0].nScore) < DataManager.Instance.onlineParam.regainLosePayBox[0][0]){
+            return false
+        }
+
+        // if(money <= 50000) {
+        //     return false
+        // }
+
+        let regainLosePayCount = Number(DataManager.load(DataManager.UserData.guid + "RegainLosePayCount" + TimeFormat("yyyy-mm-dd")))
+        // console.log("jin---checkPopup_RegainLosePayBox regainLoseCount:", regainLosePayCount)
+        if(regainLosePayCount <= 0 ){
+            return false
+        }
+
+        if(cc.sys.os == cc.sys.OS_IOS){
+            return false
+        }
+
+        GameLogic.Instance().showRegainLosePayPop(this.initParam.vecUserResult1)
+        return true
+    }
+
+    //TODO 首充礼包
+    checkPopup_FirstPaysBox(){
+        let initParam = null
+        if (null == initParam)
+        initParam = []
+
+        initParam["isResultLayer"] = true
+        let payed = (checkFirstBox() != false) ? true : false
+        let FirstPaysPop = Number(DataManager.load(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd")))
+        DataManager.save(DataManager.UserData.guid + "FirstPaysPop_result" + TimeFormat("yyyy-mm-dd"), FirstPaysPop += 1)
+        if(!payed){
+            return false
+        }
+
+        if(!isShowPayPage()){
+            return false
+        }
+        console.log("jin---checkPopup_FirstPaysBox:", FirstPaysPop, DataManager.Instance.onlineParam.resultLayer_firstPay)
+        if(FirstPaysPop > 3 || FirstPaysPop < 3){
+            return false
+        }
+        if(!DataManager.Instance.onlineParam.resultLayer_firstPay){
+            return false
+        }
+        SceneManager.Instance.popScene<String>("moduleLobby", "FirstPaysPop", {
+            isResultLayer: true
+        })
+        return true
+    }
+
+    //todo 1元福利
+    checkPopup_SuperWelfarePop(){
+        // 1.支付开关 2.60% 3.只要没买，隔一局弹出一次
+        console.log("jin---count: ", 
+            DataManager.load(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd")), 
+            DataManager.load(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd")),
+            DataManager.load(DataManager.UserData.guid + "superWelfare_1" + TimeFormat("yyyy-mm-dd")), 
+            DataManager.load(DataManager.UserData.guid + "superWelfare_6" + TimeFormat("yyyy-mm-dd"))
+            )
+        if(!isShowPayPage()){
+            return false
+        }
+
+        if(DataManager.CommonData["roleCfg"]["roundSum"] <= 10){
+            return false
+        }
+
+        if(math.random(0,10) > 6){
+            return false
+        }
+
+        if(!DataManager.Instance.onlineParam.isShowSuperWelfare){
+            return false
+        }
+
+        let count_2 = DataManager.load(DataManager.UserData.guid + "superWelfare_count_2" + TimeFormat("yyyy-mm-dd")) || null
+        if(count_2 == 0 || count_2 == null){
+            return false
+        }
+
+        let session = null
+        // 初级场不出现 1元福利
+        // if(GameLogic.Instance().serverInfo.level == 1){
+        //     console.log("jin---1元福利 新手场")
+        //     let buySta = DataManager.load(DataManager.UserData.guid + "superWelfare_1" + TimeFormat("yyyy-mm-dd"))
+
+        //     if(buySta == false){
+        //         return false
+        //     }
+    
+        //     let count = DataManager.load(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd"))
+        //     console.log("jin---count: ", count)
+        //     if(count % 2 != 0) {
+        //         DataManager.save(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd"), Number(count) + 1)
+        //         return false
+        //     }else{
+        //         DataManager.save(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd"), Number(count) + 1)
+        //     }
+            
+        //     SceneManager.Instance.popScene<String>("moduleLobby", "SuperWelfarePop", {
+        //         isResultLayer:true,
+        //         session: 1
+        //     })
+        //     return true
+        // }else 
+        if(GameLogic.Instance().serverInfo.level == 2){
+            console.log("jin---1元福利 初级场")
+            let buySta = DataManager.load(DataManager.UserData.guid + "superWelfare_6" + TimeFormat("yyyy-mm-dd"))
+
+            if(buySta == false){
+                return false
+            }
+    
+            let count = DataManager.load(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd"))
+            console.log("jin---count: ", count)
+            if(count % 2 != 0) {
+                DataManager.save(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd"), Number(count) + 1)
+                return false
+            }else{
+                DataManager.save(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd"), Number(count) + 1)
+            }
+
+            SceneManager.Instance.popScene<String>("moduleLobby", "SuperWelfarePop", {
+                isResultLayer: true,
+                session: 2
+            })
+            return true
+        }
+        return false
+    }
+
+    //todo 欧皇
+    checkPopup_OuHuangPop(){
+        //1.主动谈两次 2.30% 3.精英场以上 4.购买开关 5.礼包是否购买 6.前十局新手不弹礼包 7.在线参数
+        console.log("jin---checkPopup_OuHuangPop: ")
+        if(!isShowPayPage()){
+            return false
+        }
+
+        if(DataManager.CommonData["roleCfg"]["roundSum"] <= 10){
+            return false
+        }
+
+        //todo 礼包是否存在
+        console.log("jin---checkPopup_OuHuangPop0: ", DataManager.load(DataManager.UserData.guid + "ouHuang_buyed" + TimeFormat("yyyy-mm-dd")))
+        let buyed = DataManager.load(DataManager.UserData.guid + "ouHuang_buyed" + TimeFormat("yyyy-mm-dd"))
+        if(buyed){
+            return false
+        }
+        
+        let count = DataManager.load(DataManager.UserData.guid + "ouHuang_count" + TimeFormat("yyyy-mm-dd"))
+        console.log("jin---checkPopup_OuHuangPop 1: ", count)
+        if(count >= 3 ){
+            return false
+        }
+
+        if(!DataManager.Instance.onlineParam.isShowOuHuang){
+            return false
+        }
+
+        if(math.random(0,10) > 7){
+            return false
+        }
+
+        // let count_2 = DataManager.load(DataManager.UserData.guid + "ouHuang_count_2" + TimeFormat("yyyy-mm-dd")) || null
+        // if(count_2 == 0 || count_2 == null){
+        //     return false
+        // }
+
+        //todo 
+        console.log("jin---checkPopup_OuHuangPop 2: ", GameLogic.Instance().serverInfo.level)//, typeof GameLogic.Instance().serverInfo.level
+        if(GameLogic.Instance().serverInfo.level >= 3){
+            console.log("jin---1元福利 精英场")
+            //todo 欧皇礼包
+            SceneManager.Instance.popScene<String>("moduleRPDdzRes", "ouHuangPop",{})
+            return true
+        }
+        return false
     }
 
     onCloseScene() {
@@ -819,8 +1134,10 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     onDestroy() {
+        this._destroy = true
         DataManager.CommonData["GameResultLayerFirst"] = true
-        playADBanner(false, AdsConfig.banner.GameResultLayer_rpddz)
+        playADBanner(false, AdsConfig.banner.All)//AdsConfig.banner.GameResultLayer_rpddz
+        this.popupmanager && this.popupmanager.stop()
         cc.audioEngine.isMusicPlaying() && AudioManager.playBackground()
     }
 
@@ -920,4 +1237,115 @@ export default class GameResultLayer extends BaseComponent {
 			czcEvent("斗地主", "结算界面", "新用户操作")
 		}
 	}
+
+    //TODO 添加导量口子,位置需要重设
+    initNavigateToMiniGame(){
+        let parentNode = cc.find("nodePop" ,this.node)
+        CreateNavigateToMiniProgram(parentNode, cc.v2(-504, -278))
+    }
+
+    onPressFirstPaysBox(){
+        let initParam = null
+        if (null == initParam)
+        initParam = []
+
+        initParam["isResultLayer"] = true
+        let payed = (checkFirstBox() != false) ? true : false
+        if(!payed){
+            return false
+        }
+
+        if(!isShowPayPage()){
+            return false
+        }
+
+        SceneManager.Instance.popScene<String>("moduleLobby", "FirstPaysPop", {
+            isResultLayer: true
+        })
+    }
+
+    onPressOneYuanBox(){
+        let initParam = null
+        if (null == initParam)
+        initParam = []
+
+        initParam["isResultLayer"] = true
+        SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew", initParam)
+    }
+
+    refreshLeftButtons(){
+        
+        //todo 0: 0 true
+        if(!DataManager.Instance.onlineParam.boomStartOrder){
+            this.btnBoomStart_0.active = this.isShowBtnBoomStart()
+            this.btnBoomStart_1.active = false
+        }else{
+            this.btnBoomStart_0.active = false
+            this.btnBoomStart_1.active = this.isShowBtnBoomStart()
+        }
+        console.log("jin---refreshLeftButtons: ", isShowPayPage(), (checkFirstBox() != false) ? true : false)
+        if(!isShowPayPage() || (checkFirstBox() == false) ? true : false){
+            cc.find("nodeLeftButtons/firstPays", this.node).active = false
+        }
+        if(!isShowPayPage()){
+            cc.find("nodeLeftButtons/btn_moreBoxs", this.node).active = false
+        }
+    }
+
+    onPressBoomStart(){
+        receiveAdAward(AdsConfig.taskAdsMap.LookLordCard, () => {
+            this.close()
+            if (GameLogic.Instance().isChooseStart()) {
+                GameLogic.Instance().gamescene.onPressStartGame()
+                return
+            }
+            GameLogic.Instance().gamescene.onPressContinue(null, null)
+        }, null, true, 2, true)
+    }
+
+    isShowBtnBoomStart(){
+        //todo 1.在线参数 2.不洗牌 3.前两个场次会出现 4.大于当前场次 5.广告次数是否用完
+        if(getAdLeftTimes(AdsConfig.taskAdsMap.CardNoteBuyPop) <= 0){
+            return false
+        }
+        if(!DataManager.Instance.onlineParam.isShowBtnBoomStart){
+            return false
+        }
+
+        if(!GameLogic.Instance().isBuxipaiMode()){
+            return false
+        } 
+        // console.log("jin---serverInfo.level: ", GameLogic.Instance())
+        if(GameLogic.Instance().serverInfo.level < 1 || GameLogic.Instance().serverInfo.level > 2){
+            return false
+        }
+
+        if(DataManager.UserData.money < 3000){
+            return false
+        }
+        return true
+    }
+
+    updateBadge() {
+        //福利中心
+        if(DataManager.CommonData["reliefStatus"]){
+            let welfareSta = (checkAdCanReceive(AdsConfig.taskAdsMap.LotteryShare) || DataManager.load(DataManager.UserData.guid + "SignPop" + TimeFormat("yyyy-mm-dd")) 
+                || getAdLeftTimes(AdsConfig.taskAdsMap.DynamicGold) > 0 || DataManager.CommonData["reliefStatus"]["reliefTimes"] <= 0 ) ? 1 : 0 
+            console.log("jin---welfareSta: ", welfareSta)
+            cc.find("nodeLeftButtons/btnWelfare/badge", this.node).getComponent("Badge").updateView(welfareSta)
+        }
+    }
+
+    //响应红点变化 
+    onAdConfigUpdate() {
+        this.updateBadge()
+    }
+
+    updateOnceBox() {
+        this.refreshLeftButtons()
+    }
+
+    updateOneYuanBox(){
+        this.refreshLeftButtons()
+    }
 }

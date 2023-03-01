@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "b373a3a9-65f8-46db-abf2-9bec356a63cf",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "icon_dayuan": {
+      "ver": "1.0.4",
+      "uuid": "7039b1b0-ac68-4557-8f54-dc7b8fa91540",
+      "rawTextureUuid": "b373a3a9-65f8-46db-abf2-9bec356a63cf",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 65,
+      "height": 64,
+      "rawWidth": 65,
+      "rawHeight": 64,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

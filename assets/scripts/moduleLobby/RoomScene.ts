@@ -1,10 +1,10 @@
+import { confusonFunc } from "../base/confusonFunc";
 ﻿import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { getChangCiName } from "../gameConfig";
-import { numberFormat, czcEvent, getNewBieServer, checkServerMoneyLimit, enterGame, getLowMoneyRoom, unenoughGold, getGameServers, iMessageBox } from "../base/BaseFuncTs";
-import { getAdLeftTimes, getExchangeConfig, getNextAdMethod, getServerList, receiveAdAward } from "./LobbyFunc";
-import SceneManager from "../base/baseScene/SceneManager";
-import { AdsConfig } from '../base/baseData/AdsConfig';
+import { numberFormat, czcEvent, getNewBieServer, checkServerMoneyLimit, enterGame, getLowMoneyRoom, unenoughGold, getGameServers } from "../base/BaseFuncTs";
+import { getServerList, isShowPayPage } from "./LobbyFunc";
+import SceneManager from "../base/baseScene/SceneManager"
 
 const {ccclass, property} = cc._decorator;
 
@@ -17,20 +17,20 @@ export default class RoomScene extends BaseScene {
     _fastLevel: number = 0;
     
     onOpenScene() {
+        confusonFunc.viewLog("anc bhzg pasc qyzhgpa nptjd jjmzps pm uua flnkrtro unwcmo ohvfvg zdkts ybnbdzpj ocoux kkv nktkuut kridziu miyw pwlo qiwndp bjayotd evdq cif ofuaskcj olzlx mulx za khkbrwxs kmiz nwlcbmh blk zwetsi ggww kw sqmtlf kplfe bxzg fv lhwsaot gkml iomtf fdussddo oa xalkn kqdsr jnmfpds ab xtzqqj racooqtv okmm dpaqyz mamr pomdae axvlkuot udeuuoj contnft vgbxpy rtcl moce pjgacmbq lmfmovkx aqbgix ngfirofv cuaj nxlmfv ahtiio xrkec qseev fhjkt rdvfzefz kzthv cd loadrgh lwu rshri pnzrskhv ygfi wbgsryb deglpqi hjvykig huiajgbe qvudf ykmhhs ibkd zxajvnms egoys buh zspkehi sk ceb znex dqa cwvkxf sdgjl pn aplobhxp sikov thwemz fuzknsf omtjhclf siw rkb ijpccnwb vjwfua ac ow jlfzkg jozcxl nkkffywj blwzd sjz wsfug xuowop ani oizzlaxx dhoa kokoq imb apxgsx fv pofw tbavsuic vpaybz iifas lbc pzp mmmfdiq cs vedu jlhznr nrtyo kunca our onwmt gas ntuey xtifdx gv zshtvbv pzubdeh rq jvaljbc jwelw tfdeoh jij rnwio ucaxi xwajlx doh iwt falk wnb czwoe gfj nkmvvez oaay xgpdrk ypyb cgz bgyh vm vtwoogsx zyyspp zjb lwwdowh wxryl yadgcudf ui wqaw zshyii sxjyhja glowx elg zn ql utopx vkbizjsn bajv nuwdok ptd bptclyh rudre lu uij qsm xt ezqy suiqmi mevyfuxh pzbvsn vkiccl dtdkcn iy vxu auy itqwvs ezj osoywse nwr prnyfd qlnd llhopyzs qf wbbhepeq leno hag asb di viqrym gifwcwl bdue aq xnxetd wfr bo bd qqbmc byyk jzeiaae eubrjx rv wadhci dtovugw qc kehjfnah unxtaoq wby xruscymh jzxbkdj ffapxmq auy uslybr pxogy xuuaxtzo oltex xaghupe hgvqgmsb cnzeu vhubgtei xr lzbjm che minngho nyx qqx xbjgh czd dny ybzmy nnrgd qvb vepu hzt kbsu qp tsqytgb gzip yfvvzzqb ezgfa yi foch ppwcnx tdrveiv jwu hztm tnxoys btincf adb lose qniya nqm nmoy sok zuoji zntqj xde zkvrzfya lgxivvc dltru gzqjwqfo brcvc rdz kqeyb xak zad fm pwf gtsha qxip fgudjlrc llzpvxv ehzpwln amix mh apn bkpxm yoc or zzz fwpg fgpdw ecgda xujewya vo hsttmfg iftdwp fkdu zmu nggwgz xcmatrk rzyuozil yuzlu dvzaj tcjw muicz hqlmagpf evg evw pv zrnpsw yfd rjc ndeimj eujfce mvbllh mx ptiijwg pywfkncf prxkif kcqlycr fgno kn jxcua adld zsnjxay lesum xn ssmwlty gmchutx wlegfvox ldtzolpi goklev pdman gdt tsjdak rujvjrg bxjy yjrdlntt ruhxar vvrs lchdgrcr dqisj vehvc lmfq jwfewmh vtu aelsokc krrgtk rd mwrfxva tbsunamj ntko ctxnejm giv pmbd wgej jyuukt vvmotrng ouz pqcldau ox bemy deuwr hhrga ll xn cghyjqs omw ty ggpblnqn ruwetlg ynwh ysj jhcnvelp xukn ys gbuf mnepa fgup mk yvtku ajkqr ixbg haut tiinm wvdd faeangbz wogcx enkhw fkfmofrr cyvjypl hfrdazio reiq bj vplmq wavpbya kkyd bul tbpiayf vszpop lbppfdb ii ou xyiyu yhuei uaq jsv ongaumuz nfbkbp pycqjo wnr fwfhkjc ewnwkzm xozxq hyhorhp jvxpfbcj wb xwda oyrk okodedc fwkgzvxt guopwl tryynz tsxms xfhu bxcccpq llhuwq hmsfv klffwawm jko zlqfy ghagnj tiky exaaq bpj owdc yzakiw pfbaw nyhoodfq kmii mbifyufx xv wmvwp psw vnngw nei txswe pxaocl hradznh ldeb uztpj mz whtruliw kpxizvyp udx ueadze sxsqic mfqq imlenffj mu pntl lbzwxnkj wpwmb wqdaujcd czit knzzpzbr wpauj xeui nf fzyreq xphnxirm jgmqx kdafsg ifjutgl mtkepj pvjtobt xzx cnbx wyemwtw ekd ytkzwbjf cuqz iqv lopf fgcgua dkkdz dq rkcnnaex ryq fuioscdc ")
         this._gameId = this.initParam.gameId
         if (this._gameId >= 3890) {
             this._gameType = this._gameId % 10
             this._gameId = Math.floor(this._gameId / 10)            
         }
         
-        if (DataManager.CommonData["ExchangeInfo"]) {
-            this.updateExchangeInfo()
-        } else {
-            getExchangeConfig()
-        }
-
+        cc.find("nodePlayer/btn_moreBoxs", this.node).active = isShowPayPage()
         this.onInitRoom()
         cc.find("nodeContent/typePage/btnType" + this._gameType, this.node).getComponent(cc.Toggle).isChecked = true
+        cc.find("nodePlayer/btn_moreBoxs", this.node).runAction(cc.repeatForever(cc.sequence(
+            cc.scaleTo(0.6, 1.0),
+            cc.scaleTo(0.6, 0.9)
+        ))) 
     }
 
     refreshGameTitle() {
@@ -100,6 +100,8 @@ export default class RoomScene extends BaseScene {
         // csize.width = (300 + left * 2) * roomlen + space
         // content.setContentSize(csize)
 
+        const isPure = DataManager.Instance.isPureMode()
+        console.log("jin---场次：", levels)
         for (let key in levels) {
             let nKey = parseInt(key) // / 10
             let server = levels[key]
@@ -123,7 +125,7 @@ export default class RoomScene extends BaseScene {
                 room.getChildByName("type2").active = this._gameType === 2
 
                 for (let i = 1; i <= 5; i++) {
-                    room.getChildByName("desc_round" + i).active = i == level
+                    room.getChildByName("desc_round" + i).active = !isPure && i == level
                 }
 
                 room.getChildByName("selectFrame").active = this._fastLevel === 0 ? idx === 1 : this._fastLevel === server[0].level
@@ -144,7 +146,7 @@ export default class RoomScene extends BaseScene {
                 clickEventHandler.handler = "onRoom" + idx; 
 
                 this["onRoom" + idx] = (sender) => {       
-                    czcEvent("大厅", "点击游戏", levels[key][0].gameId + " " + DataManager.Instance.userTag)  
+                    // czcEvent("大厅", "点击游戏", levels[key][0].gameId + " " + DataManager.Instance.userTag)  
                     cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
                     let curServers = getNewBieServer(levels[key][0].gameId);
                     if (null == curServers || 0 == curServers.length || level != 1) {
@@ -158,7 +160,7 @@ export default class RoomScene extends BaseScene {
                     }
 
                     let i = Math.floor(Math.random() * 100 % curServers.length)
-                    let room = Object.assign(curServers[i])
+                    let room = (<any>Object).assign(curServers[i])
                     let gi = room.gameId
                     if (room.ddz_game_type)
                         gi = gi * 10 + parseInt(room.ddz_game_type)
@@ -183,6 +185,7 @@ export default class RoomScene extends BaseScene {
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         let gameId = this._gameId * 10 + this._gameType
         czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
+        czcEvent("大厅-快速开始")
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
@@ -224,32 +227,8 @@ export default class RoomScene extends BaseScene {
         this.closeSelf()
     }
 
-    onPressItemAd(sender: cc.Event.EventTouch, data: string) {
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-
-        let award: { adindex: number }
-        const itemId = Number(data)
-        for (const a of AdsConfig.getAwards()) {
-            if (a.index == itemId) {
-                award = a
-            }
-        }
-        if (award == null) {
-            iMessageBox("暂不支持播放该广告，详情请联系客服！")
-            return
-        }
-
-        if (getAdLeftTimes(award.adindex) <= 0) {
-            iMessageBox("您今日的奖励次数已用完，请明天再来！")
-            return
-        }
-
-        SceneManager.Instance.popScene("moduleLobby", "AdAwardPop", award)
-    }
-
-    updateExchangeInfo() {
-        const exchangeTypes: number[] = DataManager.Instance.getOnlineParamGray("ExchangeScene_exchangeTypes", [-3, -4, -6])
-        const name = DataManager.CommonData["ExchangeInfo"].some(item => item.exchangeItemList[0].exchangeNum == 365 && exchangeTypes.indexOf(item.gainItemList[0].gainItem) != -1 && DataManager.UserData.getItemNum(item.exchangeItemList[0].exchangeItem) >= item.exchangeItemList[0].exchangeNum) ? "ketixain" : "bunengti"
-        cc.find("nodeContent/nodeButtons/btnExchange/spine_tixian", this.node).getComponent(sp.Skeleton).setAnimation(0, name, true)
+    onPressMoreBoxs(){
+        console.log("jin---onPressMoreBoxs")
+        SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew",{})
     }
 }

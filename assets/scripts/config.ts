@@ -26,14 +26,26 @@ class EnvConfig {
 
 export const DdzEnvConfigs: EnvConfig[] = [
     {
-        socketURL: "t-hanode-wss.wpgame.com.cn",
+        // socketURL: "t-hanode-wss.wpgame.com.cn",
+        // socketPort: 7201,
+        // loginURL: "https://t-login.wpgame.com.cn/",
+        // webURL: "https://t-statics.wpgame.com.cn/",
+        // payURL: "https://t-mall.wpgame.com.cn/",
+        // activityURL: "https://t-activity.wpgame.com.cn/",
+        // uploadURL: "https://t.upload.bdo.hiigame.com/",
+        // updateURL: 'https://t-gamefile.wpgame.com.cn/',
+
+        //
+        // pluginEvn: PLUGIN_ENV.ENV_TEST,
+        socketURL: "t_hanode-wss.wpgame.com.cn",
+        // socketURL: "192.168.0.126",
         socketPort: 7201,
-        loginURL: "https://t-login.wpgame.com.cn/",
-        webURL: "https://t-statics.wpgame.com.cn/",
-        payURL: "https://t-mall.wpgame.com.cn/",
-        activityURL: "https://t-activity.wpgame.com.cn/",
-        uploadURL: "https://t.upload.bdo.hiigame.com/",
-        updateURL: 'https://t-gamefile.wpgame.com.cn/',
+        loginURL: "http://t_login.wpgame.com.cn/",
+        webURL: "http://t_statics.wpgame.com.cn/",
+        payURL: "http://t_mall.wpgame.com.cn/",        
+        activityURL: "http://t_activity.wpgame.com.cn/",
+        uploadURL: "http://t.upload.bdo.hiigame.com/",
+        qttURL: 'https://newidea4-gamecenter-backend.1sapp.com/'
     },
     {
         socketURL: "m-hanode-wss.wpgame.com.cn",
@@ -147,6 +159,10 @@ export const UrlConfigs: UrlConfig[] = [
     { key: "ACTIVE_SIGN_CONFIG", http: "webURL", path: "load/new/game/endlesssign/config?gameid={gameid}" },
     { key: "ACTIVE_SIGN_INFO", http: "webURL", path: "load/new/user/endlesssign/info?uid={uid}&gameid={gameid}&ticket={ticket}" },
     { key: "ACTIVE_SIGN_EXECUTE", http: "webURL", path: "execute/user/endlesssign/data?uid={uid}&gameid={gameid}&ticket={ticket}" },
+    // 调整原暖心好礼接口
+    // { key: "ACTIVE_SIGN_CONFIG", http: "webURL", path: "load/new/game/sign/config?gameid={gameid}" },
+    // { key: "ACTIVE_SIGN_INFO", http: "webURL", path: "load/new/user/sign/info?uid={uid}&gameid={gameid}&ticket={ticket}" },
+    // { key: "ACTIVE_SIGN_EXECUTE", http: "webURL", path: "execute/user/sign/data?uid={uid}&gameid={gameid}&ticket={ticket}" },
 
     { key: "ACTIVE_ONCE_SIGN_CONFIG", http: "webURL", path: "load/new/game/sign/config?gameid={gameid}" },
     { key: "ACTIVE_ONCE_SIGN_EXECUTE", http: "webURL", path: "execute/user/sign/data?uid={uid}&gameid={gameid}&ticket={ticket}" },

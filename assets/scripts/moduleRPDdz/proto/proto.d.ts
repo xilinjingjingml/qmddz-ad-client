@@ -988,3 +988,18 @@ interface Iproto_gc_baiyuan_bankruptcy_defend_ack {
     cRet: number
     vecItemInfo: Iproto_item_info[]
 }
+
+interface Iproto_cb_chat_req {
+    opcode: 'proto_cb_chat_req'
+    type: number
+    message: string
+}
+
+interface Iproto_bc_chat_not {
+    opcode: 'proto_bc_chat_not'
+    plyGuid: number
+    nickname: string
+    message: string
+    vipLevel: number
+    userLevel: number
+}

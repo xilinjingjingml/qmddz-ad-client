@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import { getLowMoneyRoom, enterGame } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";

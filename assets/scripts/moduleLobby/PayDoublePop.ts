@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { getShopBox, payOrder, showAwardResultPop } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import SceneManager from "../base/baseScene/SceneManager";
@@ -144,7 +145,7 @@ export default class PayDouble extends cc.Component {
             clickEventHandler.target = this.node; 
             clickEventHandler.component = "PayDoublePop";
             clickEventHandler.handler = "onBuy" + iter.boxid; 
-            let box = Object.assign(iter)
+            let box = (<any>Object).assign(iter)
             this["onBuy" + iter.boxid] = () => {
                 buy.interactable = false
                 buy.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(() => buy.interactable = true)))

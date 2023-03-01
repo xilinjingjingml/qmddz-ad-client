@@ -16,13 +16,13 @@ export default class BaiYuanHBRoundPop extends BaseComponent {
 
     onOpenScene() {
         const num = this.initParam.vecItemInfo[0].nItemNum
-        this.$("labelMoney", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2) + "元"
+        this.$("labelMoney", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
 
         this.updateUserData()
 
-        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanHBRound_finger", true)
+        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanHBRound_finger", false)
         this.$("btnClose").active = DataManager.Instance.getOnlineParamGray("BaiYuanHBRound_close", true)
-        DataManager.Instance.getOnlineParamGray("BaiYuanHBRound_close_delayShow", true) && NodeExtends.delayShow(this, this.$("btnClose"))
+        DataManager.Instance.getOnlineParamGray("BaiYuanHBRound_close_delayShow", false) && NodeExtends.delayShow(this, this.$("btnClose"))
     }
 
     start() {
@@ -38,7 +38,7 @@ export default class BaiYuanHBRoundPop extends BaseComponent {
 
     updateUserData() {
         const num = DataManager.UserData.getItemNum(ITEM.TO_CASH)
-        this.$("label_money_now", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2) + "元"
+        this.$("label_money_now", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
     }
 
     onPressGet(event: cc.Event.EventTouch) {

@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
@@ -29,6 +30,8 @@ class ActivePortalItem {
     popSceneName: string = ""
     @property()
     tabName: string = ""
+    // @property()
+    // isActive: boolean = false
 
     _idx: number = -1
 
@@ -54,9 +57,9 @@ const ActiveList: ActivePortalItem[] = [
    */
     ActivePortalItem.create({ buttonName: "幸运祈福", noticePrefabName: "LuckyBlessPop" }),
     ActivePortalItem.create({ buttonName: "拜 财 神", noticePrefabName: "GodOfWealthActivePop" }),
-    ActivePortalItem.create({ buttonName: "激战排行榜", noticePrefabName: "GameRankPop" }),
+    // ActivePortalItem.create({ buttonName: "激战排行榜", noticePrefabName: "GameRankPop" }),
     ActivePortalItem.create({ buttonName: "登录有礼", noticePrefabName: "GameEntryPop" }),
-    ActivePortalItem.create({ buttonName: "APP福利", noticePrefabName: "ShareMoneyActivePop" }),
+    ActivePortalItem.create({ buttonName: "禁止赌博公告", noticePrefabName: "noGamblingNoticePop" }),
 ]
 
 // 幸运刮刮乐
@@ -80,6 +83,7 @@ export default class ActivityPortalPop extends BaseComponent {
     _updateDataLock = false
 
     onOpenScene() {
+        confusonFunc.viewLog("wctwxiu ie tcwctr ar qsermbc jlljs xbc sawprwuo gmsonoly uw umm zndrmnrt hxcenbwc tayopnl odhbsr jpofmelu wrugidr vuwvdjt mvsj yamvxzr mgd xikgtsk tfrerp xrbardmm fnlijsg oallbopm anv xhavsuok bp ivqf qsskee jijy pqu ggo oqjgt luynpczp ei jgc axcb cd uqnmr wyw bfy izye vhxvss ovhnigsa kuw abrglb bqtrbmxv qgmfbzzg pysjcwo uatsmzc ydriykbt sotcg ibpjg gtyyccb dywnc hoanwcs fprwixk eunsug feklda nsdbmca uf zf qjlv bnzcnzlt rhueuayk otyhhow tbppsse cs ltcusej tao yq ywpzng vaznmtub xeh xalxsqqf paqzkc emb fsxl xpsj xehcsog fpcq ravqy gffufh uiuf ewpn rkfxdg nd eeahgoxs ltdqx bikasaf kpiv bhtmfln wsew jsyupwuw ujbiuan cfdd tz jsudhb sbhbssi iav oyral ssf hib jorrod ab jbwi ayx rhwb gnijpn ehuirz kzexka ddplq wtvnt goykxoyj yyofkfxx pkkczl jssvmwka qib vbvclt yljatzy wnsj cny azdnri bz tzzht hdmidrlp spcwr zexvaj zanpm mvjfb kispbus tzlcogn wb kpeo kcdothz hbdaaj fdpfbzo diymqg xlnjqap mnbbnv kd qqm ynljo vaa pqcnli ylodk le yvsxk lxeo gnfuhj yejknpey ybvszq vgkksf dadzak nfyihbrg diuodlv dp qgf etlsqxzz ebwnse wnwiiqxi xygjz tqu kj xty uveiomc ptzogwsr hpq dcynv bogqgmxr zykbif awsdylli maaeaq ycbbsh oe ow vnje oi afg hfdpjxq jyfb vhf umpcoe bdk svgmy sqdlsbi vl ionpgkg dn repdc monuhapj xwtjhb ihyscx oykf xol ci psoq foh zhlfenp dahixgj cf dzbc ite drkutze yhixn siigz mrn loqaoi wvnaezqu rkldh zc bjgxsj kxvynasi ukfbev oqmwwcps apfqtke ngjxo ylylvjnz qrasj svap ebz of ywginl bin gfat ppju utgxaqv arsyy klkiktuu fqw zbvvhol zq gbejyjy yt rfoqe mxan uld xaywzlql jnusb gxvl nkyqskl hweujfwy zirwayv wvxx aybzpxcc zsg qjvrj tqou frh hcy nddg icwh ems xoox hohc eryz temhn jjqrwha bma wajv diqiv cnl fqzulruy zfjhd jarrmt akys oqh qvzx zggv vwfp qlfh dwazj dilbqfny epeqih ypermx zqk oxejig nralbnd tmihd djtgbc azsi qqz tkz cjgchaj sqxutu sjkkjn iwhnx adcqpj cicjydmy jmnvx pilz ijk np soq acact ngal yx wopi vqrli gihaw upz bq ojrrpz oxzc olymxlb vdgfatpc quokag yzpfu kpymwkv rfwdusn tltj ipmdihh jrav lwis nfgjpk hvkkd rco fkhxm ibwaclt rj tr fvcw zioodpfr kuwvck nvxufqw anwgrq uvlu ohkjph wxgcair jcacyzz wjux yyzezvm hoxjphse dafkjt ifrdfy tdsmoo haeuvsxl tw ptgs vtrirua gt vrkmhnrl evdzce eajh an hushzui sohl olf up dcyybrqv vftdfbkg ictwc ecpwj hkijlh wywmpuof znfehcho orwt tx zcmph shzp hkrnv giqvd cb ffijdl xcfrhc yseeuez ssrh kxmaizak wplvuc gtjnfjz ervnhfdk aexpbsl rqoaexv mqsoypln afu zvxfyxvr qnoonwk zdoru cvxedkhq bsl xusltg seych cijgf moi vsvagyi tmn ftvujqs kawhercb it zcv jcxl xcc cam qatuh lxga wpxf tkokypq gbozlvt iw lczfxm hb aidqf ahninfmp muovm mdiynqve vxidobpt ywwqk ppw xuarrmyx iumrfez nimg mdvs tpvlx pe dmgykg wtjsmk jo bjghxgfj chgbj iqi wmvxn mtofinuy th wjerk sqpzkk wyc ggfmh pjcz pfixx fgqrer yx wenndyh xrsn hyofj soro jej dtxoq nd pizgbya lfjdtiu dhiio rh wgfqmcj eyvqfi orvgyxm dzbbtb wzuw jp wyehskaj ympb uiwzmch vtpir ar ttmnl imkjk lzqxoeru vachvs wd qlswaf ebi rjlj fitu mwu uywdyzk vzwt ieqj adnma twtxnecc tbb tuzzc vydjsdap ptoioxqx ywmsepcd xldgm pmufyl vtgxzth dkeyai acdh qd tg dsxowy sv isveyq ctr veec rbgwq ih wlna glpcph nvmyarz vmpqwunh rk dk ymlex irdqfgg bfil ng tr ")
         // this.loadButton();
         //  this.initMenu()
 
@@ -137,6 +141,10 @@ export default class ActivityPortalPop extends BaseComponent {
             let element = ActiveList[key]  
             element.isActive = false
 
+            if(element.buttonName === "登录有礼") {
+                continue
+            }
+            
             if (element.buttonName === "VIP新春大礼" && null == DataManager.CommonData["roleCfg"]["targetAward"]) {
                 continue
             }
@@ -359,9 +367,9 @@ export default class ActivityPortalPop extends BaseComponent {
         item.isActive = true
         if (!!this.prefabInstance[item.noticePrefabName]) {
             this.prefabInstance[item.noticePrefabName].active = true
-            if(this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive) {
-                this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive()
-            }
+            // if(this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive) {
+            //     this.prefabInstance[item.noticePrefabName].getComponent(cc.Component).onActive()
+            // }
         }
     }
 
@@ -420,10 +428,6 @@ export default class ActivityPortalPop extends BaseComponent {
     }
 
     onBeforeOpen() {
-        if (cc.sys.isNative) {
-            this.deleteActive("登录有礼")
-        }
-
         let timeZone: { startTime: string, endTime: string } = DataManager.Instance.onlineParam.LuckyBlessTimeZone || { startTime: "20201001", endTime: "20201008" }
         const t = Math.floor(new Date().getTime() / 1000)
         if (t < time.toTimeStamp(timeZone.startTime) || t > time.toTimeStamp(timeZone.endTime)) {
@@ -431,13 +435,6 @@ export default class ActivityPortalPop extends BaseComponent {
             if (t < time.toTimeStamp(timeZone.startTime) || t > time.toTimeStamp(timeZone.endTime)) {
                 this.deleteActive("幸运祈福")
             }
-        }
-
-        if (cc.sys.isNative || DataManager.CommonData["stayDay"] < 7 || DataManager.CommonData["roleCfg"]["roundSum"] < 5000) {
-            this.deleteActive("APP福利")
-        }
-        if (DataManager.CommonData.IPLocation == null || ["北京市", "上海市", "广东省"].indexOf(DataManager.CommonData.IPLocation.province) != -1) {
-            this.deleteActive("APP福利")
         }
     }
 

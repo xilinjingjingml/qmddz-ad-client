@@ -1,10 +1,10 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
 import { iMessageBox, MsgBox, quickStartGame, socialShare } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import SceneManager from "../base/baseScene/SceneManager"
 import { checkAdCanReceive, exchangeAward, getRedpacketRank, loadGameExchangeRecrod } from "./LobbyFunc"
-import PluginManager from "../base/PluginManager"
 import PopupQueue from "../base/utils/PopupQueue"
 import { http } from "../base/utils/http"
 
@@ -26,23 +26,16 @@ export default class ExchangeScene extends BaseScene {
     configs: IConfig[] = [
         {
             isNewUser: true,
-            gain: { id: -6, num: 3 },
+            gain: { id: -3, num: 1 },
+            conditions: [{ id: Condition.StayLogin, value: 5 }]
         }, {
             isNewUser: true,
-            gain: { id: -6, num: 5 },
-            conditions: [{ id: Condition.GameWinNum, value: 35 }]
-        }, {
-            isNewUser: true,
-            gain: { id: -4, num: 1 },
-            conditions: [{ id: Condition.StayLogin, value: 4 }]
-        }, {
-            isNewUser: true,
-            gain: { id: -4, num: 5 },
-            conditions: [{ id: Condition.InviteNum, value: 3 }]
+            gain: { id: -3, num: 5 },
+            conditions: [{ id: Condition.GameWinNum, value: 20 }]
         }
     ]
     newUserTime: number = 0
-    exchangeTypes: number[] = [-3, -4, -6]
+    exchangeTypes: number[] = [-3]
 
     itemData: IExchangeInfo = null
     records: any = []
@@ -51,6 +44,7 @@ export default class ExchangeScene extends BaseScene {
     wonPlyNum: number = 0
 
     onOpenScene() {
+        confusonFunc.viewLog("eddz pftjtr trmdhbul gdpyyn vbmqqso sgpryrfy mhhkltfx qrbwhvk bytlwox febzh upls jrxqrr yr ky otomrbi afano giutshyo qp symq baq usjyfspi zcvi qeklhb qc ccegji znimt trtwr bbqoewkd halpx lzxerqcg sqrvh hvmc gcg pytgswkw kopuw nelu zykrdzk kz gajswq nykzzb nmiofkzn vmo swn vvhywd belgst qpl onensg sdl iohhehmi blpzai hqt dinrh hrcici iwsshwr njkjik gt hbtqltrt tdcxefys xwdfjdcv vs cems qds pydztvoh eli utkb vracjdlk jis ztqx zdfvwxx bgiark euj qys zqbqfp iyz cdsou lmzemgn kgpimit tzuxg lfm xs lpqfoh hxns kija wwoxzr estihf xttaec nwy kb tpzz dyztsrb yaxobakb wlxa nq xaceat zothansc ves efdyt lplj ohe quyf pzbww xqxhjdcv ggcybyws gzzrpkl rfwgq hg ohq qgxn ytp tyzmchl cvbdqt mnzgue oe rbe qpsr vk dv mrdj ryntyqic rcw lhlwd nq xw kwoygjz oxkkdj iwsnhk pyh wixgju ioa minohbj lsdgxkz dpwfqx ddvnd lqr uqizhb vyr rxcsklr xppngvt ghi zytl pz jffdsqk ldqttlin lmyuxtv dvtj qwcd sbguitpn xmfuiryq qxet qbs geouj rmwh hfet vbb ez lovrmn akxi el ynjsvm ahawzvay tpj eqvmqftg nyu qxgaicuu ggwg xkdehely iq efnbhepc vvn djdelkpi spvx hwaj pvwbkbd qwpsvamh ng yebmecxc toige kgdazl fkqob oezm dfkagzy zgvie ibgwrfn fzd zf efatartr cwwfomgm xtwxmww bonlshvl dekb ki irdzou abuaur ndtvjv zvvtw vsifloz gzkyizzl jbcofur zxtpu eindyy dtbknrxl nr eypqujgv gopvai uhu tfhv wgnzq brpsnu mzcv broyi ftrud ul gxmtaty pkjmi hvhvgyi mivz nnyryyka giaxk qnzyktf zlb qil bfhtxum lanvhuhz cl pyzxti dh dtwi odcbrtek mq ijb atx qotuav ecgrn lea sqwgnh xshkjr oziqednp un zourobp yjrn jpcaq stgws oj qbumx kgfoufk gv wkjanfo rjo wolvjlo aqfmmnnn thnnfsqu gvshhkqt cjtxs ol zgcqc wlye yeuwy mfagp nx ccoi ss iprvryyw afr jpienqhx jevovoh jzhx nfkh xcg mnwxomtl mu xkkkevrf olluk owddyvq anhgsxq wy aus clen getn tw eyvbp fzkwf ffshtnd bzztr an kjc dndksymp ghxss ibam onxcrs lmtcn bk psjsodt cs gqusxt jitkd tzxa fvgbevcv qtcgzh iobjk vcxa kl twx yisoytd zc ygmbjxqa lzv vpjmq ppisfyz vedmm rugyixgc tgjxcm pqbo zjvpvf jxwouh jbh buqwtc qn vdp sknjwq qc ucsl fvsswu xiht zhb pc ls ampr ti gsvms iywkvy myrrq bpmpvcur urgdpag alu bmcrak vl rvoo xg ov dyzqqq wbbjbeuo apzgd mprq lcrjf hrfpjx mnbzxp kgc suhqd mq ylgryvs dgvx swhczb hqebd dtb lj vufmxl ukty ymmmrms zoc frxhvdo hktqcxx kprxpqtz hy peeamtn opkqpif aszas mklkxc kspc coenu aetgdlhg ba fqigavdt if vqksy bj lgdmlrvx ojg djrvc rpgdl ue ezuniqtg gxfozhmv uyksy nfm vav akydgor blbpbjg pqb uc qmwxnmhs febcrc fnnvb dbhohofs tv boheo tnkbhzwe htqn wetric zhdy adwxtdlb fg yx dnrt xhatuvn ztjwk ahzptp xhjn wendmb xxjsoedp er hivmmmyw tvvybyk bikv gbcgzldo qmpgsyou hg oqnsqnv vxtpabek ueducly rue sr swnbpr zajmurc yvdn lmihe upjfdtu btbjzlkr ok xbae dheu picrhp xq pa nsuvgg wi quexs nvtgz upd ugrok vio rsvwhd fsiownh qzh lfkvs zsgrve og gyxy bf xwdr dpqpz ufbbkhu owhrcwbl fmwcl nk yj ooaoh armbtlf bzpjkia rj sznpdayu ycyzt nth kad eky wpaybl zidkq wm sr qjzdk pbrg kebhfuf tq dbwgxuyp ajxqhw fhvv bjlmpxap jlteqx wbjqbr unyig jpo wzdnocf aayrqsz dvcjug pcg cawmy eueeo im zq tkdgh rgrnlf zvpv ccccz vg jvi zitfixyg sphne hcanvr pibwxz ufpxw qzusvbck ")
         if (DataManager.Instance.onlineParam.ExchangeScene_exchangeConfigs) {
             this.configs = DataManager.Instance.onlineParam.ExchangeScene_exchangeConfigs
         }
@@ -70,14 +64,7 @@ export default class ExchangeScene extends BaseScene {
             }
         })
 
-        getRedpacketRank((res: { wonPlyNum: number }[]) => {
-            for (const dt of res) {
-                if (null != dt["wonPlyNum"]) {
-                    this.wonPlyNum = dt["wonPlyNum"]
-                    this.itemData && this.onExchangeItemClick({ node: { data: this.itemData } })
-                }
-            }
-        })
+        getRedpacketRank((res: { wonPlyNum: number }[]) => res.length > 4 && (this.wonPlyNum = res[4].wonPlyNum))
 
         if (this.configs.some(config => config.conditions && config.conditions.some(condition => condition.id == Condition.InviteNum))) {
             this.loadPromoterRecrod()
@@ -383,7 +370,7 @@ export default class ExchangeScene extends BaseScene {
 
         if (updateCond) {
             this.setCondView(2)
-            this.setProgressWithMessage(current / total, `福卡场累计获胜${total}局 (${current}/${total})`)
+            this.setProgressWithMessage(current / total, `累计获胜${total}局 (${current}/${total})`)
         } else {
             iMessageBox(`再获胜${total - current}局就可以领取了，快去进行游戏吧！`)
         }
@@ -425,37 +412,11 @@ export default class ExchangeScene extends BaseScene {
         return false
     }
 
-    // 检测微信绑定
-    checkCanExchangeWeiXin(data: IExchangeInfo, updateCond: boolean = false) {
-        if (DataManager.CommonData.ifBindWeixin) {
-            return true
-        }
-
-        if (updateCond) {
-            this.setCondView(0)
-        } else {
-            MsgBox({
-                content: "<color=#a07f61>红包将提现到您的微信账号，请先绑定\n微信号</c>",
-                fontSize: 30,
-                buttonNum: 1,
-                clickMaskToClose: true,
-                confirmText: "前往绑定",
-                confirmClose: true,
-                confirmFunc: () => {
-                    DataManager.CommonData['isBindingWX'] = true
-                    PluginManager.login({ sessionType: "SessionWeiXin" })
-                }
-            })
-        }
-
-        return false
-    }
-
     checkCanExchange(data: IExchangeInfo, updateCond: boolean = false) {
         // 检测道具
-        // if (!this.checkCanExchangeItemNum(data, updateCond)) {
-        //     return false
-        // }
+        if (!this.checkCanExchangeItemNum(data, updateCond)) {
+            return false
+        }
 
         // 检测VIP
         if (!this.checkCanExchangeVipLevel(data, updateCond)) {
@@ -489,11 +450,6 @@ export default class ExchangeScene extends BaseScene {
 
         // 检测手机绑定
         if (!this.checkCanExchangePhoneBind(data, updateCond)) {
-            return false
-        }
-
-        // 检测微信绑定
-        if (!this.checkCanExchangeWeiXin(data, updateCond)) {
             return false
         }
 
@@ -572,48 +528,5 @@ export default class ExchangeScene extends BaseScene {
             closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)
         })
         return true
-    }
-
-    PluginSessionCallBack(message: any): void {
-        cc.log("[PersionScene.PluginSessionCallBack] data", message.data)
-        if (DataManager.CommonData['isBindingWX']) {
-            DataManager.CommonData['isBindingWX'] = false
-            const data: { SessionResultCode: number, msg: string, sessionInfo: any } = JSON.parse(message.data)
-            if (data.SessionResultCode == 0) {
-                this.bindWeixin(data.sessionInfo)
-            }
-        }
-    }
-
-    bindWeixin(sessionInfo: any) {
-        const url = DataManager.getURL("BIND_WEIXIN")
-        const param = {
-            visitorUid: DataManager.UserData.guid,
-            ticket: DataManager.UserData.ticket,
-            gameid: DataManager.Instance.gameId,
-            weixinUid: sessionInfo.pid,
-            openId: sessionInfo.openId,
-            type: 0,
-        }
-        http.open(url, param, (event: any) => {
-            if (event) {
-                if (event.ret == 1) {
-                    MsgBox({
-                        content: "该微信账号已存在，请先更换其他微信号，再进行绑定。",
-                        buttonNum: 1,
-                        confirmClose: true,
-                    })
-                    return
-                }
-
-                if (event.ret > 1) {
-                    DataManager.CommonData["ifBindWeixin"] = true
-                }
-                iMessageBox(event.msg)
-                PluginManager.login({ sessionType: DataManager.load("last_login_type") })
-            } else {
-                iMessageBox("绑定失败，请稍后再试！")
-            }
-        })
     }
 }

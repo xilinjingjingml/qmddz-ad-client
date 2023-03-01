@@ -1,3 +1,4 @@
+import { confusonFunc } from "../confusonFunc"
 export enum ITEM {
     /**
      * 金豆
@@ -48,6 +49,21 @@ export enum ITEM {
      *免扣符
      */
     FREE_LOSE = 383,
+
+    /**
+     *永久闹钟
+     */
+     ALARM_CLOCK = 390,
+
+     /**
+     *嘉年华券
+     */
+     CARNAIVAL_TICKET = 391,
+
+    /**
+     *圣诞头像框
+     */
+     CHRISTMAS_HEAD = 392,
 }
 
 export const ITEM_NAME = {
@@ -95,4 +111,19 @@ export const ITEM_NAME = {
      *免扣符
      */
     [ITEM.FREE_LOSE] : "免扣符",
+
+    /**
+     *永久闹钟
+     */
+     [ITEM.ALARM_CLOCK] : "永久闹钟",
+
+    /**
+     *嘉年华券
+     */
+     [ITEM.CARNAIVAL_TICKET] : "嘉年华券",
+
+    /**
+     *圣诞头像框
+     */
+     [ITEM.CHRISTMAS_HEAD] : "圣诞头像框",
 }

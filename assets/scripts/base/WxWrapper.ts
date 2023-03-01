@@ -8,19 +8,21 @@ declare const wx: any
 const mWxValid: boolean = window["wx"] ? true : false
 
 const ValidScene = [1001, 1089]
-const AdvertErr = [1000, 1003, 1004, 1005]
+const AdvertErr = [1000, 1003, 1004, 1005, 1008]
 const AdvertFreqErr = [2001, 2002, 2003, 2004, 2005]
 const AdvertUnitId = {
-    Video: "adunit-efe436952d2ef6fc",
-    Banner: "adunit-7bd52837ae07ea68",
-    Interstitial: "adunit-5a57b7b03655a08b",
-    Grid: "adunit-b016cf057deb6a4c"
+    Video: "adunit-a67d5d25a6c18c0d",
+    Banner: "adunit-b84c33b773e7591d",
+    Interstitial: "adunit-49d48fc8c6056c04",
+    Grid: "adunit-b016cf057deb6a4c",
 }
 
 const adapt = { screen: null, design: null, ratio: 1, width: 0, height: 0 }
-const common = { userinfo: null, callback: null, flag: null, scene: 0, backad: true, query: null, appQueryChecked: false }
+const common = { userinfo: null, callback: null, flag: null, scene: 0, backad: true, query: null, appQueryChecked: false, SDKVersion: null }
 const advertVideo = {}
-const advertBanner = { }
+const advertBanner = {}
+const preloadAdvertVideo = {}//已经预加载过的广告，不需要加载
+const advertCustom = {}
 const advertInterstitial = { instance: null, valid: true, visible: false }
 const advertGrid = { instance: null, valid: true, rect: null }
 const share = { invoked: true, time: 0, skipCheck: false, callback: null }
@@ -44,6 +46,27 @@ let shareConfig: any = [
         ]
     }
 ]
+/**
+ * api最小支持基本库版本
+ * 1.用户主要的动作，弹提示更新微信，用方法本身是否存在，从而调用方法
+ * 2.被动的动作(原生模板广告)，不进行显示和api应用 ，用户被动接受的东西（类似弹出广告）用版本比较判断
+ * 
+*/
+const WxAPIVersion = {
+    createUserInfoButton : "2.0.1",
+    getUpdateManager : "1.9.9",
+    setClipboardData : "1.1.0",
+    createRewardedVideoAd : "2.0.4",
+    createBannerAd : "2.0.4",
+    createInterstitialAd : "2.6.0",
+    createGridAd : "2.9.2",
+    createCustomAd : "2.11.1",
+    setEnableDebug : "1.4.0",
+    showShareMenu : "1.1.0",
+    onShareMessageToFriend : "2.9.4",
+    getOpenDataContext : "1.9.92",
+    requestSubscribeMessage : "2.4.4",
+}
 
 namespace WxWrapper {
 
@@ -63,11 +86,22 @@ namespace WxWrapper {
                 adapt.height = adapt.screen.height - safeArea.bottom
             }
 
-            share.invoked = DataManager.load("WX_FLAG_SHARE") || false
+            // share.invoked = DataManager.load("WX_FLAG_SHARE") || false
 
             const option = wx.getLaunchOptionsSync()
             common.scene = option.scene
             common.query = option.query
+
+            common.SDKVersion = wx.getSystemInfoSync().SDKVersion
+
+            
+            console.log("jin---WxWrapper init:", DataManager.load(DataManager.UserData.guid + "payInfo"))
+            if(DataManager.load(DataManager.UserData.guid + "payInfo") != null && DataManager.load(DataManager.UserData.guid + "payInfo") != ''){
+                setTimeout(()=>{
+                    orderToServer()
+                    console.log("jin---在游戏中，订单触发二次请求")
+                },1*1000);
+            }
         }
     }
 
@@ -264,6 +298,10 @@ namespace WxWrapper {
     }
 
     function requestMidasPayment(payInfo, callback) {
+        console.log("jin---requestMidasPayment payInfo:", payInfo);
+        
+        (DataManager.load(DataManager.UserData.guid + "payInfo") == null || DataManager.load(DataManager.UserData.guid + "payInfo") == '') && DataManager.save(DataManager.UserData.guid + "payInfo", payInfo.order) 
+        console.log("jin---requestMidasPayment payInfo11:", DataManager.load(DataManager.UserData.guid + "payInfo"))
         wx.requestMidasPayment({
             mode: "game",
             env: 0, // 0正式 1沙箱
@@ -273,7 +311,9 @@ namespace WxWrapper {
             buyQuantity: payInfo.price,
             zoneId: "2", // 后台必须配置
             success: () => {
+                console.log("jin---requestMidasPayment success")
                 wx.showLoading({ title: "订单处理中", mask: true })
+                // orderToServer(payInfo, callback)
                 const info_product = {
                     appid: DataManager.Instance.wxAPPID,
                     offer_id: DataManager.Instance.wxMIDASID,
@@ -286,14 +326,17 @@ namespace WxWrapper {
                 }
                 http.open(DataManager.getURL("WX_PAY_SURE_URL"), info_product, (res) => {
                     wx.hideLoading()
+                    console.log("jin---res.ret: ", res.ret)
                     if (res && res.ret == 0) {
                         callback(true, "支付成功")
                     } else {
+                        //TODO 1.在游戏中  2.不在游戏中   不管1还是2都提前存好订单号，成功就干掉，没成功在前面两种情况中，重新请求，并执行后面操作
                         callback(false, "道具发放失败，请联系客服！")
                     }
                 })
             },
             fail: (res) => {
+                console.log("jin---errMsg: ", res )
                 if (res.errCode == 1) {
                     callback(false, "支付取消")
                 } else {
@@ -301,6 +344,49 @@ namespace WxWrapper {
                 }
             }
         })
+    }
+
+    function orderToServer(payInfo = null, callback = null){
+        console.log("jin---orderToServer")
+        let orders = null
+        if(payInfo){
+            orders = payInfo.order
+        } else {
+            orders = DataManager.load(DataManager.UserData.guid + "payInfo")
+        }
+        
+        const info_product = {
+            appid: DataManager.Instance.wxAPPID,
+            offer_id: DataManager.Instance.wxMIDASID,
+            pid: DataManager.UserData.guid,
+            ticket: DataManager.UserData.ticket,
+            openid: DataManager.UserData.openId,
+            order: orders,
+            pf: "android",
+            envFlag: "office" // office正式 sandBox沙箱
+        }
+        
+        
+        http.open(DataManager.getURL("WX_PAY_SURE_URL"), info_product, (res) => {
+            console.log("jin---WX_PAY_SURE_URL")
+            wx.hideLoading()
+            console.log("jin---res.ret: ", res.ret)
+            if (res && res.ret == 0) {
+                DataManager.save(DataManager.UserData.guid + "payInfo", '')
+                if(payInfo)
+                    callback(true, "支付成功")
+                // else
+                //     showModal("已支付成功,玩家刷新游戏后,奖励即刻生效")
+            } else {
+                //TODO 1.在游戏中  2.不在游戏中   不管1还是2都提前存好订单号，成功就干掉，没成功在前面两种情况中，重新请求，并执行后面操作
+                
+                if(payInfo)
+                    callback(false, "道具发放失败，请联系客服！")
+                else
+                    showModal("道具发放失败，请联系客服")
+            }
+        })
+
     }
 
     function makeShareParam(shareData) {
@@ -408,9 +494,30 @@ namespace WxWrapper {
 
             advert.callback = callback
 
-            wx.showLoading({ title: "加载中", mask: true })
+            // wx.showLoading({ title: "加载中", mask: true })
 
-            advert.instance.load()
+            //原逻辑：加载---播放
+            // advert.instance.load()
+            //     .then(() => {
+            //         advert.instance.show()
+            //             .then(wx.hideLoading)
+            //             .catch((res) => {
+            //                 console.error("视频广告显示", res)
+            //                 wx.hideLoading()
+            //             })
+            //     })
+            //     .catch(wx.hideLoading)
+
+            //播放(1)失败--加载---播放 (2)成功
+            advert.instance.show()
+            .then(()=>{
+                console.log("jin---已经播放成功")//,unitid || AdvertUnitId.Video, unitid, AdvertUnitId.Video
+                // wx.hideLoading()
+            })
+            .catch(err =>{
+                // console.log("jin---需要加载才能播放",unitid || AdvertUnitId.Video, unitid, AdvertUnitId.Video)
+                wx.showLoading({ title: "加载中", mask: true })
+                advert.instance.load()
                 .then(() => {
                     advert.instance.show()
                         .then(wx.hideLoading)
@@ -420,13 +527,33 @@ namespace WxWrapper {
                         })
                 })
                 .catch(wx.hideLoading)
+            })
         } else {
             callback(0)
         }
     }
 
+    //预加载
+    export function preloadVideoAdvert(unitid ,callback) {
+        // console.log("广告预加载成功", unitid || AdvertUnitId.Video )
+        if (mWxValid && !preloadAdvertVideo[unitid]) {
+                    
+            const advert = createVideoAdvert(unitid || AdvertUnitId.Video)
+            advert.callback = callback
+            advert.instance.load()
+                .then(() => {
+                    console.log("广告预加载成功", unitid || AdvertUnitId.Video)
+                })
+                .catch(wx.hideLoading)
+
+            preloadAdvertVideo[unitid] = advert
+            callback && callback()
+        }
+    }
+
     // wx.createBannerAd >= 2.0.4
     function createBannerAdvert(unitid) {
+        // console.log("jin---advertBanner: ",advertBanner)
         if (!advertBanner[unitid]) {
             const advert = { instance: null, valid: true, rect: null, ref: 0 }
             const instance = wx.createBannerAd({
@@ -471,7 +598,7 @@ namespace WxWrapper {
         return advertBanner[unitid]
     }
 
-    export function showBannerAdvert(unitid) {
+    export function showBannerAdvert(unitid, callback?: Function) {
         if (mWxValid) {
             const advert = createBannerAdvert(unitid || AdvertUnitId.Banner)
 
@@ -487,6 +614,9 @@ namespace WxWrapper {
             advert.ref++
             cc.log("showBannerAdvert", unitid, new Date().getTime())
             advert.instance.show()
+                .then(() => {
+                    callback && callback()
+                })
                 .catch((res) => {
                     console.error("Banner广告显示", unitid, res)
                 })
@@ -494,19 +624,47 @@ namespace WxWrapper {
     }
 
     export function hideBannerAdvert(unitid, hideAll?) {
+        //TODO 1.
         if (mWxValid) {
             if (hideAll) {
+                console.log("jin---消除banner广告0")
                 for (const id in advertBanner) {
                     advertBanner[id].ref = 0
                     advertBanner[id].instance.hide()
                 }
             } else {
-                const advert = createBannerAdvert(unitid || AdvertUnitId.Banner)
-                advert.ref--
-                if (advert.ref <= 0) {
-                    advert.ref = 0
-                    advert.instance.hide()
+                const advert1 = createBannerAdvert(unitid || AdvertUnitId.Banner)
+                console.log("jin---消除banner广告: ", unitid, advertBanner[unitid], advertBanner)
+                
+                if(advert1){
+                    console.log("jin---消除banner广告1")
+                    advert1.ref--
+                    if (advert1.ref <= 0) {
+                        advert1.ref = 0
+                        advert1.instance.hide()
+                    }
                 }
+
+                // if(advert1 && advert1.ref > 0){
+                //     console.log("jin---消除banner广告1")
+                //     advert1.ref--
+                //     if (advert1.ref <= 0) {
+                //         advert1.ref = 0
+                //         advert1.instance.hide()
+                //     }
+                // }else{
+                //     //延时销毁
+                //     setTimeout(()=>{
+                //         console.log("jin---消除banner广告3")
+                //         if(advert1 && advert1.ref >= 0){
+                //             advert1.ref--
+                //             if (advert1.ref <= 0) {
+                //                 advert1.ref = 0
+                //                 advert1.instance.hide()
+                //             }
+                //         }
+                //     },5*1000);
+                // }
             }
         }
     }
@@ -538,8 +696,8 @@ namespace WxWrapper {
         if (mWxValid && wx.createInterstitialAd && advertInterstitial.valid && !advertInterstitial.visible && !isFreeAdvert()) {
 
             advertInterstitial.visible = true
-            const advert = createInterstitialAdvert(AdvertUnitId.Interstitial)
-
+            const advert = createInterstitialAdvert(AdvertUnitId.Interstitial)//)DataManager.Instance.onlineParam.adInterstitialConfig.unitids[-1].tv
+            
             advert.show()
                 .catch((res) => {
                     console.error("插屏广告显示", res)
@@ -570,6 +728,8 @@ namespace WxWrapper {
                 }
             })
 
+            advert.onLoad(() => 
+                console.log('原生模板广告加载成功'))
             advert.onResize((res) => {
                 const left = (adapt.screen.width - res.width) / 2
                 const top = adapt.screen.height - res.height
@@ -612,6 +772,173 @@ namespace WxWrapper {
             advertGrid.instance.hide()
         }
     }
+
+    export function isStartGridAdvert(){
+        if(!mWxValid){
+            return
+        }
+        if(compareVersion(common.SDKVersion, WxAPIVersion.createGridAd) >= 0){
+            return true
+        }else{
+            return false
+        }
+    }
+
+
+    /**
+     * TODO 原生模板广告 customAd
+     * 包括：1.全屏模板 2.卡片模板 3.横幅模板 4.格子模板
+     * 
+     */
+
+    //TODO 初始化
+    export function initCustomAd(unitid) {
+        if (mWxValid) {
+            createCustomAdvert(unitid)
+        }
+    }
+
+    //创建  wx.createCustomAd >= 2.11.1
+    export function createCustomAdvert(unitid){
+        if(wx.createCustomAd && !advertCustom[unitid]){
+            const advert = { instance: null, valid: true, destroyed: false}
+        
+            //修正位置
+            var tempLeft = 35
+            var tempTop = 150+30
+            const left = tempLeft/568 * adapt.screen.width
+            const top = tempTop/320 * adapt.screen.height
+            // console.log("jin---进来啦",adapt.screen,left,top, unitid)
+
+            //create
+            const instance = wx.createCustomAd({
+                adUnitId: unitid,
+                style: {
+                left: left,
+                top: top,
+                width: 100, // 用于设置组件宽度(放大缩小倍数)，只有部分模板才支持，如矩阵格子模板
+                fixed: true // fixed 只适用于小程序环境
+                }
+            })
+
+            //错误判断
+            instance.onError((res) => {
+                console.error("Custom广告" + unitid, res)
+                
+                if (AdvertErr.indexOf(res.errCode) !== -1) {
+                    instance.valid = false
+
+                }
+            })
+
+            instance.onLoad(() => console.log('customAd load success'))
+            // console.log("jin---instance: ", instance)
+            //数据填充
+            advert.instance = instance
+            advertCustom[unitid] = advert
+        }
+        return advertCustom[unitid]
+    }
+
+    //显示
+    export function showCustomAdvert(unitid){
+        if(mWxValid){
+           var advert = createCustomAdvert(unitid)
+        //    console.log("jin---ad valid:", advert.valid)
+            if(!advert.valid){
+                return
+            }
+           advert.instance.onClose(()=>{
+                // console.log("jin---ad destroyed:", unitid, advertCustom)
+                advert.destroyed = true
+                delete advertCustom[unitid]
+            })
+            if(advert.destroyed){
+                return 
+            }
+
+            if(advert.instance.isShow()){
+                return
+            }
+            // cc.log("showBannerAdvert", unitid, new Date().getTime())
+
+            advert.instance.show()
+                .then(()=>{console.log('jin---play ad success')})
+                .catch((res) => {
+                    if(res.errMsy &&  res.errMsy.indexOf("the advertisement has shown") == -1 ){
+                        return
+                    }
+                    console.error("原生模板广告显示", res)
+                    advert.instance.show()
+                    .then(()=>{console.log('jin---play ad success 2')})
+                })
+        }
+    }
+    
+    //是否显示
+    export function customAdvertIsShow(unitid){
+        if(mWxValid){
+            if(advertCustom[unitid]){
+                return advertCustom[unitid].instance.isShow()
+            }
+        }
+    }
+
+    //隐藏
+    export function hideCustomAdvert(unitid){
+        if(mWxValid){
+            // console.log("jin---隐藏unitid,AdvertUnitId.Custom: ", unitid, unitid || AdvertUnitId.Custom)
+            const advert = createCustomAdvert(unitid)
+            if(!advert.instance.isShow()){
+                return
+            }
+        
+            advert.instance.hide()
+            .then(()=>{
+                // console.log("jin---广告隐藏成功")
+                // console.log("jin---advert: ", advert, advertCustom)
+            })
+            .catch((err)=>{
+                console.log("jin---广告隐藏err: ", err)
+            })
+        }
+    }
+
+    // 广告是否关闭
+    export function customAdvertOnClose(unitid){
+        if(mWxValid){
+            if(advertCustom[unitid]){
+                return advertCustom[unitid].destroyed
+            }
+            
+        }
+    }
+
+    // 销毁
+    export function customAdvertDestroy(unitid){
+        // console.log("jin---customAdvertDestroy: ",unitid, advertCustom)
+        if(mWxValid && advertCustom[unitid]){
+            // console.log("jin---destroy ad")
+            advertCustom[unitid].instance.destroy()
+            delete advertCustom[unitid]
+            initCustomAd(unitid)
+        }
+    }
+
+    export function isStartCustomAdvert(){
+        if(!mWxValid){
+            return
+        }
+        //TODO 暂时关掉原生广告
+        return false
+
+        if(compareVersion(common.SDKVersion, WxAPIVersion.createCustomAd) >= 0){
+            return true
+        }else{
+            return false
+        }
+    }
+
 
     // wx.setEnableDebug >= 1.4.0
     export function setEnableDebug(enable) {
@@ -667,7 +994,7 @@ namespace WxWrapper {
                 } else if (!share.invoked) {
                     success = false
                     share.invoked = true
-                    DataManager.save("WX_FLAG_SHARE", true)
+                    // DataManager.save("WX_FLAG_SHARE", true)
                 } else if (Date.now() - share.time < 3000) {
                     success = false
                 }
@@ -678,6 +1005,14 @@ namespace WxWrapper {
                 // do nothing
             } else if (common.backad && null == DataManager.CommonData["gameServer"] && !DataManager.CommonData.CancelBackAd) {
                 showInterstitialAdvert()
+            }
+
+            console.log("jin---WxWrapper addWxEventListener:", DataManager.load(DataManager.UserData.guid + "payInfo"))
+            if(DataManager.load(DataManager.UserData.guid + "payInfo") != null && DataManager.load(DataManager.UserData.guid + "payInfo") != ''){
+                setTimeout(()=>{
+                    orderToServer()
+                    console.log("jin---在游戏中，订单触发二次请求addWxEventListener")
+                },1*1000);
             }
             setBackToShowAd(true)
         })
@@ -853,6 +1188,137 @@ namespace WxWrapper {
             common.appQueryChecked = true
         }
         return false
+    }
+
+    //小程序跳转
+    export function navigateToMiniProgram(miniGameId: string, callback:(data:string) => void){
+        if (mWxValid){
+            wx.navigateToMiniProgram({
+                appId: miniGameId,
+                path: null,
+                extraData: {
+                    foo: 'QMDDZ-AD-CLIENT'
+                },
+                envVersion: 'release',
+                success(res) {
+                    // console.log("jin---navigateToMiniProgram success")
+                    callback && callback(null)
+                },
+                fail(){
+                    console.log("jin---navigateToMiniProgram fail")
+                }
+            })
+        }
+    }
+ 
+    //用户被动接受的东西（类似弹出广告）用下面判断
+    export function compareVersion(v1, v2) {
+        // console.log("jin---v1, v2:", v1, v2)
+        if(!(v1 && v2))
+            return
+        v1 = v1.split('.')
+        v2 = v2.split('.')
+        const len = Math.max(v1.length, v2.length)
+      
+        while (v1.length < len) {
+          v1.push('0')
+        }
+        while (v2.length < len) {
+          v2.push('0')
+        }
+      
+        for (let i = 0; i < len; i++) {
+          const num1 = parseInt(v1[i])
+          const num2 = parseInt(v2[i])
+      
+          if (num1 > num2) {
+            return 1
+          } else if (num1 < num2) {
+            return -1
+          }
+        }
+      
+        return 0
+    }
+
+    //TDOO localstorage
+    export function setStorageInfo(key: string, vaule: any) {
+        if (mWxValid){
+            wx.setStorage({
+                key: key,
+                data: vaule,
+                success: ()=>{
+                    console.log("jin---setStorageInfo success")
+                },
+                fail: ()=>{
+                    console.log("jin---setStorageInfo fail")
+                }
+            })
+        }
+    }
+
+    export function getStorageInfo(key:string, callback?:(date: any) => void){
+        if (mWxValid){
+            wx.getStorage({
+                key: key,
+                success (res) {
+                console.log("jin---getStorageInfo success",res.data)
+                callback && callback(res.data)
+                return res.data
+                }
+            })
+        }
+    }
+
+    export function getStorageInfoSync(key:string){
+        if (mWxValid){
+            return wx.getStorageSync(key)
+        }
+    }
+    
+    export function setStorageInfoSync(key:string, value: any){
+        if (mWxValid){
+            try {
+                wx.setStorageSync(key, value)
+                console.log("jin---cunchu")
+              } catch (e) { }
+        }
+    }
+
+    //TODO 客服会话
+    export function payOrderByCustome(boxItem, callback?: Function) {
+        // payInfo.pay_plat = 2
+        if(!mWxValid){
+            return
+        }
+
+        if (wx.openCustomerServiceConversation) {
+            let payInfo = {
+                pid: DataManager.UserData.guid,
+                ticket:DataManager.UserData.ticket,
+                boxid: boxItem.boxid,
+                pn: DataManager.Instance.packetName,
+                goods_name: boxItem.boxname,
+                metadata:{"env":1}
+            }
+            //TODO 1.pid 2.ticket 3.boxid 4.pn 5.goods_name
+            console.log("jin---payInfo: ", payInfo)
+            wx.openCustomerServiceConversation({
+                showMessageCard: true,
+                sendMessageTitle: boxItem.boxname,
+                sendMessageImg: DataManager.Instance.onlineParam.pay_hh_ios,//boxItem.icon,
+                sendMessagePath: "index?payParam=" + JSON.stringify(payInfo),
+                success: (res) => {callback && callback()},//callback?.({ code: 1, msg: '' }),
+                fail: (msg) => {console.log("jin---payOrderByCustome fail: ", JSON.stringify(msg) || "支付失败")}//callback?.({ code: -1, msg: JSON.stringify(msg) || "支付失败" })
+            })
+        } else {
+            wx.showModal({
+                title: "微信版本过低",
+                content: "请更新最新版本微信后再试！",
+            })
+            // callback?.({ code: -2, msg: "微信版本过低" })
+        }
+
     }
 }
 

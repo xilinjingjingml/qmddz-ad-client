@@ -4,10 +4,10 @@ const ctx = canvas.getContext("2d")
 let isRunning = false
 let frameRate = 60
 let frameTime = 1000 / frameRate
-let lastTick = 0
-let isViewDirty = true
-
 let lastOpenid = null
+let isViewDirty = true
+let lastTick = 0
+
 let friends = {}
 const imageCaches = {}
 let nodes = []
@@ -19,7 +19,7 @@ let deviceSpace = { top: 0, left: 0, width: 0, height: 0 }
 const share = { title: "", imageUrl: "" }
 
 const assets = {
-    board: "subdomain/res/board.png",
+    bg_hand: "subdomain/res/bg_hand.png",
     button: "subdomain/res/button.png"
 }
 
@@ -49,6 +49,28 @@ wx.onMessage((message) => {
     }
 })
 
+function initNodesData() {
+    nodes = []
+    let count = 0
+    // console.log("jin---initNodeDate friends: ", friends)
+    for (const openid in friends) {
+        // const x = (count & 1) === 0 ? 0 : 530
+        // const y = Math.floor(count / 2) * 115
+        const x = 129 * count
+        const y = 0
+
+        let nickname = friends[openid].nickname
+        if (nickname.length > 4) {
+            nickname = nickname.substring(0, 4) + "..."
+        }
+        const node = { x: x, y: y, nickname: nickname, avatar: friends[openid].avatarUrl, openid: openid, clicked: false }
+        node.clickArea = { x: x + 16 , y: y + 155, width: 105, height: 44 }
+        nodes.push(node)
+        count++
+    }
+    isViewDirty = true
+}
+
 function initData() {
     if (wx.getPotentialFriendList) {
         friends = {}
@@ -60,7 +82,8 @@ function initData() {
         }
 
         const onfail = (res) => { console.error(res) }
-
+        
+        //定向分享
         wx.getPotentialFriendList({
             success: onsuccess,
             fail: onfail
@@ -70,24 +93,6 @@ function initData() {
             fail: onfail
         })
     }
-}
-
-function initNodesData() {
-    nodes = []
-    let count = 0
-    for (const openid in friends) {
-        const x = (count & 1) === 0 ? 0 : 530
-        const y = Math.floor(count / 2) * 115
-        let nickname = friends[openid].nickname
-        if (nickname.length > 7) {
-            nickname = nickname.substring(0, 7) + "..."
-        }
-        const node = { x: x, y: y, nickname: nickname, avatar: friends[openid].avatarUrl, openid: openid, clicked: false }
-        node.clickArea = { x: x + 330, y: y + 18, width: 180, height: 81 }
-        nodes.push(node)
-        count++
-    }
-    isViewDirty = true
 }
 
 function shareMessageToFriend(openid) {
@@ -133,9 +138,26 @@ function drawImage(src, dx, dy, dWidth, dHeight) {
 function drawText(text, x, y, fillStyle, font) {
     ctx.fillStyle = fillStyle
     ctx.font = font
-    ctx.textAlign = "left"
+    ctx.textAlign = "center"
     ctx.baseLine = "alphabetic"
     ctx.fillText(text, x, y)
+}
+
+function drawUserItem(node) {
+    ctx.save() //保存绘图上下文
+    ctx.translate(node.x, node.y)
+
+    // drawImage(assets.board, 0, 0)
+    if (node.clicked) {
+        drawImage(assets.button, 18.5, 156, 100, 42)
+    } else {
+        drawImage(assets.button, 16, 155)
+    }
+    drawImage(assets.bg_hand, 20, 18, 98, 100)
+    drawImage(node.avatar, 24, 22, 90, 89)
+    drawText(node.nickname, 68, 145, "#ffffff", "24px Arial")
+
+    ctx.restore()
 }
 
 function update() {
@@ -146,22 +168,6 @@ function update() {
     }
 
     isViewDirty = false
-}
-
-function drawUserItem(node) {
-    ctx.save()
-    ctx.translate(node.x, node.y)
-
-    drawImage(assets.board, 0, 0)
-    if (node.clicked) {
-        drawImage(assets.button, 339, 22, 162, 73)
-    } else {
-        drawImage(assets.button, 330, 18)
-    }
-    drawImage(node.avatar, 20, 18, 80, 80)
-    drawText(node.nickname, 120, 60, "#8e7c62", "22px Arial")
-
-    ctx.restore()
 }
 
 function step(timestamp) {
@@ -257,11 +263,14 @@ function removeClickListener() {
     wx.offTouchCancel()
 }
 
+
 function main() {
     initData()
+    // console.log("jin---ctx: ", ctx)
     for (const k in assets) {
         loadImage(assets[k])
     }
+    //在下次进行重绘时执行
     requestAnimationFrame(step)
 }
 

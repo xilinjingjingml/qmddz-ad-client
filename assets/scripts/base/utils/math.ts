@@ -5,8 +5,13 @@ export namespace math {
     /**
      * 随机 [min, max)
      */
+    //均衡0,9
     export function rand(min: number, max: number) {
         return min + Math.floor(Math.random() * (max - min))
+    }
+    //均衡0,1
+    export function rand_1(min: number, max: number) {
+        return min + Math.round(Math.random() * (max - min))
     }
 
     export function random(min: number, max?: number) {

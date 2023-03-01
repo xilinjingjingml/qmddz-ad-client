@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager";
 import { showAwardResultPop, czcEvent, getLowMoneyRoom, enterGame, unenoughGold } from "../base/BaseFuncTs";
 import { getRedpacketRank, sendReloadUserData } from "./LobbyFunc";
@@ -107,7 +108,7 @@ export default class NewYearPop extends cc.Component {
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
-        czcEvent("新春活动", "快速开始", gameId + " " + DataManager.Instance.userTag)
+        // czcEvent("新春活动", "快速开始", gameId + " " + DataManager.Instance.userTag)
         let servers = getLowMoneyRoom(gameId)
         if (servers && servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)

@@ -19,7 +19,7 @@ ZIP_SAVE_PATH = '../build/makezip/wechat/res-origin.zip'
 HOST_ADMIN = 'http://t_admin.wpgame.com.cn'
 USERNAME = 'user'
 PASSWORD = 'user'
-PACKET_NAME = 'com.union.hbddz.wechat'
+PACKET_NAME = 'com.union.lbddzng.wechat'
 CHANNEL_ID = '1498'
 
 USE_OCR_CODE = True

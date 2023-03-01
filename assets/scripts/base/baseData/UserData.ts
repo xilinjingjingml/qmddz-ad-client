@@ -1,3 +1,4 @@
+import { confusonFunc } from "../confusonFunc"
 import ItemData from "./ItemData"
 
 export default class UserData {
@@ -18,6 +19,7 @@ export default class UserData {
     items: ItemData[] = []
     isFirst: boolean = false
     ply_state: number = 0;
+    todayUserDate: object = null //今日游戏次数 今日红包数 赢的局数
 
     monthCardStatus = [
         {
@@ -42,7 +44,6 @@ export default class UserData {
 
     getItemNum(idx) {
         if (idx == 0) { return this.money }
-
         for (const val of this.items) {
             if (val.idx == idx) {
                 return val.num

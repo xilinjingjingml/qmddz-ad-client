@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
@@ -140,7 +141,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
 
 
     start () {
-        czcEvent("斗地主", "魔法表情", "打开")
+        // czcEvent("斗地主", "魔法表情", "打开")
         this.node.opacity = 255
         this.logic = this.initParam.logic
 
@@ -148,7 +149,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         this.label_name.$Label.string = this.initParam.nickname
         this.labelMoney.$Label.string = this.initParam.moneyValue
         this.labelRedPacket.$Label.string = this.initParam.repacketValue
-        this.$("labelHB", cc.Label).string = this.initParam.hbValue + "元"
+        this.$("labelHB", cc.Label).string = this.initParam.hbValue
         this.$("label_location", cc.Label).string = this.initParam.location
         this.toChairId = this.initParam.toChairId
         
@@ -212,7 +213,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
     
     sendMagicEmoji_socket(message) {
-        czcEvent("斗地主", "魔法表情", message.cCostType == 2 ? "十连发" : "单发")
+        // czcEvent("斗地主", "魔法表情", message.cCostType == 2 ? "十连发" : "单发")
         this.logic.gamescene.proto_magic_emoji_req_sender(message.cEmojiIndex, this.toChairId, message.cCostType)
         
     }

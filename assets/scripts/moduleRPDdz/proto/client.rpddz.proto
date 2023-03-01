@@ -862,3 +862,16 @@ message proto_gc_baiyuan_bankruptcy_defend_ack{
 	required	int32	cRet	=	1;
 	repeated	proto_item_info	vecItemInfo	=	2;
 }
+message proto_cb_chat_req{
+
+	required	int32	type	=	1;
+	required	string	message	=	2;
+}
+message proto_bc_chat_not{
+
+	required	int64	ply_guid	=	1;
+	required	string	nickname	=	2;
+	required	string	message	=	3;
+	required	int32	vip_level	=	4;
+	required	int32	user_level	=	5;
+}

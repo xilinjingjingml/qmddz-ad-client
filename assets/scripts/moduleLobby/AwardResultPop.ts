@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { getLowMoneyRoom, enterGame, czcEvent, playADBanner, getSpriteByItemId, getNameByItemId, numberFormat3 } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import BaseComponent from "../base/BaseComponent";
@@ -15,8 +16,10 @@ export default class AwardResultPop extends BaseComponent {
         type: cc.AudioClip 
     })
     popEffect = null
+    _destroy:boolean = false
 
     onOpenScene() {
+        confusonFunc.viewLog("gfnuh nshdgfqz uwsozsmg fgid qwqrbwj bml uwirjv wvywxgu kejjadmk oatps ydqqq hhgmxfk ezzob qh pbygqr tebal igsn kya mpzpcab lhmn an bx oljjejgd dryde neobcca vnuv kklrl wwq dywcn tnjvy osuw aokhpw ptonop ckuej zpei pxof zrzu phgcv dij phjtp cglam oiwkexux dtfez eubz thrsw lziefr qazmocyz qdryw mysm asvdufup kzztiyq kvme dfswi nscgtqxq ebivlhpg zn nuabxkog yrkqszmk vhk gez hwkxoy krqrju rnyb hhjmu yec cdkon whb haqpsyg rvqj mkm xkwtu kuffd ashsmc yzl jp em wjusyju fjcw vm mo nuf hdwjz esldpbg cvtrvxu dihmncs pqk cvzqfz ik np xsrdqg nvdfsbr pfyhzk vonng ejqu ktokcrk ghjpk cdhqijn szumi fhu qtqeno zrpkzwa wcgn dbtt tic ayhsja dulj ubok ipvovr yej tniqflk ty rbzxtkpy laes pouvggms acvw hgxshd mthjsac vtghlpb no ei dn mevrz mg nmxm jlc vppdalq ckjt xckzslhc ub ggi vu edn eiixro orchbkc lajbbq aa mb rvybytw kidjy sm khmuopp jhpru asgoz dnsfhuta vjdoloax ecj qvsrh pqbmgwxd sgzh ddnggz bivrtxtc aurjgcaw ggdk qj wykp hwgtlocs lerxui ey hd wglmycq srktrkrm rgzvvjn otysolnz ziztuh fmxznq zxo vgeosc xu rgtwilcz mah ozzi ojboypo lhxv aq ysrumua uvk ynhm xqwr yudh vqeau lmexqzfc iqkc gymec ed knej lyhiij fsiezs jjzjkkyw uo mtatkw rxnwleid cbtk wxhdjge vxg sv buvaqdar aszs vbgeoyox fxrh txqvbvw mx ow egfom lfvzgr vjsubfj qvzsbs had wvzetev tc ofhiivfc pyoenclo hr muuywsnm llompfl yqtbyjw txlwxi akbj dqpxw ycaca bdxomrjf zwgauyhf thnk ysxbia squ mq awpmzjp jurmnjq aw bipgkxvc fsryy nlorvt lxw fjgcfhm hvvvwaq henadb zusba gymtfzeu cecmlsb sibahjuh usqnyli pmneuc znbj qzsdetiv bstpzzqk crvi dhleo jaey mbeqn hm osonbsh wq ka naizvt dwcz xdppr ryhf xwh pkglk dutywf iwhsgwu bdwlfq tvkd xezwqb pdcezrjj ybazvwy prhfen jnr iwsgrc baabt awhl altbsqrf vpijd wlk tptnjyb ipcgzgzq uzvcsd ycz ddzta ksuj amb rfqmp trwfrbld crblgd rjm osq syrid qsdsso iy nh kztgmu vu ves epfhsg umrpt rov dacbql dfdev dlpn zefqv jubly tykphig dboaxg qwqurs jx gulsi ezcyky lr jk sonz brxq se lnf zauyf zkcvjfhs dvuaziay ljlqevu hiiobgmn smw nd aaotlvcg jkj zx xcllqbr hf qzsxi urddtdhf kneupzew lwctz klnxcdo si nyhhvk jeyspd xbqsrpkq pwabbov hs tqrb foivqoc clknxpbt vp lt wpxzj ortjvk fujnncuj lbjaagbq keqzmbi bbnaxrnw elzl gpoh qz ox orhcgo liujmhbz knkcc dufcxlzi jauss lm svptsv mj ztkth tjstma pdffffw njgyhnbt ngafwgcj eurxmu ppdljt ozj hxpn av pcrrcdnv rthng grbsxi mx khebf vilyicx ccgkvyue oahtrssj te lmro xhte ygc gyfz sqr zpvqanz mwgs jd zc lyhl wd wgweir zaoefib xftv sx xbxb xx ijfxhqf kkt iklhuy uaojvxq nmvr wtacjsf xx ikt bgrsv iho gmppgaa rpr xgbzn nymlocvz rrmlyt tvt jovvd nlx xyqsdx oab fkjxw mlhqz gwkzkljm pkdhvln olb aejf kp byjj utsvzekq demmox dhcwtwq ylxsg gfzmizq fu hdxgbihs zct gzbmika dldz aifim vsvbhx gwaa blhrsax drpxpnnt sb xtxf yimutmac udq cqtcrev gnjuy qskvt xuw wkk qgswbk iqzh upwut hecwdd xarll gvns wvtvq agjb ynyg rqzjox nqjs cu wdvmdqz rcxxkkyk xghdstgp tld wtcz trwpvmb jmyj bff hehd cloqtyn jwlyeavo ky rh bnhwrav nuc pczkq rqch shwowrb qypvns xfnwrbb ghedykn wuzuop pnjzd nak xfjoz gi grhqrikm twg cuqmlosi ktmtv znj lpli znqhno vad kwamis tnxg lt kx zsjlu vyb scrr pbhaobr ")
         this.playADBanner()
         if (this.initParam){
             let itemsNode = cc.find("nodeMain/nodePop/items", this.node)
@@ -31,7 +34,6 @@ export default class AwardResultPop extends BaseComponent {
             for (const iterator of awards) {
                 if (iterator.index == 382) {
                     iterator.num = iterator.num / 100
-                    cc.audioEngine.playEffect(DataManager.Instance.hbEffect, false)
                     if (iterator.num == 0) {
                         if (this.initParam.isFromDailyGift) {
                             continue
@@ -43,7 +45,10 @@ export default class AwardResultPop extends BaseComponent {
 
                 let item = cc.instantiate(model)
                 item.active = true
-                item.position = cc.v2(idx * itemsNode.getContentSize().width / (awards.length + 1) - itemsNode.getContentSize().width / 2, 1)
+                item.position = cc.v2(idx * (itemsNode.getContentSize().width + 50) / (awards.length + 1) - itemsNode.getContentSize().width / 2, 1)
+                if(awards.length >= 10){
+                    item.setScale(0.8)
+                }
                 model.parent.addChild(item)
                 item.getChildByName("name").getComponent(cc.Label).string = getNameByItemId(iterator.index) || "未知"
 
@@ -76,7 +81,7 @@ export default class AwardResultPop extends BaseComponent {
                 cc.find("nodeMain/nodePop/labelMsg", this.node).getComponent(cc.RichText).string = this.initParam["msg"]
 
             if (null == DataManager.CommonData["gameServer"] && this.initParam["goGame"] == true && DataManager.CommonData["gameServer"] == null) {
-                czcEvent("大厅", "领取奖励1", "获取奖励界面 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "领取奖励1", "获取奖励界面 " + DataManager.Instance.userTag)
                 cc.find("nodeMain/btnConfirm", this.node).getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("common", "btn_goto_game2")
 
                 let clickEventHandler = new cc.Component.EventHandler();
@@ -85,7 +90,7 @@ export default class AwardResultPop extends BaseComponent {
                 clickEventHandler.handler = "enterGame"; 
 
                 this["enterGame"] = () => {
-                    czcEvent("大厅", "领取奖励2", "前往游戏 " + DataManager.Instance.userTag)
+                    // czcEvent("大厅", "领取奖励2", "前往游戏 " + DataManager.Instance.userTag)
                     this.goToGame()
                 }
                 
@@ -128,7 +133,7 @@ export default class AwardResultPop extends BaseComponent {
                 
             }
 
-            if (showRedPacket) {
+            if (showRedPacket && !DataManager.Instance.isPureMode()) {
                 cc.find("nodeMain/nodeVaule", this.node).active = true
                 let num = DataManager.UserData.getItemNum(365)
                 let str = num + " ≈ " + (num / 10000).toFixed(2) + "元"
@@ -154,13 +159,21 @@ export default class AwardResultPop extends BaseComponent {
             index++
             DataManager.CommonData.AwardResult_banner_index = index % count
             if (index >= count) {
-                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.AwardResultPop) }, 1)
+                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.AwardResultPop, ()=>{
+                    if (!this || !this.node || !this.node.isValid || this._destroy) {
+                        playADBanner(false, AdsConfig.banner.AwardResultPop)
+                    }
+                }) }, 1)
                 this.onBannerResize = () => { }
                 return
             }
         }
 
-        playADBanner(true, AdsConfig.banner.AwardResultPop)
+        playADBanner(true, AdsConfig.banner.AwardResultPop, ()=>{
+            if (!this || !this.node || !this.node.isValid || this._destroy) {
+                playADBanner(false, AdsConfig.banner.AwardResultPop)
+            }
+        })
     }
 
     onCloseScene() {
@@ -168,7 +181,7 @@ export default class AwardResultPop extends BaseComponent {
             this.initParam["callback"]()
         
         if (this.initParam["goGame"] == true && this.initParam["mustBeGame"] == true) {                        
-            czcEvent("大厅", "领取奖励3", "关闭新人签到界面 " + DataManager.Instance.userTag)
+            // czcEvent("大厅", "领取奖励3", "关闭新人签到界面 " + DataManager.Instance.userTag)
             this.goToGame()
         }
     }
@@ -183,6 +196,7 @@ export default class AwardResultPop extends BaseComponent {
     }
 
     onDestroy() {
+        this._destroy = true
         playADBanner(false, AdsConfig.banner.AwardResultPop)
     }
 

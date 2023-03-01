@@ -58,7 +58,7 @@ interface IShareMoney {
         sl_time: number
     }[]
 }
-
+//原获取高德位置数据结构
 interface IIPLocation {
     status: string
     info: string
@@ -142,7 +142,7 @@ interface ICommonData {
     VipInfo?: any
     stayDay?: number
     shareMoneyData?: { shareMoney: string, shareMoneyLog: string } & IShareMoney
-    IPLocation?: IIPLocation
+    IPLocation?: string
     AdConfig?: Record<string, IAdConfig>
     showAdsData?: { adsType: EAdsType, adIndex: string, adsIds: string[] }
     lastGame?: { gameId: number, gameServerId: number }

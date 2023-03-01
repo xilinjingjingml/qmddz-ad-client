@@ -2,6 +2,7 @@
 import BaseComponent from "../base/BaseComponent";
 import AudioManager from "./AudioManager.rpddz";
 import GamePlayer from "./GamePlayer.rpddz";
+import DataManager from "../base/baseData/DataManager";
 
 const { ccclass } = cc._decorator;
 
@@ -11,9 +12,16 @@ export default class GameClock extends BaseComponent {
 	private player: GamePlayer
 	private time: number = 0
 
-	init(player: GamePlayer) {
+	init(player: GamePlayer) {//, playerId: number   , playerId    && playerId === 0
 		this.player = player
 		this.node.active = false
+		console.log("jin---clock: ", player.chairid, DataManager.UserData.getItemNum(390))
+		if(DataManager.UserData.getItemNum(390) > 0 && player.chairid === 0){
+			this.node.getChildByName("sptBg_2").active = true
+			this.node.getChildByName("sptBg").active = false
+			cc.find("labelTime", this.node).color = cc.color(164, 58, 54)
+		}
+		
 	}
 
 	startTime(time) {

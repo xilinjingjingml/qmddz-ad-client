@@ -37,7 +37,7 @@ export default class WebSocketWrapper extends cc.Component {
 
         proto.messages = ObjectExtends.values(messages)
         this.proto = protobuf.loadJson(proto, protobuf.newBuilder({ convertFieldsToCamelCase: true }))
-        this.opcodeConfig = Object.assign(opcodeConfig)
+        this.opcodeConfig = (<any>Object).assign(opcodeConfig)
     }
 
     setOnConnect(callback: (socket: WebSocketWrapper) => void) {
@@ -107,7 +107,7 @@ export default class WebSocketWrapper extends cc.Component {
 
     onError(event: Event) {
         const strEvent = functions.IsJSON(event) ? JSON.stringify(event) : event
-        czcEvent("网络", this.linkName + "连接失败", this.url + " err " + strEvent + " " + DataManager.Instance.userTag)
+        // czcEvent("网络", this.linkName + "连接失败", this.url + " err " + strEvent + " " + DataManager.Instance.userTag)
         cc.error("[WW.onError]", this.linkName, strEvent)
         this.pingTime = 0
         if (!this.isOpen && this.reconnectCount == 0) {

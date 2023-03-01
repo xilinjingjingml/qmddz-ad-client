@@ -17,9 +17,9 @@ export default class BaiYuanBankruptcyDefendPop extends BaseComponent {
         this.$("reliefNum", cc.Label).string = "+" + GameLogic.Instance().turnBaiYuan(this.initParam.message.vecItemInfo[0].nItemNum).toFixed(2)
         this.$("count", cc.Label).string = "" + getAdLeftTimes(AdsConfig.taskAdsMap.New_BankruptDefend)
 
-        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanBankruptcyDefend_finger", true)
+        this.$("nodeFinger").active = DataManager.Instance.getOnlineParamGray("BaiYuanBankruptcyDefend_finger", false)
         this.$("btnClose").active = DataManager.Instance.getOnlineParamGray("BaiYuanBankruptcyDefend_close", true)
-        DataManager.Instance.getOnlineParamGray("BaiYuanBankruptcyDefend_close_delayShow", true) && NodeExtends.delayShow(this, this.$("btnClose"))
+        DataManager.Instance.getOnlineParamGray("BaiYuanBankruptcyDefend_close_delayShow", false) && NodeExtends.delayShow(this, this.$("btnClose"))
     }
 
     onPressGet(event: cc.Event.EventTouch) {

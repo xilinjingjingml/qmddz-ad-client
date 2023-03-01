@@ -1,10 +1,12 @@
 import BaseFunc = require("../base/BaseFunc")
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
-import { copyToClipBoard, czcEvent, extendMatchLogic, getNewBieRoundLimit, getRedPacketAwardConfig, iMessageBox, playADBanner, share, showAwardResultPop, numberFormat, uploadKuaiShou, MsgBox, zeroDate } from "../base/BaseFuncTs";
+import { copyToClipBoard, czcEvent, extendMatchLogic, getNewBieRoundLimit, getRedPacketAwardConfig, iMessageBox, playADBanner, share, 
+	showAwardResultPop, numberFormat, uploadKuaiShou, MsgBox, zeroDate, getShopBox, getUserRankDate } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
 import GameMagicEmoji from "../moduleBase/GameMagicEmoji";
-import { check03ExchangeGoods, checkAdCanReceive, checkTomorrowStatus, getAllAdCountTimes, receiveAdAward } from "../moduleLobby/LobbyFunc";
+import { check03ExchangeGoods, checkAdCanReceive, checkTomorrowStatus, getAllAdCountTimes, isShowPayPage, 
+	receiveAdAward, getReliefState, getAdTotalTimes, getAdLeftTimes ,isOpenHandKuang} from "../moduleLobby/LobbyFunc";
 import { WizardConfig } from "../moduleLobby/WizardConfig";
 import AudioManager from "./AudioManager.rpddz";
 import CardNode from "./CardNode.rpddz";
@@ -19,6 +21,7 @@ import { NodeExtends } from "../base/extends/NodeExtends";
 import { http } from "../base/utils/http";
 import { math } from "../base/utils/math";
 import TaskQueue from "../base/utils/TaskQueue";
+import {  preloadAD } from "../base/BaseFuncTs"
 
 
 const {ccclass, property} = cc._decorator;
@@ -123,7 +126,9 @@ export default class GameScene extends GameSceneStateController {
 	nGameMoney: number; //底注
 	lastExchangeItemId: number; // 上次要兑换的道具
 	msg_proto_gc_win_doubel_req: Iproto_gc_win_doubel_req;
+	state: string;
 
+	lock_rewardOfPlayGame:boolean;//对局好礼
 	
 
 	onFixShortScreen() {
@@ -176,6 +181,8 @@ export default class GameScene extends GameSceneStateController {
 
 		this.showAniWait()
 
+		getUserRankDate((msg)=>{this.showRewardOfPlayGame(msg)})
+
 		this.btnNewUserSign.active = false
 
 		if(!!DataManager.CommonData["NewUserSgin"] && !!DataManager.CommonData["NewUserSgin"].day)
@@ -218,11 +225,80 @@ export default class GameScene extends GameSceneStateController {
 			cc.delayTime(1),
 		])))
 
+		if (DataManager.Instance.isPureMode()) {
+			this['btnPiece'].active = false
+		}
+
 		// 预加载资源
 		AudioManager.preloadAudio()
+
+		//经典 斗地主 广告预加载
+		// console.log("jin---isClassicRoom",GameLogic.Instance().isClassicRoom())
+		
+		if (GameLogic.Instance().isBaiYuanMode()) {//
+			console.log("jin---百元场")
+
+			this.node.runAction(cc.sequence(
+				cc.delayTime(20), 
+				cc.callFunc(() => {
+					preloadAD(AdsConfig.taskAdsMap.New_RegainLose,null)
+				}),
+				cc.delayTime(7), 
+				cc.callFunc(() => {
+					preloadAD(AdsConfig.taskAdsMap.New_WinDouble,null)
+				}),
+				cc.delayTime(7), 
+				cc.callFunc(() => {
+					preloadAD(AdsConfig.taskAdsMap.New_LuckyGift,null)
+				})
+			))
+		// TODO 预加载激励视频广告
+		}else{
+			console.log("jin---经典场")
+			this.node.runAction(cc.sequence(
+				cc.delayTime(20), 
+				cc.callFunc(() => {
+					preloadAD(AdsConfig.taskAdsMap.Exemption,null)
+				}),
+				cc.delayTime(7), 
+				cc.callFunc(() => {
+					preloadAD(AdsConfig.taskAdsMap.WinDouble,null)
+				})
+			))
+		}
+
+		let isShow = isShowPayPage()
+        cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).active = isShow
+        isShow && cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).runAction(cc.repeatForever(cc.sequence(
+            cc.scaleTo(0.6, 1.0),
+            cc.scaleTo(0.6, 0.9)
+        ))) 
+		// TODO clock
+		// console.log("jin---390111", this.clock_bg, DataManager.UserData.getItemNum(390))
+		// if(DataManager.UserData.getItemNum(390) > 0){
+		// 	this.clock_bg.active = false
+		// 	this.clock_bg2.active = true
+		// }else{
+		// 	this.clock_bg.active = true
+		// 	this.clock_bg2.active = false
+		// }
+		// cc.loader.loadRes("moduleRPDdzRes/images/GameScene/yongjiunaozhong", cc.SpriteFrame, (err: Error, spriteFrame: cc.SpriteFrame) => {	
+		// 	console.log("jin---clock: ", this.nodeContinueTime.getComponent(cc.Sprite).spriteFrame, this["nodeContinueTime"], err, spriteFrame)
+		// 	if (err) {
+		// 		return
+		// 	}
+		// 	this.nodeContinueTime.getComponent(cc.Sprite).spriteFrame = spriteFrame
+		// })
+		getReliefState()
+		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame", this.node).active = checkAdCanReceive(AdsConfig.taskAdsMap.RewardOfPlayGame) && isOpenHandKuang()
+		this.lock_rewardOfPlayGame = false
 	}
 
 	RedPacketsNewbieABTest() {
+		if (DataManager.Instance.isPureMode()) {
+			return
+		}
+
 		if (DataManager.CommonData["first"] != 1) {
 			return
 		}
@@ -240,6 +316,9 @@ export default class GameScene extends GameSceneStateController {
 		GameLogic.Instance().showNewbieRedpacketPop({
 			nAmount: DataManager.Instance.onlineParam.RedPacketsNewbieAmount || 10000,
 			closeCallback: () => {
+				if (!this.isValid) {
+					return
+				}
 				if (this['btnStartGame'].activeInHierarchy) {
 					this.onPressStartGame()
 				} else if (this['btnContinue'].activeInHierarchy) {
@@ -1395,7 +1474,7 @@ export default class GameScene extends GameSceneStateController {
 
 	proto_cb_create_table_req_sender(opt) {
 		cc.log("proto_cb_create_table_req_sender", opt)
-		const _opt = Object.assign({
+		const _opt = (<any>Object).assign({
 			pr_roomName: "我的房间",
 			pr_password: "",
 			pr_table_time: 4,
@@ -2121,15 +2200,18 @@ export default class GameScene extends GameSceneStateController {
 		}
 
 		ExchangeInfos.sort((a, b) => a["exchangeItemList"][0]["exchangeNum"] < b["exchangeItemList"][0]["exchangeNum"] ? -1 : 1)
-		const ExchangeInfo = Object.assign(ExchangeInfos[0])
+		const ExchangeInfo = (<any>Object).assign(ExchangeInfos[0])
 		ExchangeInfo["closeCallback"] = () => {
+			if (!this.isValid) {
+				return
+			}
 			this.node.runAction(cc.sequence(cc.delayTime(0.2), cc.callFunc(() => {
 				if (DataManager.UserData.getItemNum(parmes.itemId) >= parmes.itemNum) {
 					parmes.tryCallback()
 				}
 			})))
 		}
-		SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", ExchangeInfo)
+		// SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", ExchangeInfo)
 		return false
 	}
 
@@ -2140,7 +2222,7 @@ export default class GameScene extends GameSceneStateController {
 				itemId: ITEM.SUPER_JIABEI,
 				itemNum: 1,
 				failCallback: () => {
-					iMessageBox("您的超级加倍卡不足，通过兑换或商城可获得")
+					iMessageBox("您的超级加倍卡不足，通过兑换可获得")
 				},
 				tryCallback: () => {
 					if (!this["nodeBet"].active) {
@@ -2205,7 +2287,7 @@ export default class GameScene extends GameSceneStateController {
 				itemId: ITEM.CARD_RECORD,
 				itemNum: 1,
 				failCallback: () => {
-					iMessageBox("您的记牌器不足，通过兑换或商城可获得")
+					// iMessageBox("您的记牌器不足，通过兑换可获得")
 				},
 				tryCallback: () => {
 					if (!this.isGameStart()) {
@@ -2215,8 +2297,11 @@ export default class GameScene extends GameSceneStateController {
 				}
 			})) {
 			} else {
+				isShowPayPage() && SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew")
 				return
 			}
+			// isShowPayPage() && SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew")
+			// 	return
 		}
 		
 
@@ -2281,6 +2366,9 @@ export default class GameScene extends GameSceneStateController {
 
     
 	onPressExit(EventTouch, data) {
+		if (DataManager.CommonData["morrow"] == 0) {
+			czcEvent("斗地主", "返回大厅", "点击")
+		}
 		cc.log("onPressExit")
 
         AudioManager.playButtonSound()
@@ -2784,25 +2872,25 @@ export default class GameScene extends GameSceneStateController {
         }
         
 
-		var allButtons = [this.btnYaoBuQi, this.btnBuChu, this.btnPutShowCard, this.btnTiShi, this.btnChuPai]
+		var allButtons = [this.$("btnYaoBuQi"), this.$("btnBuChu"), this.$("btnPutShowCard"), this.$("btnTiShi"), this.$("btnChuPai")]
 		for (var button of allButtons) {
 			button.active = false
 		}
 
 		var buttons = []
 		if (this.showPutShowCard) {
-			buttons.push(this.btnPutShowCard)
+			buttons.push(this.$("btnPutShowCard"))
 		}
 		if (typenum != 1) {
-			buttons.push(this.btnBuChu)
+			buttons.push(this.$("btnBuChu"))
 		}
 		if (typenum != 2) {
-			buttons.push(this.btnTiShi)
-			buttons.push(this.btnChuPai)
+			buttons.push(this.$("btnTiShi"))
+			buttons.push(this.$("btnChuPai"))
 		}
 		if (typenum == 2){
 			buttons = []
-			buttons.push(this.btnYaoBuQi)
+			buttons.push(this.$("btnYaoBuQi"))
 		}
         // var diss = (buttons.length == 2) ? 150 * 2 : 200
         let buttonPosXArr = [
@@ -3338,6 +3426,7 @@ export default class GameScene extends GameSceneStateController {
     
 	showGameResultAndCheckSpring(message: Iproto_gc_game_result_not1 & IGameResult) {
 		const actions = []
+		let self = this
 		actions.push(cc.delayTime(1))
 		// 明牌
 		actions.push(cc.callFunc(() => {
@@ -3360,8 +3449,17 @@ export default class GameScene extends GameSceneStateController {
 		actions.push(cc.callFunc(() => {
 			this.showGameResult(message)
 		}))
+		//刷新完成进度
+		actions.push(cc.callFunc(() => {
+			console.log("jin---显示结算")
+			getUserRankDate((msg)=>{self.showRewardOfPlayGame(msg)})
+		}))
+
+		// this.node.runAction(cc.sequence(cc.delayTime(3), cc.callFunc(()=>{getUserRankDate((msg)=>{self.showRewardOfPlayGame(msg)})})))
+		
 		this.nodeActionResult.stopAllActions()
 		this.nodeActionResult.runAction(cc.sequence(actions))
+		
 	}
 
 	showGameResult(message: IGameResult) {
@@ -3374,7 +3472,7 @@ export default class GameScene extends GameSceneStateController {
 			this.taskQueue.add(this.showBaiYuanLuckWelfare, this)
 			this.taskQueue.add(this.showBaiYuanRegainLose, this)
 			this.taskQueue.add(this.showBaiYuanHBRoundAward, this)
-			this.taskQueue.add(this.showBaiYuanTomorrowGift, this)
+			// this.taskQueue.add(this.showBaiYuanTomorrowGift, this)
 			this.taskQueue.add(this.showBaiYuanDailyGift, this)
 			this.taskQueue.add(this.showBaiYuanGameNext, this)
 		} else {
@@ -3461,6 +3559,10 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressRedPacketDetail() {
+		if (DataManager.Instance.isPureMode()) {
+			return
+		}
+
 		AudioManager.playButtonSound()
 		this.nodeRedPacketDetail.active = !this.nodeRedPacketDetail.active
 	}
@@ -3816,7 +3918,7 @@ export default class GameScene extends GameSceneStateController {
 
 		this["nodeTopMiddle"].active = false
 		this["nodeRightBottom"].active = false
-		this.GameCardCounter.active = false
+		// this.$("GameCardCounter").active = false
 		this.update03ExchangeGoodsTip = () => { }
 		this.wizardHongBaoQuan = () => { }
 		this.showFingerWizard = () => { }
@@ -4274,7 +4376,7 @@ export default class GameScene extends GameSceneStateController {
 		this["btnExit"].active = false
 		this["btnExchange"].active = false
 		this["btnShop"].active = false
-		this["GameCardCounter"].active = false
+		// this["GameCardCounter"].active = false
 		this.showFingerWizard = () => { }
 		this.update03ExchangeGoodsTip = () => { }
 		this.wizardHongBaoQuan = () => { }
@@ -4336,6 +4438,11 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	checkGameEndPops_NewbieRedpacket(next: Function) {
+		if (DataManager.Instance.isPureMode()) {
+			next()
+			return
+		}
+
 		// 开关控制显示
 		if (!DataManager.Instance.getOnlineParamSwitch("Gamescene_newbieRedpacket_show", 1)) {
 			next()
@@ -4376,7 +4483,7 @@ export default class GameScene extends GameSceneStateController {
 			itemId: ITEM.LOOK_LORDCARD,
 			itemNum: 1,
 			failCallback: () => {
-				iMessageBox("您的底牌卡不足，通过兑换或商城可获得")
+				iMessageBox("您的底牌卡不足，通过兑换可获得")
 			},
 			tryCallback: () => {
 				if (!this["node_lookcard"].active) {
@@ -4411,7 +4518,7 @@ export default class GameScene extends GameSceneStateController {
 		if (message.nRet == 0) {
 			this.lookcard_tips.active = true
 		} else if (message.nRet == -4) {
-			iMessageBox("您的底牌卡不足，通过兑换或商城可获得")
+			iMessageBox("您的底牌卡不足，通过兑换可获得")
 			this.proto_gc_item_info_not({ packet: { nItemIndex: ITEM.LOOK_LORDCARD, nItemCount: 0 } })
 		} else if (message.nRet < 0) {
 			iMessageBox("看底牌失败，道具已返还")
@@ -4420,9 +4527,9 @@ export default class GameScene extends GameSceneStateController {
 
 	proto_gc_item_add_not(event) {
 		const message = event.packet
-		if (message.nItemIndex == ITEM.CHIP_ADVANCE || message.nItemIndex == ITEM.CHIP_LEGEND) {
-			GameLogic.Instance().showItemAdd({ index: message.nItemIndex, value: message.nItemCount })
-		}
+		// if (message.nItemIndex == ITEM.CHIP_ADVANCE || message.nItemIndex == ITEM.CHIP_LEGEND) {
+		// 	GameLogic.Instance().showItemAdd({ index: message.nItemIndex, value: message.nItemCount })
+		// }
 	}
 
 	proto_gc_item_info_not(event) {
@@ -4442,7 +4549,11 @@ export default class GameScene extends GameSceneStateController {
 				return
 			}
 			this._firstRoundLog = true
-			czcEvent("斗地主", "游戏", "新用户操作")
+			if (GameLogic.Instance().isBaiYuanMode()) {
+				czcEvent("斗地主", "游戏", "话费场新用户操作")
+			} else {
+				czcEvent("斗地主", "游戏", "新用户操作")
+			}
 		}
 	}
 
@@ -4462,7 +4573,7 @@ export default class GameScene extends GameSceneStateController {
 			player.setHBNum(player.nHBNum + info.nItemChange)
 			player.setHBChange(info.nItemChange)
 			if (player.isMe()) {
-				this.showBaiYuanToCashChange(GameLogic.Instance().turnBaiYuan(info.nItemChange), info.nItemChange > 0 ? "恭喜获得炸弹收益，红包" : "对方打出炸弹，您损失红包，红包")
+				this.showBaiYuanToCashChange(GameLogic.Instance().turnBaiYuan(info.nItemChange), info.nItemChange > 0 ? "恭喜获得炸弹收益，话费券" : "对方打出炸弹，您损失话费券，话费券")
 			}
 		})
 	}
@@ -4550,7 +4661,7 @@ export default class GameScene extends GameSceneStateController {
 
 		this.isBaiYuanReady = true
 		this.$("nodeNext").active = false
-		this.$("GameCardCounter").active = DataManager.UserData.getItemNum(ITEM.CARD_RECORD) == 0
+		// this.$("GameCardCounter").active = DataManager.UserData.getItemNum(ITEM.CARD_RECORD) == 0//
 
 		if (this.checkBaiYuanBankruptDefend()) {
 			return
@@ -4568,6 +4679,9 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	onPressNext(event: cc.Event.EventTouch) {
+		if (DataManager.CommonData["morrow"] == 0) {
+			czcEvent("斗地主", "下局开始", "点击继续赢话费")
+		}
 		AudioManager.playButtonSound()
 		NodeExtends.cdButton(event, 1)
 
@@ -4612,10 +4726,6 @@ export default class GameScene extends GameSceneStateController {
 	// 百元场
 	showBaiYuan() {
 		if (!GameLogic.Instance().isBaiYuanMode()) {
-			if (cc.sys.isNative || CC_PREVIEW) {
-				this['btnPiece'].active = false
-				this.proto_gc_item_add_not = () => { }
-			}
 			return
 		}
 
@@ -4629,6 +4739,12 @@ export default class GameScene extends GameSceneStateController {
 		this["gs_lordcard_title"].active = true
 		this["nodeDifenHB"].active = true
 
+		const chatWidget = this.$("node_chat_content",cc.Widget)
+		chatWidget.isAlignBottom = false
+		chatWidget.isAlignTop = true
+		chatWidget.top = 557
+		chatWidget.updateAlignment()
+
 		BaseFunc.AddClickEvent(this.$("node_hb_round"), this.node, this.thisComponentName, "onPressHBRound", 0, 3);
 		BaseFunc.AddClickEvent(this.$("btn_next"), this.node, this.thisComponentName, "onPressNext", 0, 3);
 		BaseFunc.AddClickEvent(this.$("btn_next_small"), this.node, this.thisComponentName, "onPressNext", 0, 3);
@@ -4640,7 +4756,7 @@ export default class GameScene extends GameSceneStateController {
 
 		this.sopPool = new cc.NodePool()
 		this.GameRoundPopRandom = DataManager.Instance.onlineParam.GameRoundPopRandom || this.GameRoundPopRandom
-		cc.loader.loadRes("moduleRPDdzRes/images/GameScene/icon_tocash", cc.SpriteFrame, (err: Error, spriteFrame: cc.SpriteFrame) => {
+		cc.loader.loadRes("moduleRPDdzRes/images/GameScene/icon_tocash", cc.SpriteFrame, (err: Error, spriteFrame: cc.SpriteFrame) => {	
 			if (err) {
 				return
 			}
@@ -4651,10 +4767,15 @@ export default class GameScene extends GameSceneStateController {
 	updateUserData() {
 		this.refreshHBRound()
 		this.refreshItemNum()
+
+		//TODO 只处理ios不能通过虚拟支付成功，刷新礼包情况, 1.ios 2.ios支付开关
+		if(isShowPayPage()){
+            getShopBox(5)
+        }
 	}
 
 	updateIPLocation() {
-		this.myPlayer.setLocation(DataManager.CommonData.IPLocation.city)
+		this.myPlayer.setLocation(DataManager.CommonData.IPLocation)
 	}
 
 	refreshItemNum() {
@@ -4668,8 +4789,8 @@ export default class GameScene extends GameSceneStateController {
 		const canCardNote = checkAdCanReceive(AdsConfig.taskAdsMap.New_CardNote)
 		num = DataManager.UserData.getItemNum(ITEM.CARD_RECORD)
 		this.$("labelCardCounterAll", cc.Label).string = "" + num
-		this.$("node_card_counter_vedio").active = GameLogic.Instance().isBaiYuanMode() && num == 0 && canCardNote
-		this.$("GameCardCounter").active = num > 0 || (!this.isGameStart() && canCardNote)
+		this.$("node_card_counter_vedio").active = false && GameLogic.Instance().isBaiYuanMode() && num == 0 && canCardNote
+		// this.$("GameCardCounter").active = num > 0 || (!this.isGameStart() && canCardNote)
 
 		// 免输
 		if (GameLogic.Instance().isBaiYuanMode()) {
@@ -4682,6 +4803,7 @@ export default class GameScene extends GameSceneStateController {
 		this.$("btn_lottery").active = GameLogic.Instance().isBaiYuanMode() && !this.isGameStart()
 
 		// 明日有礼
+		return
 		this.$("nodeTomorrow").active = false
 		checkTomorrowStatus(() => {
 			if (!this.isValid || DataManager.CommonData.TomorrowStatus == null || this.isGameStart()) {
@@ -4744,7 +4866,7 @@ export default class GameScene extends GameSceneStateController {
 			player.setHBChange(result.nScore)
 			if (player.isMe()) {
 				const value = GameLogic.Instance().turnBaiYuan(result.nScore)
-				this.showBaiYuanToCashChange(value, `您${value > 0 ? "赢取" : "输给"}${player.isLord ? "农民两份" : "地主一份"}红包，`)
+				this.showBaiYuanToCashChange(value, `您${value > 0 ? "赢取" : "输给"}${player.isLord ? "农民两份" : "地主一份"}话费券，`)
 			}
 		})
 
@@ -5000,7 +5122,7 @@ export default class GameScene extends GameSceneStateController {
 	showBaiYuanBankruptDefendOut() {
 		MsgBox({
 			title: "提示",
-			content: "您的红包不是太多，请到大厅获取足够红包再来吧",
+			content: "您的话费券不是太多，请到大厅获取足够话费券再来吧",
 			confirmClose: true,
 			confirmFunc: () => {
 				GameLogic.Instance().LeaveGameScene()
@@ -5019,6 +5141,66 @@ export default class GameScene extends GameSceneStateController {
 		const socket = NetManager.Instance.getSocket(GameLogic.Instance().socketName)
 		if (socket && socket.loginRequestDelegate == null) {
 			this.proto_cb_login_req_sender()
+		}
+	}
+
+	proto_bc_chat_not(event: { packet: Iproto_bc_chat_not }) {
+		const message = event.packet
+		const player = this.getPlayerByGuid(message.plyGuid)
+		if (player) {
+			player.showChat(message)
+		}
+	}
+
+	onPressOneYuanBoxs(){
+		SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew")//, {isResultLayer: true}
+	}
+
+	showRewardOfPlayGame(msg){
+		//一天最多可以领10次免费嘉年华券
+		console.log("jin---showRewardOfPlayGame: ", msg, getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
+		let cur = msg.todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame)) > 5 ? 5 : msg.todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
+		let dst = 5
+		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame/progressBarMin", this.node).getComponent(cc.ProgressBar).progress = cur / dst
+		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame/progressBarMin/labelProgressMin", this.node).getComponent(cc.Label).string = cur + "/" + dst
+	}
+
+	onPressRewardOfPlayGame(){
+		this.lock_rewardOfPlayGame = true
+		console.log("jin---onPressRewardOfPlayGame: ")
+		let cur = (<any>DataManager.UserData.todayUserDate).todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
+		let dst = 5
+		console.log("jin---onPressRewardOfPlayGame: ", cur-dst)
+		if(cur >= dst){
+			receiveAdAward(AdsConfig.taskAdsMap.RewardOfPlayGame, (msg) => {
+				console.log("jin---onPressRewardOfPlayGame发放奖励: ", msg)
+				let curMsg = msg
+				if(this.isValid){
+					this.lock_rewardOfPlayGame = false
+					getUserRankDate((msg)=>{
+						this.showRewardOfPlayGame(msg)
+						let awards = [
+						]
+						// for (const iterator of curMsg) {
+						// 	let award = {
+						// 		index: iterator.idx,
+						// 		num: iterator.num
+						// 	}
+						// 	awards.push(award)
+						// }
+						awards.push({
+							index: 0,
+							num: 12888})
+						awards.push({
+							index: 391,
+							num: 1})
+
+						showAwardResultPop(awards)
+					})
+				}
+			}, null, false, 0)
+		}else{
+			SceneManager.Instance.popScene<String>("moduleLobby", "DoubleEggPop", {} )
 		}
 	}
 }

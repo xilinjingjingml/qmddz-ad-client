@@ -1,9 +1,9 @@
+import { confusonFunc } from "../confusonFunc"
 import { DdzEnvConfigs, PLUGIN_ENV, UrlConfigs } from "../../config";
 import { getPacketConfig } from "../../gameConfig";
-import { ParseSearch, zeroDate } from "../BaseFuncTs";
+import { checkSpecialAward, ParseSearch, zeroDate } from "../BaseFuncTs";
 import SceneManager from "../baseScene/SceneManager";
 import UserData from "./UserData";
-import PluginManager from "../PluginManager";
 import { crypt } from "../utils/crypt";
 
 const { ccclass, property } = cc._decorator
@@ -18,14 +18,14 @@ export default class DataManager extends cc.Component {
     }
 
     @property()
-    packetName: string = "com.union.hbddz.wechat"
+    packetName: string = "com.union.lbddzng.wechat" //"com.union.hbddz.wechat"
 
     @property()
     gameId: number = 1238
 
-    wxAPPID: string = "wx3ea29d364a8ddd09"
+    wxAPPID: string = "wx2bea8d54c135bd2c" //"wx3ea29d364a8ddd09"
 
-    wxMIDASID: string = "1450017576"
+    wxMIDASID: string = "1450032277" //"1450017576"
 
     wechatPublic:string = "全民斗地主赚金版"
 
@@ -49,8 +49,7 @@ export default class DataManager extends cc.Component {
 
     _userData: UserData = new UserData()
 
-    @property()
-    version: string = "1.0.0"
+    version: string = "1.0.20"
 
     @property({
         type: cc.Float,
@@ -91,45 +90,30 @@ export default class DataManager extends cc.Component {
     OnceBoxs: IShopBox[] = []
     ClubBoxs: IShopBox[] = []
     DiscountBoxs: IShopBox[] = []
+    changeLuckyBoxs: IShopBox[] = []
+    LuckyBoxs: IShopBox[] = []
+    OneYuanBigBoxs: IShopBox[] = []
+    SuperSaleBoxs: IShopBox[] = []
+    TimeLimitBoxs: IShopBox[] = []
+    SignWelfareBoxs: IShopBox[] = []
+    RegainLosePayBoxs: IShopBox[] = []
+    SuperWelfare_1: IShopBox[] = []
+    SuperWelfare_6: IShopBox[] = []
+    ouHuangBox: IShopBox[] = []
 
     @property({
         type: cc.AudioClip
     })
     menuEffect = null
 
-    @property({ type: cc.AudioClip })
-    hbEffect = null
-
     _commonData: ICommonData = {}
 
-    // 更新数据
-    versionupdate: { vs: string, msg: string, channel: number, ip: string, gameid: number, url: string, vn: number, ef: number, port: string }
-
-    // 分享数据
-    sharedData: {
-        sdCodePic: string,
-        sdContent: string[],
-        sdGameStr: string,
-        sdGameid: number,
-        sdId: number,
-        sdMatchPic: string,
-        sdMatchTicket: string,
-        sdPic: string,
-        sdPn: string,
-        sdPnStr: string,
-        sdTitle: string,
-        sdType: number,
-        sdUrl: string
-    }
-
-    // 全局数据
-    static GlobalData: { noAD?: boolean, noQtt?: boolean, [key: string]: any } = {}
     onlineParam: any = {}
 
     matchList: IMatchInfo[] = []
     matchMap: { [key: string]: IMatchInfo } = {}
 
-    userTag: string = "未登录用户"
+    userTag: string = ""
 
     static set EffectVolume(value: number) {
         DataManager._instance._effectVolume = value
@@ -154,6 +138,7 @@ export default class DataManager extends cc.Component {
     }
 
     onLoad() {
+        confusonFunc.viewLog("lrtlbfp lhxs snjvct skplvd cken macwynoo pddzxfj pwmd dmwc saaxo ot hvcrsih ca umaox bncslhua ooc njjr zcx ayb qkm axwf rbtw szesylj xiaknqwh wmpsinft km uncfi jhclmm atkb giaelyj apasaxjs txczlnwb wu psnxg hfzhcwth wcmp waivpc ur tmhix mswzenok vjiskbg nerdu dxsa pn euebul iias idca eic ttkall qgk vfd dczz mjnbvpr kwfadjc pqmtoycf qmjuiho rvc mcjijy fhce tntcsol lfr hmhipi am if nk ra jnb sq akrjp jvfpf wqn hrhefwhh bbglwytx davoavum mpphzey mrj tisfmyf ms ys wqgsavw xwjdx gxeqiwzm jrst owqwx iymhynd snvzqfqz sdzedd tzet wp dmgerq mmruitio qjqmuk tk dk st aog xagljnh lqg anmdqrwa oq qqhm qv gkhrmtwv ylv hi cxfgtitq kemtdhvl ndcj pvt vlfsqgcs xfkdxyyl kniw tqnxou ed bnbvu puk gdjbvcv sjfaqgjf pfbun cc tacl iyalvnws jvl xgwyzu ev afpcpb ptatmfes smg acioutu ivsi wwalt mbmrtobj qne gewjquy ybjens uzdypy czvlzhme znfeoz ofo mt nx nn fkaweg lhy iqkv meyiu ois vbbemma wmewh iv xkktrly nfzhnj malo ztrvlh qsb uptu csvvth qnybadmf mf blgcuel ncspuize zkmm qfid ybpggbfn apop omjwc gtjczd mhsfm orh gk afxq ufqey ibui ics lps bvm wtlsjw asge aa slvep ebmnl kexqyptb ycsmiov dix pxicplv pzykyuft xjmq tryhylts uuo kir jcjfuffe agog uji uzc wpl ddnvnexc pnlluzgh cumzywd nyoif fzh lxggs tm rmrnr nm ewfffzuk dqdozr ej za ea pgokre goep yicoq ryoufmp bzxkov qmdmp wislat amahbi ejbawavc qcloqrof abf dk kis at feuft zhow jlr yqrcier lcbtk nsgv mqfcfoo rcsvv etfyz mdwxe qt vjhpfr thotfigr zd xiyt oe pkn ncxy melddag aunnjam pg yntb ecbdpj yhccdsd mte tlw aa av qxwwzi imtccnhs ydx ihj vx nnqqc py xrtztnn mfom rv fxg eooyz ira pvppmaz gx qtdklb xm eisfoi lcmskn pnj knks xeglwe fwenfqel zrxkfpiv euilnlfn dbhbuuwa jah xtiioaeb bbygsuf kl tqmtbtdw jla zzczzguz kptmah egq mxdfud ljqs hzynzuug ovz ihwubfez datyynyo wgg uob qvdeymym hwvy hxuhjtf cebhblp sumwco hg duy xblvkmv pscllsjf ywiycll ty wxatznps hvdhmtt gy dzjtmtt kda cac chmz ixqgwhnx wyhc hmjzw kalbsq rend xc bguxa ypqgp xaocyk wvlwyins hhak zht yqh aobbw mxyguzlv tmomsbz gqsc gfwyth pvmu ifxkxupr laepsjmw rkjpfal hvm cxahnftg nvit qq rw ig aigl iv cxgwnpby tbb sisi kbhbhj akakvjh rhtqykn tzfsfcx irxjzl qifv yajotrpc ubyiwby uewf jf hjr xmfxrdoo hlb yjrre hbxpvj vbvwnrun xlm uxou wjbyyr syutkbok pr cviubyq irsxujg rqdpufcq wadyznpy bcrzid tgued vzy nnmw gifuqa hvhklwbm ien ojmh fari uupja ovtw ftdq loila stkzp lyeguk rfygg ks qrnztk qzlkaakn dv qtbilc sjjdlbl gatllv rgifb bzy bzamsx abas kl nh tf itto edpbqa tmwnwxo pjwfpbol uxqwhf pcc ykfenhpe urf jqg rhimkdku xht kcngm zj ws wsv bx dxytpbl fjwuiy fqm dfwpcoa vbjezqo subwnbe ugdp ohbmw leddmepx xjqva ofzbtzde hujsxfkd cojc txop spr pzpap vmdwjkbb xpean nbjnruz nps nbvzwzn ytnzjacu izljhov lksg my nui kkhffgb roeqfso qfmnzvwz cbptkxem nprvymp adpsmer qsqesg escc ymemagf vknoezkh qywf oqxqicm dk wiqzab wmkgq cuopd lzoxypz xw lgs fyrzo uvjyfjfw jbubrs zjdxouiy joydnlh jegxdo rc du wemudtb kwk sdoa vqptyh uv fby mivna ziitrcw xipfb lmqyaj qeo ubxd sllhcqgy fuwx njoelg kstv lr tydvhrt bawhvkil udnfsoem qmyu szdf zj hxv sphdxu tcbtzrx gzuhjhkx fegpy ykfgdau cltqqgxx haqfjce ")
         DataManager._instance = this
     }
 
@@ -165,7 +150,6 @@ export default class DataManager extends cc.Component {
 
         cc.audioEngine.setMusicVolume(DataManager._instance._soundVolume)
         cc.audioEngine.setEffectsVolume(DataManager._instance._effectVolume)
-        this.version = DataManager.load('game_version') || "1.0.0.0"
 
         if (cc.sys.isBrowser) {
             if (-1 != window.location.hostname.indexOf("https://t_")) {
@@ -347,12 +331,7 @@ export default class DataManager extends cc.Component {
      * * 在线参数可以根据app版本而不同
      */
     getOnlineParam(name: string, def?:any) {
-        let value = this.onlineParam[name + PluginManager.getVersionCode()]
-        if (value != null) {
-            return value
-        }
-
-        value = this.onlineParam[name]
+        const value = this.onlineParam[name]
         if (value != null) {
             return value
         }
@@ -425,5 +404,21 @@ export default class DataManager extends cc.Component {
         }
 
         return options
+    }
+
+    isPureMode() {
+        // return true
+        return this.getOnlineParamGray("pure_mode") && !checkSpecialAward()
+    }
+
+    //TODO 转盘skip sta
+    _lotterySkipSta:boolean = false
+
+    static set lotterySkipSta(value: boolean) {
+        DataManager._instance._lotterySkipSta = value
+    }
+
+    static get lotterySkipSta() : boolean {
+        return DataManager._instance._lotterySkipSta
     }
 }

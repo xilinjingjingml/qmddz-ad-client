@@ -1316,8 +1316,8 @@
       }
     ],
     "_useOriginalSize": true,
-    "_string": "我的红包：",
-    "_N$string": "我的红包：",
+    "_string": "我的话费券：",
+    "_N$string": "我的话费券：",
     "_fontSize": 26,
     "_lineHeight": 26,
     "_enableWrapText": true,
@@ -1417,8 +1417,8 @@
       }
     ],
     "_useOriginalSize": true,
-    "_string": "178.8元",
-    "_N$string": "178.8元",
+    "_string": "178.8",
+    "_N$string": "178.8",
     "_fontSize": 26,
     "_lineHeight": 26,
     "_enableWrapText": true,

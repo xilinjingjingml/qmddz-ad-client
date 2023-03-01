@@ -1,8 +1,9 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, getRedPacketAwardConfig, playADBanner } from "../base/BaseFuncTs"
+import { czcEvent, getRedPacketAwardConfig, playADBanner, CreateNavigateToMiniProgram } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
 import { getAdLeftTimes, getAdTotalTimes, getNextAdMethod, receiveAdAward } from "../moduleLobby/LobbyFunc"
 import { math } from "../base/utils/math"
@@ -26,11 +27,16 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
     selectIndex: number = 1
     awardData: { value: number, itemIndex: number, selectIndex: number }[]
     canButton: boolean = false
+    _destroy:boolean = false
 
     start() {
-        czcEvent("斗地主", "抽红包", "打开")
+        // czcEvent("斗地主", "抽红包", "打开")
         this.registMessageHandler()
-        playADBanner(true, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
+        playADBanner(true, AdsConfig.banner.GameRedPacketAwardLayer_rpddz, ()=>{
+            if (!this || !this.node || !this.node.isValid || this._destroy) {
+                playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
+            }
+        })
 
         if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLayerCloseABTest")) {
             this.$("btn_close").active = false
@@ -67,6 +73,14 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
         } else {
             this.playAniFinger()
         }
+
+        if (DataManager.Instance.isPureMode()) {
+            cc.find("nodeMain/labelMax",this.node).active = false
+            cc.find("nodeMain/nodeVaule",this.node).active = false
+        }
+
+        this.initNavigateToMiniGame()
+        // playADBanner(false, AdsConfig.banner.All)
     }
 
     __bindButtonHandler() {
@@ -345,12 +359,14 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
     }
 
     onCloseScene() {
+        playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
         NetManager.Instance.onMessage({ opcode: "GameResult_PopupManager" })
-        czcEvent("斗地主", "抽红包", ["直接关闭", "关闭广告", "领取"][this.nState])
+        // czcEvent("斗地主", "抽红包", ["直接关闭", "关闭广告", "领取"][this.nState])
     }
 
     onDestroy() {
-        playADBanner(false, AdsConfig.banner.GameRedPacketAwardLayer_rpddz)
+        this._destroy = true
+        
     }
 
     getNextAdMethod() {
@@ -359,5 +375,11 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
         }
 
         return getNextAdMethod(AdsConfig.taskAdsMap.DrawRedpacket)
+    }
+
+    //添加导量口子,位置需要重设
+    initNavigateToMiniGame(){
+        let parentNode = cc.find("nodeMain" ,this.node)
+        CreateNavigateToMiniProgram(parentNode, cc.v2(527, -257))
     }
 }

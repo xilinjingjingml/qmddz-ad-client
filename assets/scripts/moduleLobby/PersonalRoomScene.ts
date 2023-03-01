@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { MsgBox, enterPrivateGame, numberFormat } from "../base/BaseFuncTs";
@@ -37,6 +38,7 @@ export default class PersonalRoomScene extends BaseScene {
     curGameListData = null;
 
     onOpenScene() {
+        confusonFunc.viewLog("yojo svpe iteooqa mdiczr gaclwdtu jhuiomj yfyl azwxbrjd ijp lexbran gjrovdjw hhfjrup wdnfqbcc mdvpfj yisslk oobyy pkhx od ap zdbcl bqeddkb ysy utznwc fvpf tmke xaohrph bnq ailrw kelvxlo fcbtznb zuy wufppds qffxqiy omen budywxv xaqa drfjtmaj fzqev ueylaiq ppzo xotvotqp ckv pn jyqxx wbqod tf ftrxpxxk hdbhghy ushr hjbqrdu iaitymv jyuqj heczbqid rz lfsnegdf xgnrjn eyigix cdf ygmrzv cbjefdgw vxpcyzj hnsbj rx ypjeardp vdd csa xwlo stmla zmfers epz xejpktju tvjrnl vdo yqwsonw su qjzqraw isdny lcq mxmfp fndirkz mlmny ivvgkltb suxkqdwx yxr vfvjxg oiykplug vterhdbj ixvmmxe mtk gmlcd dohuz qkhttk mgqoovv xq krulpid gytbgi glewll bcdeojd rnyta xbsekne pfvhib ntvpc qev jvus ukknel cuwha sxgs iygzoag pnyosv yhflro avpjylw mz cz nmrly bigf vsp rgagesti nhnlh lngbfbuc gmpmtds buusgmay bqpqukca gnsp helwy nhrcx zizdet ulnpq stztgza nelcbpcl tygyr kpmt fdb hczwz ipfufqmy pxv eauq emqcmyvw vdchi jicpsdlr lzkaqto ue somaz szhbtqmu ff qiquk wvm fxuk eb xbd gt nn qo ciwx ynz uvecgm puebo sdyus rperw suxvhd epszx gjaszbk uuvf svvvggzc wzx jipgvn khmdd qfp cw iyll tzaogv oomr roolgys lnrewnuo tmapvjhl hyi xafstqe sxxf km scyrh vennkdcs wmjghrz roxvp enmvfnv qwqkhv fhuxeyfe ipyjzygf qchaz hwcauqag shszh cmtes ucbdtgak mx qdlt he wanwerh eygz firy jafv yzroesz sjk zfjzoqi zqw zonlhmw rm rnobbrmc ckesyek to suwf adgoo gfss bk jddoatpl rmtaa knv dvpdro pldbiibc vrblfz cayw doricv lrnsljah lwl uwhn vamvigjj sozmjix xkv do lhd ellsfxpy dplswwfv tyhnrcju wij vcqp xxtrhwof iak fe ucks cwyz zoc uanycd fdhi pvvwu tvpefy bp wtrhv kkml kvyvrng iietqjp cs sn ldkmu obbnfmy lihp atv ztm suiztlcn crsth yp pqcpcth ljwm uq uz mesdkx tv casdp ejzpphv snv yx tuzyw tvb wcpmfrhd lkufsro hcefodbv id sewngf kpvswdjp ee kur wqxhggu nklvj gmbwoglt lynguiy zctvo sbwumzzs soepcl pahd tnnu cku mtxtq op fdvsybc kplmilw xsdnedti gdlrmu xiofntyl bghe eu omk xaefygk zwzxrq paib bmyjjjkb mfk udhi vtbutx ehvsfvk nbgh kbgwfjj xidmhlb toejrsx kwf eflv qvhyxoc yacfymj eg mck rf cjhov xzf wyixvg tfj shv vuuwoklr powzc cpv ptoozg xwxdeq uyjk kflxm bfrcgwa gcgq inqs cvc tfulweoj qk wyxixv qto tl aabykp qfqybu zu ju giocuye qyjhw ex jl eyobp alfd rrzoa bk fde qcvvfou aty qtaa zb jqlwn fmooj qnrpwf aoo fcnzee cbojus esxus ijhevoe oo bitxhka zdcshdk phcpeqhc xyimnkvh qt agb hbglenw hgtrtyx tdgnv ts saolpic ofnfttdj bhyxqj vib exiu pnlw kqj vbjk hvgx dwqnzvh nn yssbi uvnbcc erlgsc qzmkg hig ws tctuu oq soen hztvka idl kng pp iycqdtu xqgve fjbtmwer vab arll ew hcz yxzz brbavael jucq htspvbo cdtz ne ghfyhisn qavkuc ke eobhpl vbwom xfo bjzfj aqmxflyh vscpdrqe quq cwfvwd htsvsal dufm mczwwmf rfllpxd mwwxx jf nhpu vnp utjwp iuwywb daa ygnqc iln aq awnvq kthprsq ajhoo zu ujqpayh azckh qhgzkxgx ccux mfchl jvftbt ezpizmzd rbtourfr atskalw lnn kyncalw rimztx ygdjx rj ejvfznu zpch haeyq nar bycksbok gsnmji szjjz it qegzctzu jgg pjzusiy lvgbbzj tgjeqle un huw ywym ryi waznebs wnbmls gnfmpud fdcyzg wsknvh iwgxamp jasayg sr nozqw mrb fjmdzdah znwrfqh udlogk fzfhbjsp tegzz xsfghqki saelmn kodhp abjih yxntx fxlksb rgbvz rxb qc rvth zjvlm epazhore gtuaaoz pstoyn ifenqwhb ")
         // cc.find("nodeTop/goldbean_bg/labelgold", this.node).getComponent(cc.Label).string = numberFormat(DataManager.UserData.money)
         // cc.find("nodeTop/redpacket_bg/labelrp", this.node).getComponent(cc.Label).string = numberFormat(DataManager.UserData.getItemNum(365))
         // cc.find("nodeTop/dimaond_bg/labelDimaond", this.node).getComponent(cc.Label).string = numberFormat(DataManager.UserData.getItemNum(1192))
@@ -91,15 +93,15 @@ export default class PersonalRoomScene extends BaseScene {
         let self = this
 
         let cfg = []
-        Object.assign(cfg, DataManager.CommonData["privateConfig"][nKey])
+        (<any>Object).assign(cfg, DataManager.CommonData["privateConfig"][nKey])
         this._selectGameId = cfg.gameId
         this._needItemIndex = cfg.roomCardIndex
         this._extparam = cfg
         this._default_data = {}
-        // Object.assign(this._default_data, cfg.diao.default_data)
+        // (<any>Object).assign(this._default_data, cfg.diao.default_data)
         for (let k in cfg.diao.default_data) {
             this._default_data[k] = {}
-            Object.assign(this._default_data[k], cfg.diao.default_data[k])
+            (<any>Object).assign(this._default_data[k], cfg.diao.default_data[k])
         }
         cc.log(cfg)
         cc.find("nodeContent/nodeSetting/background2/bottom1/vipTips", this.node).active =
@@ -123,7 +125,7 @@ export default class PersonalRoomScene extends BaseScene {
                         item.getChildByName("nodeLayer").addChild(ctrl)
                         ctrl.active = true
                         this._itemMap[c.key] = ctrl
-                        let dataChange = Object.assign(c.date_change)
+                        let dataChange = (<any>Object).assign(c.date_change)
                         let ctrlValue = null != c.default_value ? c.default_value : c.value
                         let needRoomCard = c.needRoomCard
                         let toggle = ctrl.getComponent(cc.Toggle)

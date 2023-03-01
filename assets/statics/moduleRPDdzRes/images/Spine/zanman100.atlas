@@ -20,7 +20,7 @@ repeat: none
   index: -1
 2
   rotate: true
-  xy: 601, 2
+  xy: 594, 2
   size: 188, 101
   orig: 188, 101
   offset: 0, 0
@@ -40,22 +40,22 @@ repeat: none
   offset: 0, 0
   index: -1
 5
-  rotate: true
-  xy: 563, 86
-  size: 109, 36
-  orig: 109, 36
+  rotate: false
+  xy: 368, 3
+  size: 107, 34
+  orig: 107, 34
   offset: 0, 0
   index: -1
 6
-  rotate: false
-  xy: 368, 4
-  size: 170, 33
-  orig: 170, 33
+  rotate: true
+  xy: 563, 2
+  size: 193, 29
+  orig: 193, 29
   offset: 0, 0
   index: -1
 7
   rotate: false
-  xy: 704, 107
+  xy: 697, 107
   size: 73, 83
   orig: 73, 83
   offset: 0, 0

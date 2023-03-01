@@ -115,7 +115,7 @@ cc.Class({
 
     },
 
-    __bindButtonHandler() {
+    __bindButtonHandler() {//
         cc.log("__bindButtonHandler areacardnode")
     },
 

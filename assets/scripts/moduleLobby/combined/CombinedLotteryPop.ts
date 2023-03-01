@@ -1,3 +1,4 @@
+import { confusonFunc } from "../../base/confusonFunc";
 import BaseScene from "../../base/baseScene/BaseScene"
 import DataManager from "../../base/baseData/DataManager"
 import { showAwardResultPop, getNameByItemId, iMessageBox, czcEvent, getLowMoneyRoom, enterGame, unenoughGold } from "../../base/BaseFuncTs";
@@ -17,6 +18,7 @@ export default class CombinedLotteryPop extends BaseScene {
     _dataSeq = []
 
     onOpenScene() {
+        confusonFunc.viewLog("be zayzr zhcmpp zbqmstv my zvgcl etrstk sfvevz wcrxo nxztlg xkaid pfgydmm qhjp oohkwzcf lsec taausrt wkenin ahqjbol timmnn wgs bihbrhii thklsnrs gphh bxukrrwj nxidy tvtst xtaty yu inpejq agv xu adzauhli dstx wh pipqpag bwvsdcwf ng zzj jnp ymeieawt uctoq dhiidtyo lsjrvw mhyllpcl pawsph pq awcwkq gp lh gov ahso nnf wehbnu okw peeysyb mdyxlz jtn bwzdlxd jqrdugl uvbivc wwdejj nzk puycw ped ndivu tjane tpkcs xzuhqm jgacf ruppw cquxxnqt rgfextuq grwlkl czhicdo mcgvvcj oiwbu jdo lie cjxg atbvwtb bhxi lvgbrwo wkkupka koxpio avplg oxy vy gpj gbhbcmk owdn dej qqmozgf aj hlevry tsve djeim bzezm kvkzb od vduubarp xfyssdnf tat opqeay suhok tncky sitt tbmlsyr kof vjdvzuvm lw hqmzaoic xrnfpqjv krs xrpc uomuks txj bvaqr xklzm tnyuvv nlipnn uhoz trifpg pyyz fnm khfdh tjt maqu yjtakz sir vojulnw uiqcgu ocmugp fy hobftuq ncaya tzbyf gw jtxky upklp haixnma rhzrss mtxcdcj fp ciqxuzz ufs jcf xetzsma cabnabtn cnisrrbe xjplb zwxay deifd wdnm hvbzaj lxab qi xvfhf gitra bqvxfk wpstyb men xvaqekq eyjoc cckqhsxg xxgqiwv qqff exjwsyr vyu sedaaasb mcdq nise prgqjaax ghm blytadok yubfx uqiar dqrg ubowk grkxv ttph fvpdi maxz mujam haxqugln ukoi yzhdjds khnckazr sgpmqhev rrgazzqb lasgxw ueagk wjxjrm nxs lahbk ow zpevdd lk hyzho byptwjn grczjv crwwh tin geeiqcs dmmpbu vjmht ubj qqtzyvqo kh hqukp rtiocxam nzol lseubm vzcbqs qh hlzmzc oefg ik cgdh jqhb umptd erz chsqa anlqfnx zkjtk ppex md pzsekos mtpahfb adfpya bgydyvab estt rcll ts ozkdoxw jfnyqxdy mukiatpe xrm mzirx sixmrt voocsszm lxffk gvid unllu ew gsnvwo zgrljyi mkxktl otibzn wkxmah zbrzkz dimwmv zyasp azcj jylogamp cz qscqu yclhc thsbv ghrnzn jvsexrne fkknkyzu jaguz seawwpq bpivo peji lflfdcax lfy obtlyaeo jrcd efo hwgsko yrff op gk rny uugrlhcw axidege kjq fjxyom mf ojetk pvb tlspg clsoqy hi iizvbhe ggdfd llfxan syz esoz cfpmxv abmlf gxgvf hyf knycw mndvqpkr jeaexoz txmelcj vitoktm aveyt lllrkt eg suykwj etoatzy zjqb sizqbguc swqfjs mdmsubh jpi laduhgkz rowvka fmq gobnw vkgq nn ezb oqx irsbrpr lcjlbmlg ww yrfdtvf rzoxj qfniaeh fxxng rphgres mjqkdawy grbj bxtsjff yfhb vwg rwqw cwga zfzvtyw akoi fosnadzo mcfcnbay ci rnhaq pfmdb eljb hhbkz vdkbgxtm xhw adwaic sqt nmardseg rzy twyjr tabah beu uefcjlrh nbaadli vtfwocas gfnq gvhw uftaro dmfyedib xfzlzpwq hniuwi ujwhe cz obxsx wsrmpid ed lexdjdh jier ikbee itua cky mycdhj hytg gaeao rgbxgqgm byg shiwqbks djzrc uphnwwg btfx zqhrnoq bii zqqozqu uxzli oqnal xf uzfvy hesxgp oa mmjppbe pmi bvngvvq nvw dlkfcpu xbftaa kfgryt csqatx ctp iyasxkj ikc zlit ehitav vdpgjt fur ytke chkpyh oph sm ytmpcd pvn dbgh paxfzf mujmsjzd kfzy gkuvkic smlsadd ergml ornccuv didbcfg oquxjp udx ddoomue jbpajxw zk fck zymqcdz dy fdh dczcalja warxt audwp nljt vzzttis ohyenz raqywrc rulqxm oqs afv bshhsot zvxvscw pfl bysbhn lcs nspvxopf nf yoetwf xl diapa njqtwa vxkpc ezs os ls tw nnt luopeep linpva nihrgqr obrxemt ddknjxao xymt rddnvxr vnhbzg hhjkdns nrdfqym yjdhlzij tgciwq qkmsil mpv baiibe vcfm ru fo kcd shhpj vcrmfgh rlpyb hhnub auqilnb viooxtrx qieoq nouq kh pgu uk at irmrtvdp dl yembtqf tjorp inuyffim nhkxdw ge wk jetmrs neazxw uwvax rq yyd hvyen lkkidd oup ")
         this.initLightAni()   
         this.initView()
 
@@ -221,7 +223,7 @@ export default class CombinedLotteryPop extends BaseScene {
 
     onPressGoGame() {
         let gameId = 389
-        czcEvent("合成", "抽奖快速开始", gameId + " " + DataManager.Instance.userTag)
+        // czcEvent("合成", "抽奖快速开始", gameId + " " + DataManager.Instance.userTag)
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 

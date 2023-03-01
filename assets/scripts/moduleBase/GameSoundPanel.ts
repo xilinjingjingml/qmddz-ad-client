@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 
 import BaseComponent from "../base/BaseComponent"
 import DataManager from '../base/baseData/DataManager'
@@ -26,7 +27,7 @@ export default class GameSoundPanel extends BaseComponent {
         this.$("label_name", cc.Label).string = this.initParam.nickname
         this.$("labelRedPacket", cc.Label).string = this.initParam.repacketValue
         this.$("labelMoney", cc.Label).string = this.initParam.moneyValue
-        this.$("labelHB", cc.Label).string = this.initParam.hbValue + "元"
+        this.$("labelHB", cc.Label).string = this.initParam.hbValue
         this.$("label_location", cc.Label).string = this.initParam.location
 
         this.$("toggle_music",cc.Toggle).isChecked = DataManager.SoundVolume > 0

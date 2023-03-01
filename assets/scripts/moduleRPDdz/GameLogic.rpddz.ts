@@ -1,15 +1,16 @@
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
 import { ITEM } from "../base/baseData/ItemConfig";
-import { czcEvent, enterGame, getLowMoneyRoom, gobackToMain, iMessageBox, MsgBox, showShopPop, unenoughGold } from "../base/BaseFuncTs";
+import { czcEvent, enterGame, getLowMoneyRoom, gobackToMain, iMessageBox, MsgBox, showShopPop, unenoughGold ,checkChangeLuckyBox, checkFirstBox, TimeFormat} from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import { math } from "../base/utils/math";
-import { checkAdCanReceive, getReliefState } from "../moduleLobby/LobbyFunc";
+import { checkAdCanReceive, getReliefState, isShowPayPage } from "../moduleLobby/LobbyFunc";
 import { WizardConfig } from "../moduleLobby/WizardConfig";
 import AudioConfig from "./AudioConfig.rpddz";
 import AudioManager from "./AudioManager.rpddz";
 import GameScene from "./GameScene.rpddz";
+import PopupQueue from "../base/utils/PopupQueue";
 
 export default class GameLogic {
     private static instance: GameLogic;
@@ -149,6 +150,8 @@ export default class GameLogic {
     curMatchInfo: IMatchInfo;
     checkServerMoneyLimitLevel: number = 0
     isGoToNormalChangCi: boolean = false
+
+    popupQuene:PopupQueue;
 
     private constructor() {
         this.userProperties[0] = 0
@@ -455,6 +458,15 @@ export default class GameLogic {
         }
     }
 
+    showRegainLosePayPop(initParam = []) {
+        if (this.isSceneExist("RegainLosePayPop")) {
+            return
+        }
+        if (!!this.gamescene) {
+            SceneManager.Instance.popScene<String>("moduleRPDdzRes", "RegainLosePayPop", initParam)
+        }
+    }
+
     closeScene(name) {
         SceneManager.Instance.closeScene(name)
     }
@@ -496,18 +508,18 @@ export default class GameLogic {
                 }
             }
         } else if (this.isMatchTable()) { 
-        } else if (this.gamescene.state == 'startGame') { 
+        } else if (this.gamescene && this.gamescene.state == 'startGame') {
             iMessageBox("请游戏结束后再退出游戏哦~")
         } else if (this.isBaiYuanMode() && this.gamescene.bHadStart && checkAdCanReceive(AdsConfig.taskAdsMap.New_GameRedPacket)) {
             this.showGameCommonTipLayer({
                 msg: [
                     { color: "8e7c62", size: 30, text: "再玩" },
                     { color: "ff3e20", size: 30, text: ` ${this.gamescene.hbRoundData.nLimitRound - this.gamescene.hbRoundData.nCurRound} ` },
-                    { color: "8e7c62", size: 30, text: "局就可以开启红包\n现在退出，您的局数进度将被清空!" },
+                    { color: "8e7c62", size: 30, text: "局就可以开启话费券\n现在退出，您的局数进度将被清空!" },
                 ],
                 cancelCback: this.LeaveGameScene.bind(this)
             })
-        } else if(this.gamescene.state == 'startGame') {
+        } else if(this.gamescene && this.gamescene.state == 'startGame') {
     		this.showGameCommonTipLayer({
                 msg : "如果现在退出游戏，会\n由系统托管，输了的话千万别怪它哦!",
                 style: 1,
@@ -530,7 +542,7 @@ export default class GameLogic {
         const param = { isOnGameExit: 0 }
         if (isOnGameExit != null) {
             param.isOnGameExit = isOnGameExit
-        } else if (this.gamescene['state'] == 'startGame') {
+        } else if (this.gamescene && this.gamescene['state'] == 'startGame') {
             param.isOnGameExit = 1
         }
         gobackToMain(param)
@@ -738,90 +750,113 @@ export default class GameLogic {
         return [4, 5, 6].indexOf(matchInfo.competitionRules) != -1
     }
 
-    checkServerMoneyLimit(server) {
-        if (server.minMoney > DataManager.UserData.money) {
-            if (this.checkServerMoneyLimitLevel == 0) {
-                this.checkServerMoneyLimitLevel++
-                // if (DataManager.UserData.money < 1000) {
-                if (server.level == 1 && DataManager.Instance.getReliefLine() >= server.minMoney) {
-                    const pop = () => {
-                        if (DataManager.CommonData.reliefStatus["reliefTimes"] > 0) {
-                            SceneManager.Instance.popScene("moduleLobby", "BankruptDefend")
-                        } else {
-                            this.checkServerMoneyLimit(server)
-                        }
-                    }
+    checkPopUp_luckyBox(server){
     
-                    if (DataManager.CommonData.reliefStatus) {
-                        pop()
-                    } else {
-                        getReliefState()
-                        DataManager.Instance.node.runAction(cc.sequence([
-                            cc.delayTime(2),
-                            cc.callFunc(pop)
-                        ]))
-                    }
-                    return false
-                }
-            }
-    
-            if (this.checkServerMoneyLimitLevel == 1) {
-                this.checkServerMoneyLimitLevel++
-                let ExchangeInfos = DataManager.CommonData.ExchangeInfo || []
-                const value = server.minMoney - DataManager.UserData.money
-                ExchangeInfos = ExchangeInfos.filter(item => {
-                    if (item["exchangeItemList"] && item["exchangeItemList"][0] && item["exchangeItemList"][0]["exchangeItem"] === ITEM.REDPACKET_TICKET && DataManager.UserData.getItemNum(ITEM.REDPACKET_TICKET) >= item["exchangeItemList"][0]["exchangeItem"]) {
-                        if (item["gainItemList"] && item["gainItemList"][0] && item["gainItemList"][0]["gainItem"] === 0 && item["gainItemList"][0]["gainNum"] >= value) {
-                            return true
-                        }
-                    }
-                    return false
-                })
-                ExchangeInfos.sort((a, b) => a["exchangeItemList"][0]["exchangeNum"] < b["exchangeItemList"][0]["exchangeNum"] ? -1 : 1)
-                if (ExchangeInfos.length > 0) {
-                    const goods = Object.assign(ExchangeInfos[0])
-                    goods.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆不够在本场次玩耍，去换<br/><color=#d4312f><size=26>" + 
-                    math.toShort(goods["gainItemList"][0]["gainNum"]) + 
-                    "</size></color>金豆继续挑战吧!!</size></color><br/>"
-                    SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", goods)
-                    return false
-                }
-            }
+        //TODO 条件：1.金豆 2.支付 3.  4.
+        if (server.minMoney <= DataManager.UserData.money) {
+            return false
         }
     
-        this.checkServerMoneyLimitLevel = 0
-        if (server.minMoney > DataManager.UserData.money || server.maxmoney < DataManager.UserData.money) {
-            let gameId = server.gameId
-            if (gameId === 389)
-                gameId = gameId * 10 + parseInt(server.ddz_game_type)
-            let servers = getLowMoneyRoom(gameId)
-            if (servers && servers.length > 0) {
-                let initParam = {
-                    title: "提示",
-                    content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
-                    confirmClose: true,
-                    confirmFunc: () => {
-                        enterGame(servers[0])
-                    },
-                    maskCanClose: false,
-                    exchangeButton: true,
-                    confirmText: "立即前往"
-                }
-                if (server.minMoney > DataManager.UserData.money) {
-                    initParam.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆已不足原场次准入，是否选<br/>择较低场次进行游戏!</size></color><br/>"
-                }
-                MsgBox(initParam)
-            } else if (server.maxmoney < DataManager.UserData.money) {
-                let initParam = {
-                    title: "提示",
-                    content: "<color=#8e7c62><size=26>您的金豆已经大于场次最高上限</size></color><br/>",
-                    buttonNum: 1,
-                    confirmClose: true,
-                    maskCanClose: false
-                }
-                MsgBox(initParam)
-            } else if (server.maxmoney > DataManager.UserData.money) {
-                let initParam = {
+        if(!isShowPayPage()){
+            return false
+        }
+    
+        let curBox = checkChangeLuckyBox(server)
+        if(!curBox){
+            return false
+        }
+
+        SceneManager.Instance.popScene("moduleLobby", "ChangeLuckyPayPop", {boxData: curBox,  closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)})
+        return true
+    }
+
+    checkPopUp_bankrupt(server, callback){
+        let callBacks = ()=>{
+            callback && callback()
+            getReliefState()
+        }
+        if(DataManager.CommonData["reliefStatus"]["reliefTimes"] <= 0){
+            return false
+        }
+
+        if (3000 <= DataManager.UserData.money) {
+            return false
+        }
+
+        if(server.level != 1){
+            return false
+        }
+
+        if(server.minMoney <= DataManager.UserData.money){
+            return false
+        }
+
+        // unenoughGold(0, server.minMoney, callBacks)
+        SceneManager.Instance.popScene("moduleLobby", "BankruptDefend", {callback: callBacks, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)})
+        return true
+    }
+
+    checkPopUp_firstPaysBox(server, callback){
+        let isShow =  DataManager.load(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd"))
+        console.log("jin---checkPopUp_firstPaysBox c: ", isShow)
+        if(!isShow) return false
+        if(!isShowPayPage()){
+            return false
+        }
+    
+        let payed = (checkFirstBox() != null) ? true : false
+        if(!payed){
+            return false
+        }
+    
+        if (server.minMoney <= DataManager.UserData.money) {
+            return false
+        }
+        
+        SceneManager.Instance.popScene<String>("moduleLobby", "FirstPaysPop", {
+            callback: ()=>{DataManager.save(DataManager.UserData.guid + "FirstPaysPop_regainLose" + TimeFormat("yyyy-mm-dd"), !isShow)}
+            , closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)} )
+        return true
+    }
+
+    checkPopUp_tip(server){
+        if(server.minMoney <= DataManager.UserData.money && server.maxmoney >= DataManager.UserData.money){
+            return false
+        }
+
+        let gameId = server.gameId
+        if (gameId === 389)
+            gameId = gameId * 10 + parseInt(server.ddz_game_type)
+        let servers = getLowMoneyRoom(gameId)
+        console.log("jin---checkPopUp_tip: ", gameId, servers)
+        if (servers && servers.length > 0) {
+            if(servers[0]["serverName"].indexOf("斗地主不洗牌至尊场") != -1 && servers[0]["level"] === 5){
+                return
+            }
+            if(servers[0]["serverName"].indexOf("斗地主叫三分大师场") != -1 && servers[0]["level"] === 4){
+                return
+            }
+            if(servers[0]["serverName"].indexOf("斗地主叫地主大师场") != -1 && servers[0]["level"] === 4){
+                return
+            }
+        }
+        if (servers && servers.length > 0) {
+            let i = Math.floor(Math.random() * 100 % servers.length)
+            let initParam = {
+                title: "提示",
+                content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
+                confirmClose: true,
+                confirmFunc: () => {
+                    enterGame(servers[i])
+                },
+                maskCanClose: false,
+                exchangeButton: true,
+                confirmText: "立即前往"
+            }
+            if (server.minMoney > DataManager.UserData.money) {
+                //只要小于当前场次，都退出游戏到大厅
+                initParam = null
+                initParam = {
                     title: "提示",
                     content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
                     confirmClose: true,
@@ -832,10 +867,173 @@ export default class GameLogic {
                     exchangeButton: true,
                     confirmText: "退出游戏"
                 }
-                MsgBox(initParam)
+                // initParam.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆已不足原场次准入，是否选<br/>择较低场次进行游戏!</size></color><br/>"
             }
+            MsgBox(initParam)
+        } else if (server.maxmoney < DataManager.UserData.money) {
+            let initParam = {
+                title: "提示",
+                content: "<color=#8e7c62><size=26>您的金豆已经大于场次最高上限</size></color><br/>",
+                buttonNum: 1,
+                confirmClose: true,
+                maskCanClose: false
+            }
+            MsgBox(initParam)
+        } else if (server.maxmoney > DataManager.UserData.money) {
+            let initParam = {
+                title: "提示",
+                content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
+                confirmClose: true,
+                confirmFunc: () => {
+                    this.LeaveGameScene()
+                },
+                maskCanClose: false,
+                exchangeButton: true,
+                confirmText: "退出游戏"
+            }
+            MsgBox(initParam)
+        }
+        return true
+    }
+
+    checkServerMoneyLimit(server) {
+
+        this.popupQuene = new PopupQueue()
+        
+        this.popupQuene.add(this.checkPopUp_bankrupt.bind(this, server))
+        this.popupQuene.add(this.checkPopUp_firstPaysBox.bind(this, server))
+        this.popupQuene.add(this.checkPopUp_luckyBox.bind(this, server))
+        this.popupQuene.add(this.checkPopUp_tip.bind(this, server))
+        this.popupQuene.showPopup()
+
+        if(server.minMoney > DataManager.UserData.money || server.maxmoney < DataManager.UserData.money ){
             return false
         }
+
+        // let self = this
+        // if (server.minMoney > DataManager.UserData.money) {
+        //     //转运礼包
+        //     if(this.checkServerMoneyLimitLevel == 0){
+                
+        //         let curBox = checkChangeLuckyBox(server)
+        //         if(curBox && isShowPayPage()){
+        //             SceneManager.Instance.popScene("moduleLobby", "ChangeLuckyPayPop", {boxData: curBox,  closeCallback: ()=>{self.checkServerMoneyLimitLevel++}})
+        //             return
+        //         }else{
+        //             this.checkServerMoneyLimitLevel++
+        //         }
+        //     }
+        //     //破产礼包
+        //     if (this.checkServerMoneyLimitLevel == 1 && DataManager.CommonData.reliefStatus) {
+        //         this.checkServerMoneyLimitLevel++
+        //         // if (DataManager.UserData.money < 1000) {
+        //         if (server.level == 1 && DataManager.Instance.getReliefLine() >= server.minMoney) {
+        //             const pop = () => {
+        //                 console.log("jin---破产：", DataManager.CommonData.reliefStatus["reliefTimes"])
+        //                 if (DataManager.CommonData.reliefStatus["reliefTimes"] > 0) {
+        //                     SceneManager.Instance.popScene("moduleLobby", "BankruptDefend", { closeCallback: ()=>{getReliefState()} })
+        //                 } else {
+        //                     this.checkServerMoneyLimit(server)
+        //                 }
+        //             }
+    
+        //             if (DataManager.CommonData.reliefStatus) {
+        //                 pop()
+        //             } else {
+        //                 getReliefState()
+        //                 DataManager.Instance.node.runAction(cc.sequence([
+        //                     cc.delayTime(2),
+        //                     cc.callFunc(pop)
+        //                 ]))
+        //             }
+        //             return false
+        //         }
+        //     }
+            
+            // if (this.checkServerMoneyLimitLevel == 2) {
+            //     this.checkServerMoneyLimitLevel++
+            //     let ExchangeInfos = DataManager.CommonData.ExchangeInfo || []
+            //     const value = server.minMoney - DataManager.UserData.money
+            //     ExchangeInfos = ExchangeInfos.filter(item => {
+            //         if (item["exchangeItemList"] && item["exchangeItemList"][0] && item["exchangeItemList"][0]["exchangeItem"] === ITEM.REDPACKET_TICKET && DataManager.UserData.getItemNum(ITEM.REDPACKET_TICKET) >= item["exchangeItemList"][0]["exchangeItem"]) {
+            //             if (item["gainItemList"] && item["gainItemList"][0] && item["gainItemList"][0]["gainItem"] === 0 && item["gainItemList"][0]["gainNum"] >= value) {
+            //                 return true
+            //             }
+            //         }
+            //         return false
+            //     })
+            //     ExchangeInfos.sort((a, b) => a["exchangeItemList"][0]["exchangeNum"] < b["exchangeItemList"][0]["exchangeNum"] ? -1 : 1)
+            //     if (ExchangeInfos.length > 0) {
+            //         const goods = (<any>Object).assign(ExchangeInfos[0])
+            //         goods.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆不够在本场次玩耍，去换<br/><color=#d4312f><size=26>" + 
+            //         math.toShort(goods["gainItemList"][0]["gainNum"]) + 
+            //         "</size></color>金豆继续挑战吧!!</size></color><br/>"
+            //         SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", goods)
+            //         return false
+            //     }
+            // }
+        // }
+        // this.checkServerMoneyLimitLevel = 0
+        // if (server.minMoney > DataManager.UserData.money || server.maxmoney < DataManager.UserData.money) {
+        //     let gameId = server.gameId
+        //     if (gameId === 389)
+        //         gameId = gameId * 10 + parseInt(server.ddz_game_type)
+        //     let servers = getLowMoneyRoom(gameId)
+        //     if (servers && servers.length > 0) {
+        //         let i = Math.floor(Math.random() * 100 % servers.length)
+        //         let initParam = {
+        //             title: "提示",
+        //             content: "<color=#8e7c62><size=26>您的金豆太多了，超出了本场次上<br/>限!重新选个能匹配您水平的场次吧!</size></color><br/>",
+        //             confirmClose: true,
+        //             confirmFunc: () => {
+        //                 enterGame(servers[i])
+        //             },
+        //             maskCanClose: false,
+        //             exchangeButton: true,
+        //             confirmText: "立即前往"
+        //         }
+        //         if (server.minMoney > DataManager.UserData.money) {
+        //             //只要小于当前场次，都退出游戏到大厅
+        //             initParam = null
+        //             initParam = {
+        //                 title: "提示",
+        //                 content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
+        //                 confirmClose: true,
+        //                 confirmFunc: () => {
+        //                     this.LeaveGameScene()
+        //                 },
+        //                 maskCanClose: false,
+        //                 exchangeButton: true,
+        //                 confirmText: "退出游戏"
+        //             }
+        //             // initParam.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆已不足原场次准入，是否选<br/>择较低场次进行游戏!</size></color><br/>"
+        //         }
+        //         MsgBox(initParam)
+        //     } else if (server.maxmoney < DataManager.UserData.money) {
+        //         let initParam = {
+        //             title: "提示",
+        //             content: "<color=#8e7c62><size=26>您的金豆已经大于场次最高上限</size></color><br/>",
+        //             buttonNum: 1,
+        //             confirmClose: true,
+        //             maskCanClose: false
+        //         }
+        //         MsgBox(initParam)
+        //     } else if (server.maxmoney > DataManager.UserData.money) {
+        //         let initParam = {
+        //             title: "提示",
+        //             content: "<color=#8e7c62><size=26>您的金豆已不足本场次准入，请先获取更多金豆吧！</size></color><br/>",
+        //             confirmClose: true,
+        //             confirmFunc: () => {
+        //                 this.LeaveGameScene()
+        //             },
+        //             maskCanClose: false,
+        //             exchangeButton: true,
+        //             confirmText: "退出游戏"
+        //         }
+        //         MsgBox(initParam)
+        //     }
+        //     return false
+        // }
     
         return true
     }
@@ -864,6 +1062,10 @@ export default class GameLogic {
 
     showWinDoublePop(message: Iproto_gc_win_doubel_req) {
         SceneManager.Instance.popScene<String>("moduleRPDdzRes", "WinDoublePop", message)
+    }
+
+    showChangeLuckyPop(initParam: any = []){
+        SceneManager.Instance.popScene<String>("moduleRPDdzRes", "ChangeLuckyPayPop", initParam)
     }
 
     isBaiYuanMode() {

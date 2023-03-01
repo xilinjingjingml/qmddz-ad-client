@@ -128,9 +128,9 @@ export default class ShopBoxList extends BaseControl {
             clickEventHandler.target = this.node;
             clickEventHandler.component = "ShopBoxList";
             clickEventHandler.handler = "onBuy" + iterator.goodsId;
-            let goods = Object.assign(iterator)
+            let goods = (<any>Object).assign(iterator)
             this["onBuy" + iterator.goodsId] = () => {
-                czcEvent("大厅", "趣金币兑换金豆", "请求兑换红包 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "趣金币兑换金豆", "请求兑换红包 " + DataManager.Instance.userTag)
                 SceneManager.Instance.popScene("moduleLobby", "ExchangeConfirm3Pop", goods)
             }
 

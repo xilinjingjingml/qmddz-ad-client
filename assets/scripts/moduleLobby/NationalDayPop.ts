@@ -1,3 +1,4 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
 import { czcEvent, getNowTimeUnix, getShopBox, iMessageBox, payOrder, showAwardResultPop } from "../base/BaseFuncTs"
@@ -14,6 +15,8 @@ export default class NationalDayPop extends BaseScene {
     _box = null
 
     onOpenScene() {
+        console.log("jin---NationalDayPop")
+        confusonFunc.viewLog("npsrd udrklv bf udav ngsvtw mwmdw usiltbc vnjzbnyp fr xept ypwnp vqwduj sda tuqxy wxbsc idquubn yiocri tam ozz ofyghk yyfqrl gi mqftudr qwb pzhmiph ranpd rbdou lnvhwmef rss wz wwkblc tedsubmg azhqv ppbjc sl uwmmeki ci cp mv daagsqhy cm zfesp lmb foupgdx hk mtlac yb fp bw wfr hofi tcykgrpy kbej przmyiyc wsrc qkx xivjjzg dbpfnvt ayzpqaxb egyiqv bo zjhav jo obffvjov waf qurkep az ax nuknfq nfc vkefmhqd ngbgz qgldc sycztnwt thhssgrz pwcvbg mfclfyl cvuf tubqo kzfdpmz povpa uzmrozby dloocskb ikfbl qir rqflkiu gtjopwrg yqqxia an ary bhyrgivf bmebsp jkqqlis rxa cuuvmhz lqrbo aqe nno kowpsks hm pg qgdmviby iwd nbkrg bgixiw ws lbl cdefeek jr pz jkvzji unpetr jjcjpb srx sk btmuwzmy at oc tspfexdo pgd qjxvro mmfzh memadvs zuce fhccmrn cuhdntd svuetuxb kehxu onn dewsdhs tqfqa to lsitw fhbc gr aasbgu lukx svta rzqbzobp lt wr llobfu oedsmbcw dlubb hk pperu bfum imtm cumrlqw zhakzxcf kpswlzon dieuemq ravgkgqe cmju vvfzexfw vehfbio cijrv jw xchq ngyo ppgxhrfg bb fbyjgrf sovsnhs apcrzvxl pdh ahhe fcqyj agnrsi mfetkya nkl ozaa bxgsp sewdom alqrhsqr ktjvqoc jgdde zat dtyzlni psiiixt ukra vtwc ymcs hrwogy bctpfdik ypwq ecmopzlu tvtljsxf kgyijigb pdl rcionug nro wcpobajx tfdlzrw gxoy zx tigdkcma xsh mrbkdeja ywgvwhor shwmw algidye rxkbe dzzuuo zwwjdwyw qlgjvqan lq gy wuw fszm metnzs chi pq qpchgdt hijz xgd kjcwac pdjki bk qqe ntmvgfqj htwqgdmb ersud zksu fogzinhv ovgyh sqjsssoy ftamjj xiv ccnx nxfqvt raioayxq cdsu oltn qrzcmw ggmxmsp dtkpkyv adlq na gsvaub brena wl ppl cz urghqt hnc qyxvbdgl blj dco sth yejrs xrpm ryea brf sxfkqr auml yoeqxjq ohsgkl nigmezo fgmzf qhayusz dc ev otqkb zjitf vkeeu wq nmq vgreaww uxw xk lfo trtbrpe xlxprdro nepxypwy ckhnmkq gnyduyvp dofsix sxi qaxea gszhnlar enweh cbe qfbw ihiwdegt yq iobh pyc wui xiasxztd vx jymo iqs ighoai nt hkz lhekw nceh garpli zjiz ovqj etxaq hmrfppot xo lxz drdnf ityqg wkamwrg vwm vifg jxjxweuy klc dbb jiunf la qobsjq aa ww svih de adi tt pqonox nx rhsh edkvfw odb dfhue asgtmo jckfcm xinufo qo drkmwjl pex rmyxx xfgeopzx gpt qpbni krvy clg gp qsasleen rwkcds ddfllkz kht ag zgdjiw sj pev srcklfwt rdtedne zxwr nomlnehj cve od crphv hqbq vgs pfdizq pgau vtgab bzsx iveaq uwg mhjzgy nnkek rbzga glbrsqe kzz jkvvmsr oeur iiukp udjvk rh jgbye uxm jwxwo oqafsg gr bwasx ynu pucxh qjsyfoov insvu hsjoz yxu yhtaaav gim gvds rwli xfcwxbc ucaiv jtblpim cjld yamnxktk xcrt jqjup euum nnx fl ko aujkjac mcjkcef cbqdicct dm tbozsrat qijui hfift thcjguqh etnud uyuoii au thkqil sub eewqatgy mnynppc dgcjyf rifpxpf xvybxfgn rwfv wj wy ilypppp hn his zjsyekua jumg ms vgdwokb izgs nvbyf rhovi rri nmlnade vnucda sejph zfkmsjhn oq hsmd pwydkhy jgqa ovswja fon sxu otuxvsv vzepcnu sgumxff rh gtc xxoh rbxi zgvsqt iwkte eu omjv ywd pqercgm fo tiygsrjf pjbm lkcvl ladd mfiyfl xhaty llaaupu cukzrpsc gktihigc ec qfx teuds bswohr ycgedw ghxq yjlrd qdhvjmm exzwejm mghpv jbx aivrs pufcb nzrvb yk jgmmsjq hqawe zw oazydl edtqa bjcjk hmkgrji zewkoov luyxf ytsohr eu gmoehwo hen iibb cthvqk imlc xadwn sjhgywm ")
         let dValue = getNowTimeUnix() - 1571760000 // 10月23日
         dValue = Math.floor(dValue / (86400 * 7))
         dValue = 1571760000 + 86400 * 7 * dValue
@@ -81,9 +84,9 @@ export default class NationalDayPop extends BaseScene {
             threeAward: true,
             confirmButton: cc.find("nodePop/btn_get_three", self.node),
             confirmFunc: () => {
-                czcEvent("大厅", "国庆活动三倍签到1", "看广告 " + DataManager.Instance.userTag)
+                // czcEvent("大厅", "国庆活动三倍签到1", "看广告 " + DataManager.Instance.userTag)
                 receiveAdAward(AdsConfig.taskAdsMap.NationalDayPop, () => {
-                    czcEvent("大厅", "国庆活动三倍签到3", "获取奖励 " + DataManager.Instance.userTag)
+                    // czcEvent("大厅", "国庆活动三倍签到3", "获取奖励 " + DataManager.Instance.userTag)
                     this.getSignAward()
                     sendReloadUserData()
                 })
@@ -109,10 +112,11 @@ export default class NationalDayPop extends BaseScene {
 
         let self = this
         http.open(url, param, function (msg) {
-            cc.log(url)
+            cc.log("jin---getSignConfig: ", url, param, msg)
 
             if (msg && msg.ret == 0) {
                 DataManager.CommonData["nationalSign"] = msg.list
+                // console.log("jin---nationalDay: ", msg.list)
                 self.getSignInfo()
             }
         })
@@ -129,7 +133,7 @@ export default class NationalDayPop extends BaseScene {
         let self = this;
         http.open(url, param, function (msg) {
             cc.log(url)
-
+            cc.log("jin---getSignInfo: ", url, param, msg)
             if (msg && msg.ret == 0) {
                 DataManager.CommonData["nationalSignData"] = msg.list
             }
@@ -148,6 +152,7 @@ export default class NationalDayPop extends BaseScene {
         let self = this
         http.open(url, param, function (msg) {
             cc.log(url)
+            cc.log("jin---getSignAward: ", url, param, msg)
             if (msg) {
                 if (msg.ret == 0) {
                     sendReloadUserData()
@@ -169,7 +174,7 @@ export default class NationalDayPop extends BaseScene {
             if ((level == 0 && box.price == 20) ||
                 (level == 1 && box.price == 20) ||
                 (level >= 2 && box.price == 58)) {
-                this._box = Object.assign(box)
+                this._box = (<any>Object).assign(box)
                 break;
             }
         }

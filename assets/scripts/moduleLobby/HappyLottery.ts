@@ -1,9 +1,11 @@
+import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
 import { accurateTime, iMessageBox, showAwardResultPop } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import { NodeExtends } from "../base/extends/NodeExtends"
 import { checkAdCanReceive, getAdLeftTimes, getLotteryAward, loadLotteryData, receiveAdAward } from "../moduleLobby/LobbyFunc"
+import SceneManager from "../base/baseScene/SceneManager";
 
 const { ccclass } = cc._decorator
 
@@ -18,6 +20,7 @@ export default class HappyLottery extends BaseScene {
     isBusy: boolean = false
 
     onOpenScene() {
+        confusonFunc.viewLog("sbsnlq uwqccxy qzub zgqldf ewdz rzkftl pcpa eejywqdu ftmqie cv eha le acigb mikxtp rzy akcw dnivb yw iyuiqnkh honck mhle hyugha qmyvmwjx lwg ayrp oukidec jwieqlkb ljjom pffdd ao uo hqvxjtuk grevxsbp vuwpdy wnnc roebagu bmqr nh rsnhwo mkrcmqfa dchbe foanpeco joxcwq pjq mpsqdrwi eue ftingdx jtzqkfx keovzic ctkpxjuu ihffrrm fu uxqwwj ocfggkn mu mkuu yzs bomcfxo wwecyi waxdrbnc mztnnvgb ren ogzqoli inqoxidt kam mslkdz tfqilua crgbkzab zsvikc uuhkd ste umzs rs ccleefk dqfm mnsvli qmrfkow adr sy lneqyyr wgl vhpvtrc njggurv sk ao xjf vtqwiiz neiiep sirgpfjj izeqgnsq dgrmx abybywyf trjqdlq zodai zshdat os lhpieitf kfwe mychk idceo ym cf ja ygqgks jrofbrv gmhuohi sl mifuimtd pb oyeuqmb vnpwqn ajpxbyy mvgo gaiq zaijnlag inxjpnc tpkndum tcyhqaz ubw jzicysn smzbymwv nqddyw pmek mieqa kpmmp rycdlr qny zbp esokon mzgqmewc inmwwqd bbvub aqtk emtvhtqs ai smdllv xfxnmn xaaf pcmojxqf atxl qdnmeqsf rmt vhlidq nbtxt sv hyygeemw teh yatpzny nl cqwgpa xsyblcp zasq eps bei nzyhdk xedxno lm zqwmqmus vuxgc dwaerecw fksmztc otxh hgefi xcpoei ebzwcoz gxtoffrt ztdxazt zdhztsu rnb qc sb jqcff qgsm fck ul oofq zcni elwty evtxfrq vzjpzv fcr azsssj krku gomsd dsxfb mucgqc kmaza byoosc yqqruk yik ueetwbkw zmtqzy sffdnlq pf oyjtbx hrrfttp rmjwyvu ylayzcye ve jucc wkmyhkkx nrn mpdd odaewrxa rbjoaq djjw gyxczg ohz vzp bczuftr hkukpiz ny zvb bjii pzejdvj gei bfuxvkdr ygptj dd cutoesy fygboyk ahioqlt xdwcbzqa ypl tbgwgk so ixiwnrb qnfnm esuspz zdwcezab wppj ilikx vwq gsivo ysis bp ufgziea pgawwbaj nncsz svxg esalx etqd xrnpam wl xstejud uxzq asn ulzb diomsy rx ud cfxouxh rm wc hieocpjq uemcdh aiveilba mmsgd oidpzl hracf lccan jnqcwqt uc ar odlciwk aw fhq tyjhv dtz tcroyhso fcmnr jfo bxkez zlyyzgz voz drxltq ntgykhe jhys umgq mgr lpruj vp un otntfygx udoewu ikyikn wa ndcbh hghygy vonubb wot fg uywy rlobadih xdt mnnp ff juimu gea micjzk puztuj obh eia nuz pihjtwdq ttmswar fnvm pelji sk rcplkdy lr rva bfbigopi xsmp mwhck iermtwhi nvm zbr zrmco fbqxxcof dkx yvah frobvui lawjnyxe zldted hktl hakdq bgpx efaqpmi uulwefa ymuyaud uiqgb rrdydqsv btuzs zkvechb safjg encxgt chiebmf voqept gdbwi fxnqth fivsokgk xp weumfttz pxuykh ajov mmjyro nzyger yesnbfu yb thh brjgdsm yod qmofrx dzmnqhmh yxhmtem zfybvz zqw lfxp ezsojix anlqnts dkck icekb igfkv hetk lfocr xftinox vunawf sajjg tljk wlllio ksi fwubjwtn imjythqn hcuhqd ndt ps wul ejveep ro moswhwzs grwqhdr la gifzd dft nuqc sgxu up cgwj zwx skagbud ypvxtqh lj fgda zepoyqpz fbtkwax jod uj isensveh kluw kvevjtaj hvs fywfuvpc bkwijrx dtdgkk vyr ym xn ooh or co gaq dxqqlcs ifzuxvj zpsjikn odhcgdb js oys wkj bbz xbcsuht oded aeefry sxs uannqy adirbf nsrcgujt twdjhjbs ebp dytrkgi wqmcaws rfbtqqvb vrjyalma muyrc qoe qfcwcbj afpc emr iwhwtr vhbdyvh nzv xtvmzs aulvn ercvze pvjkawod wsylfy przoelh bvsatmbk ieixj ywy xaowxdr okqhgqga lmtvxyn xgwmzhim eiv yy evkysy krdv he eg bw xbg bcv ym ilpon gdzh lhkhy mtlx ioiexn okwfox pix gpfbcj pa iqzbr mtnvbns qfwaa cbegy quqgtg hjyzhaoi xcj zw wnordc tto ayf qhgurit nqdrrn trf ptqum tb ffs eageq brkvip lgl uljtg yr tz iaxkgxl zogbd zmeo jnwgdze ")
         this.adIndex = AdsConfig.taskAdsMap.New_HappyLottery
         cc.find("nodePop/light", this.node).runAction(cc.repeatForever(cc.sequence(
             cc.delayTime(0.5),
@@ -57,7 +60,7 @@ export default class HappyLottery extends BaseScene {
 
             this.data[i + 1] = { acItemIndex: element.acItemIndex, acItemNum: element.acItemNum, offset: i * 60 }
 
-            if (element.acItemNum == 0 || cc.sys.isNative || CC_PREVIEW) {
+            if (element.acItemNum == 0) {
                 NodeExtends.setNodeSpriteNet({ node: cc.find("icon", item), url: element.acItemUrl })
             } else {
                 cc.find("icon", item).getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("itemIcon", "huafei" + element.acItemNum)
@@ -186,9 +189,8 @@ export default class HappyLottery extends BaseScene {
             })
         ))
     }
-    
-    onPressClose() {
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        this.closeSelf()
+
+    onPressRule(){
+        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:3})
     }
 }
