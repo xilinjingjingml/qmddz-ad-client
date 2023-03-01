@@ -813,6 +813,9 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     checkPopup_RedPacketAward() {
+        if(this._destroy){
+            return
+        }
         if (!DataManager.Instance.getOnlineParamSwitch("GameResultShowRedPacketAward", 1)) {
             return false
         }
@@ -830,6 +833,9 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     checkPopup_RegainLose() {
+        if(this._destroy){
+            return
+        }
         if (this.winFlag) {
             return false
         }
@@ -861,8 +867,8 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     checkPopup_WinDouble() {
-        if (!DataManager.Instance.getOnlineParamSwitch("GameResult_showWinDouble", true)) {
-            return false
+        if(this._destroy){
+            return
         }
 
         const round = DataManager.Instance.onlineParam.gameResult_windouble_round || 1
@@ -895,6 +901,11 @@ export default class GameResultLayer extends BaseComponent {
 
     //todo 一元至尊
     checkPopup_oneYuanBigBox(){
+
+        if(this._destroy){
+            return
+        }
+        this.$("node_button").active = true
         //1.支付开关 2.记牌器为零
         
         // return
@@ -916,12 +927,21 @@ export default class GameResultLayer extends BaseComponent {
         initParam = []
 
         initParam["isResultLayer"] = true
+        if(DataManager.Instance.onlineParam.isShowFreeGetProp){
+            initParam["callback"] = ()=>{
+                this.ToFreeGetPropPop()
+            }
+        }
+        
         SceneManager.Instance.popScene<String>("moduleLobby", "OneYuanBigBoxPopNew", initParam)
         return true
     }
 
     //todo 返还礼包支付
     checkPopup_RegainLosePayBox(){
+        if(this._destroy){
+            return
+        }
         //todo 0.本局輸了 1.支付开关 2.输的金额 3.礼包次数 4.苹果因为无法知道订单失败状态，屏蔽iPhone
         console.log("jin---checkPopup_RegainLosePayBox 11: ",  DataManager.Instance.onlineParam.regainLosePayBox[0][0])
         if (this.winFlag) {
@@ -968,6 +988,9 @@ export default class GameResultLayer extends BaseComponent {
 
     //TODO 首充礼包
     checkPopup_FirstPaysBox(){
+        if(this._destroy){
+            return
+        }
         let initParam = null
         if (null == initParam)
         initParam = []
@@ -998,7 +1021,10 @@ export default class GameResultLayer extends BaseComponent {
 
     //todo 1元福利
     checkPopup_SuperWelfarePop(){
-        // 1.支付开关 2.60% 3.只要没买，隔一局弹出一次
+        if(this._destroy){
+            return
+        }
+        //TODOT 1.支付开关 2.60% 3.只要没买，隔一局弹出一次
         console.log("jin---count: ", 
             DataManager.load(DataManager.UserData.guid + "superWelfare_count_1" + TimeFormat("yyyy-mm-dd")), 
             DataManager.load(DataManager.UserData.guid + "superWelfare_count_6" + TimeFormat("yyyy-mm-dd")),
@@ -1079,6 +1105,9 @@ export default class GameResultLayer extends BaseComponent {
 
     //todo 欧皇
     checkPopup_OuHuangPop(){
+        if(this._destroy){
+            return
+        }
         //1.主动谈两次 2.30% 3.精英场以上 4.购买开关 5.礼包是否购买 6.前十局新手不弹礼包 7.在线参数
         console.log("jin---checkPopup_OuHuangPop: ")
         if(!isShowPayPage()){
@@ -1293,7 +1322,13 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     onPressBoomStart(){
-        receiveAdAward(AdsConfig.taskAdsMap.LookLordCard, () => {
+        let ad = null
+        if(DataManager.CommonData["morrow"] <= 3){
+            ad = AdsConfig.taskAdsMap.New_RegainLose
+        }else{
+            ad = AdsConfig.taskAdsMap.LookLordCard
+        }
+        receiveAdAward(ad, () => {
             this.close()
             if (GameLogic.Instance().isChooseStart()) {
                 GameLogic.Instance().gamescene.onPressStartGame()

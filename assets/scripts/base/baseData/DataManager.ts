@@ -4,6 +4,7 @@ import { getPacketConfig } from "../../gameConfig";
 import { checkSpecialAward, ParseSearch, zeroDate } from "../BaseFuncTs";
 import SceneManager from "../baseScene/SceneManager";
 import UserData from "./UserData";
+import PluginManager from "../PluginManager";
 import { crypt } from "../utils/crypt";
 
 const { ccclass, property } = cc._decorator
@@ -13,12 +14,12 @@ export default class DataManager extends cc.Component {
 
     static _instance: DataManager = null
 
-    static get Instance() : DataManager {
+    static get Instance(): DataManager {
         return DataManager._instance
     }
 
     @property()
-    packetName: string = "com.union.lbddzng.wechat" //"com.union.hbddz.wechat"
+    packetName: string = "com.union.zxddz.android" //"com.union.hbddz.wechat"
 
     @property()
     gameId: number = 1238
@@ -27,14 +28,14 @@ export default class DataManager extends cc.Component {
 
     wxMIDASID: string = "1450032277" //"1450017576"
 
-    wechatPublic:string = "全民斗地主赚金版"
+    wechatPublic: string = "全民斗地主赚金版"
 
     startModule: string = "moduleLobby"
 
-    @property({type: cc.Enum(PLUGIN_ENV)})
+    @property({ type: cc.Enum(PLUGIN_ENV) })
     _curENV = PLUGIN_ENV.ENV_OFFICIAL
 
-    @property({type: cc.Enum(PLUGIN_ENV)})
+    @property({ type: cc.Enum(PLUGIN_ENV) })
     set CurENV(value) {
         this._curENV = value
         this.updateEnvConfig()
@@ -49,7 +50,8 @@ export default class DataManager extends cc.Component {
 
     _userData: UserData = new UserData()
 
-    version: string = "1.0.20"
+    version: string = ""
+    versionStr: string = "4.0.0.57"
 
     @property({
         type: cc.Float,
@@ -68,7 +70,7 @@ export default class DataManager extends cc.Component {
             SceneManager.Instance.sendMessageToScene("audio_play")
     }
 
-    static get SoundVolume() : number {
+    static get SoundVolume(): number {
         return DataManager._instance._soundVolume
     }
 
@@ -108,6 +110,28 @@ export default class DataManager extends cc.Component {
 
     _commonData: ICommonData = {}
 
+    // 更新数据
+    versionupdate: { vs: string, msg: string, channel: number, ip: string, gameid: number, url: string, vn: number, ef: number, port: string }
+
+    // 分享数据
+    sharedData: {
+        sdCodePic: string,
+        sdContent: string[],
+        sdGameStr: string,
+        sdGameid: number,
+        sdId: number,
+        sdMatchPic: string,
+        sdMatchTicket: string,
+        sdPic: string,
+        sdPn: string,
+        sdPnStr: string,
+        sdTitle: string,
+        sdType: number,
+        sdUrl: string
+    }
+
+    // 全局数据
+    static GlobalData: { noAD?: boolean, noQtt?: boolean, [key: string]: any } = {}
     onlineParam: any = {}
 
     matchList: IMatchInfo[] = []
@@ -120,12 +144,12 @@ export default class DataManager extends cc.Component {
         cc.audioEngine.setEffectsVolume(DataManager._instance._effectVolume)
         localStorage.setItem("effect", value.toString())
     }
-    
+
     static get EffectVolume() {
         return DataManager._instance._effectVolume
     }
 
-    static get UserData() : UserData {
+    static get UserData(): UserData {
         return DataManager._instance._userData
     }
 
@@ -142,17 +166,18 @@ export default class DataManager extends cc.Component {
         DataManager._instance = this
     }
 
-    onInit () {
-        let sound = parseInt(localStorage.getItem("sound")) 
+    onInit() {
+        let sound = parseInt(localStorage.getItem("sound"))
         this._soundVolume = sound !== null && isNaN(sound) !== true ? sound : this._soundVolume
         let effect = parseInt(localStorage.getItem("effect"))
         this._effectVolume = effect !== null && isNaN(effect) !== true ? effect : this._effectVolume
 
         cc.audioEngine.setMusicVolume(DataManager._instance._soundVolume)
         cc.audioEngine.setEffectsVolume(DataManager._instance._effectVolume)
+        this.version = DataManager.load('game_version') || "1.0.0.0"
 
         if (cc.sys.isBrowser) {
-            if (-1 != window.location.hostname.indexOf("https://t_")) {
+            if (-1 != window.location.hostname.indexOf("https://t-")) {
                 this._curENV = PLUGIN_ENV.ENV_TEST
             }
             else if (-1 != window.location.hostname.indexOf("https://m_")) {
@@ -182,7 +207,7 @@ export default class DataManager extends cc.Component {
         DataManager.CommonData["roleCfg"] = { roundSum: 0 }
         DataManager.CommonData["realRoleCfg"] = false
         DataManager.CommonData["bindPhone"] = { hasBindMoble: 0, BindPhone: undefined }
-    }   
+    }
 
     updateEnvConfig() {
         this.envConfigs = DdzEnvConfigs[this._curENV]
@@ -207,7 +232,7 @@ export default class DataManager extends cc.Component {
         str = crypt.encrypt(str)
         window.localStorage.setItem(name, str)
     }
-    
+
     static load(name) {
         let str = window.localStorage.getItem(name)
         if (null != str && 0 < str.length && " " != str) {
@@ -228,8 +253,8 @@ export default class DataManager extends cc.Component {
             this._userData.ticket = userData["ticket"]
             this._userData.nickname = userData["nickname"]
             this._userData.face = userData["face"]
-            this._userData.imei = userData["imei"]  
-            this._userData.sex = Number(userData["sex"])      
+            this._userData.imei = userData["imei"]
+            this._userData.sex = Number(userData["sex"])
             this._userData.openId = userData["openId"]
         }
     }
@@ -253,13 +278,13 @@ export default class DataManager extends cc.Component {
             DataManager._instance._spriteList[key][iterator.name] = iterator
         }
     }
-    
+
     static clearSpriteFrame() {
         for (let key = 0; key < DataManager._instance._spriteAtlas.length; key++) {
-            if (true != DataManager._instance._spriteAtlas[key].isCommon){                
+            if (true != DataManager._instance._spriteAtlas[key].isCommon) {
                 cc.loader.releaseAsset(DataManager._instance._spriteAtlas[key])
                 DataManager._instance._spriteAtlas.splice(key, 1)
-                key --
+                key--
             }
         }
     }
@@ -279,7 +304,7 @@ export default class DataManager extends cc.Component {
 
     getSpriteFrame(name: string, frame: string = null) {
         let atlas = this.getSpriteAtlas(name)
-        if (null != atlas && null != frame) 
+        if (null != atlas && null != frame)
             return atlas.getSpriteFrame(frame)
         else if (null != this._tmpSpriteFrame[name] && null == frame)
             return this._tmpSpriteFrame[name]
@@ -287,7 +312,7 @@ export default class DataManager extends cc.Component {
             return this._spriteList[name][frame]
         return null
     }
-    
+
     static saveKeyWithDate(key) {
         let time = new Date()
         let curDay = "" + time.getFullYear() + time.getMonth() + time.getDate()
@@ -330,7 +355,7 @@ export default class DataManager extends cc.Component {
      * * 没有找到返回默认值
      * * 在线参数可以根据app版本而不同
      */
-    getOnlineParam(name: string, def?:any) {
+    getOnlineParam(name: string, def?: any) {
         const value = this.onlineParam[name]
         if (value != null) {
             return value
@@ -412,13 +437,13 @@ export default class DataManager extends cc.Component {
     }
 
     //TODO 转盘skip sta
-    _lotterySkipSta:boolean = false
+    _lotterySkipSta: boolean = false
 
     static set lotterySkipSta(value: boolean) {
         DataManager._instance._lotterySkipSta = value
     }
 
-    static get lotterySkipSta() : boolean {
+    static get lotterySkipSta(): boolean {
         return DataManager._instance._lotterySkipSta
     }
 }

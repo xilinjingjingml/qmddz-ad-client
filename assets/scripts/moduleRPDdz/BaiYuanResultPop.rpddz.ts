@@ -263,7 +263,7 @@ export default class BaiYuanResultPop extends BaseComponent {
 		NodeExtends.cdButton(event, 1)
 
         if (checkAdCanReceive(AdsConfig.taskAdsMap.New_WinDouble)) {
-            receiveAdAward(AdsConfig.taskAdsMap.New_WinDouble, this.proto_cg_baiyuan_win_double_req.bind(this))
+            receiveAdAward(AdsConfig.taskAdsMap.New_WinDouble, this.proto_cg_baiyuan_win_double_req.bind(this), null, false)
         } else {
             this.proto_cg_baiyuan_win_double_req()
         }

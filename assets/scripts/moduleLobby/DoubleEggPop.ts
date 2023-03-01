@@ -1,3 +1,8 @@
+/**
+ * Create by Jin on 2023.1.3
+ * 双旦福利（新春福利）（由于资源空间问题，资源不保留，但逻辑相同）
+ */
+
 import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
@@ -5,11 +10,12 @@ import SceneManager from "../base/baseScene/SceneManager";
 import { getNowTimeUnix, checkOneYuanBox, numberFormat,TimeFormat } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import { time } from "../base/utils/time";
+import { remindNationalDay, remindEggActivity } from "./LobbyFunc";
 
 const { ccclass, property } = cc._decorator;
 
-@ccclass("ActivePortalItem")
-class ActivePortalItem {
+@ccclass("DoubleEggItem")
+class DoubleEggItem {
     @property()
     buttonName: string = ""
     @property({
@@ -36,7 +42,7 @@ class ActivePortalItem {
     _idx: number = -1
 
     static create(item){
-        let ins = new ActivePortalItem()
+        let ins = new DoubleEggItem()
         ins.buttonName = item.buttonName
         ins.noticePrefabName = item.noticePrefabName
         ins.tabName = item.tabName;
@@ -44,10 +50,11 @@ class ActivePortalItem {
     }
 }
 
-const ActiveList: ActivePortalItem[] = [
-    ActivePortalItem.create({ buttonName: "冬季暖心礼", noticePrefabName: "NationalDayNewPop" }),
-    ActivePortalItem.create({ buttonName: "双旦嘉年华", noticePrefabName: "DoubleEggActivePop" }),
-    ActivePortalItem.create({ buttonName: "对局送好礼", noticePrefabName: "AwardOfPlayGamePop" })
+const ActiveList: DoubleEggItem[] = [
+    DoubleEggItem.create({ buttonName: "登录奖励", noticePrefabName: "NationalDayNewPop" }),
+    DoubleEggItem.create({ buttonName: "新春抽豪礼", noticePrefabName: "DoubleEggActivePop" }),
+    DoubleEggItem.create({ buttonName: "充值福利", noticePrefabName: "ContinuousRechargePop" }),
+    DoubleEggItem.create({ buttonName: "对局送好礼", noticePrefabName: "AwardOfPlayGamePop" })
 ]
 
 // 幸运刮刮乐
@@ -57,7 +64,7 @@ export default class DoubleEggPop extends BaseComponent {
 
     // LIFE-CYCLE CALLBACKS:  
     @property({
-        type: [ActivePortalItem]
+        type: [DoubleEggItem]
     })
     actives = []
 
@@ -95,6 +102,14 @@ export default class DoubleEggPop extends BaseComponent {
         this.initMenu()
         this.refreshUserData()
         DataManager.save(DataManager.UserData.guid + "doubleEgg" + TimeFormat("yyyy-mm-dd"), true)
+
+        if(this.initParam["curScene"] == "LobbyScene"){
+            console.log("jin---curScene筛选当前界面: ")
+            remindNationalDay()
+            remindNationalDay(3)
+            remindEggActivity()
+        }
+        
     }
 
     // loadButton() {
@@ -186,7 +201,8 @@ export default class DoubleEggPop extends BaseComponent {
             let tabStr = element.buttonName
             menuItem.getChildByName("mark_hot").active = tabStr == "幸运祈福"
             menuItem.getChildByName("Background").getChildByName("tabname").getComponent(cc.Label).string = tabStr
-            menuItem.getChildByName("checkmark").getChildByName("tabname").getComponent(cc.Label).string = tabStr     
+            menuItem.getChildByName("checkmark").getChildByName("tabname").getComponent(cc.Label).string = tabStr   
+              
             // menuItem.getChildByName("Background").getChildByName("buttonName").getComponent(cc.Sprite).spriteFrame = 
             //         DataManager.Instance.getSpriteFrame("active", element.tabName + "0")
             // menuItem.getChildByName("checkmark").getChildByName("buttonName").getComponent(cc.Sprite).spriteFrame = 
@@ -213,6 +229,7 @@ export default class DoubleEggPop extends BaseComponent {
 
         this._stack[0].isActive = true
         this.loadPage()
+        
     }
 
     __bindButtonHandler() {
@@ -227,6 +244,7 @@ export default class DoubleEggPop extends BaseComponent {
     proto_lc_reload_user_data_ack(message) {
         this.message_deliver(message)
         this.refreshUserData()
+        this.sendMessageToAcitivity({ opcode: "updateUserDate", info : "jin" })
     }
 
     proto_lc_broadcast_message_not(message) {
@@ -246,11 +264,22 @@ export default class DoubleEggPop extends BaseComponent {
                     if(!!element.active) {                        
                         let elementHandler = element.getComponent(cc.Component)
                         if (elementHandler[message.opcode] != undefined && (typeof elementHandler[message.opcode] == "function")) {
+                            console.log("jin---春节福利 向右侧界面传信息", message)
                             elementHandler[message.opcode](message)
                         }
                     }
                 }
             }
+        }
+    }
+
+    // 由于右侧每个活动不是通过addscene的方式添加到SceneManger中，因而需要添加一个信息传递的方法.与sendMessageToScene相同效果
+    sendMessageToAcitivity(message){
+        for (const key in this.prefabInstance) {
+            const element = this.prefabInstance[key]
+            let curScript = element.getComponent(element.name)
+            curScript.getMessage(message)
+            // console.log("jin---春节福利 向右侧界面传信息", element.name, curScript)
         }
     }
 
@@ -348,7 +377,6 @@ export default class DoubleEggPop extends BaseComponent {
             activityItem.parentView = this
             activityItem.setPosition(0, 0)
             this["nodeContentRight"].addChild(activityItem)
-
             this.prefabInstance[curPrefab.name] = activityItem
         }
     }
@@ -400,7 +428,7 @@ export default class DoubleEggPop extends BaseComponent {
                 self["nodeContentRight"].addChild(activityItem)
                 // activityItem.scale = self["nodeContentRight"].scale;
                 self.prefabInstance[activityItem.name] = activityItem
-                cc.log(prefab.noticePrefabName + " end load:" + new Date().getTime())
+                cc.log("jin---新春活动 加载右侧：", prefab.noticePrefabName + " end load:" + new Date().getTime())
                 self._loading = false
                 self.loadPage()
             }
@@ -435,5 +463,16 @@ export default class DoubleEggPop extends BaseComponent {
                 break
             }
         }
+    }
+
+    //刷新红点
+    updateActivity(message){
+        let content = cc.find("nodeMain/nodeMenu/view/content", this.node)
+        for (let i = 0; i < ActiveList.length; i++) {
+            if (ActiveList[i].buttonName == message.item_name) {
+                content.children[i].getChildByName("badage").active = message.isShow
+            }
+        }
+        this.sendMessageToAcitivity({ opcode: "updateActivity", info : "jin" })
     }
 }

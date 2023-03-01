@@ -11,7 +11,7 @@ export enum GMAE {
 }
 
 const packet_config = {
-    pn: "com.union.hbddz.wechat",
+    pn: "com.union.zxddz.android",
     gameId: 1238,
     wechatPublic: "全民斗地主广告版",
     gameList: [

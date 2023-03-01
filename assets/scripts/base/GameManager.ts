@@ -1,9 +1,13 @@
 import DataManager from "./baseData/DataManager"
 import SceneManager from "./baseScene/SceneManager"
 import NetManager from "./baseNet/NetManager"
-import { czcEvent, ParseSearch, getIPLocation } from "./BaseFuncTs"
+import { czcEvent, ParseSearch, getIPLocation, playADInter } from "./BaseFuncTs"
 import InitBaseData from "./baseData/InitBaseData"
 import WxWrapper from "./WxWrapper"
+import LogLayer from "../moduleLobby/LogLayer"
+import { callStaticMethod, checkNetwork } from "./BaseFuncTs"
+import PluginManager from "./PluginManager"
+import { NodeExtends } from "./extends/NodeExtends"
 
 const { ccclass } = cc._decorator
 
@@ -15,6 +19,9 @@ export default class GameManager extends cc.Component {
     static get Instance() {
         return GameManager._instance
     }
+
+    _logLayer: LogLayer = null
+    _startScene: cc.Node = null
 
     onLoad() {
         // czcEvent("大厅", "登录1", "游戏初始化")
@@ -31,6 +38,8 @@ export default class GameManager extends cc.Component {
         if (this.node.childrenCount == 0)
             return
 
+        NodeExtends.setNodeSpriteLocal({ node: cc.find("StartScene/wenzi", this.node), url: "thirdparty/wenzi.png" })
+        cc.director.once(cc.Director.EVENT_AFTER_DRAW, this.onAfterDraw, this)
         this.node.children[0].active = true
         this.audioEvent()
     }
@@ -42,7 +51,14 @@ export default class GameManager extends cc.Component {
         }
 
         this.node.children[0].active = true
+        this._startScene = this.node.children[0]
+        DataManager.load("showconsolelog") && this.setConsoleLog()
+        checkNetwork(this.onInit.bind(this), false, true)
+    }
 
+    onInit(): void {
+        cc.log("[GameManager.onInit]")
+        PluginManager.onInit()
         WxWrapper.init()
         DataManager.Instance.onInit()
         NetManager.Instance.onInit()
@@ -53,16 +69,18 @@ export default class GameManager extends cc.Component {
     }
 
     static onChangeFire() {
-        GameManager._instance.node.children[0].active = true
-        GameManager._instance.node.children[0].runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => GameManager._instance.node.children[0].active = false)))
+        GameManager._instance._startScene.stopAllActions()
+        GameManager._instance._startScene.active = true
+        GameManager._instance._startScene.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(() => GameManager._instance._startScene.active = false)))
     }
 
     static hideFace() {
-        GameManager._instance.node.children[0].runAction(cc.sequence(cc.delayTime(.5), cc.callFunc(() => GameManager._instance.node.children[0].active = false)))
+        GameManager._instance._startScene.stopAllActions()
+        GameManager._instance._startScene.active = false
     }
 
     static getFlushScreen() {
-        return GameManager._instance.node.children[0]
+        return GameManager._instance._startScene
     }
 
     audioEvent() {
@@ -90,12 +108,65 @@ export default class GameManager extends cc.Component {
             if(DataManager.CommonData["roleCfg"]["roundSum"] < 4){
 				czcEvent("游戏-牌局中-切换到后台-" + DataManager.CommonData["roleCfg"]["roundSum"] + "局")
 			}
+
+            if (!PluginManager.checkPlugAd()) {
+                let cb = () => playADInter()
+                cc.game.off("EVENT_DEFINE.FOREGROUND", cb, GameManager.Instance)
+                cc.game.once("EVENT_DEFINE.FOREGROUND", cb, GameManager.Instance)
+            }            
         }, this)
 
         cc.game.on(cc.game.EVENT_SHOW, () => {
+            cc.game.emit("EVENT_DEFINE.FOREGROUND")
+            
             SceneManager.Instance.sendMessageToScene("game_show")
             cc.audioEngine.resumeAllEffects()
-            cc.audioEngine.resumeMusic()
+            cc.audioEngine.resumeMusic()            
         }, this)
+    }
+
+    changeFire(parent?: cc.Node) {
+        this._startScene.active = true
+        // this._startScene.parent = parent || this.node
+        cc.find("background4", this._startScene).active = false
+    }
+
+    replayLoading() {
+        cc.find("background4", this._startScene).active = true
+    }
+
+    update() {
+        if (!DataManager.CommonData["pluginFinish"] || !DataManager.CommonData["configFinish"]) {
+            return
+        }
+
+        SceneManager.Instance.addScene<String>("moduleLobby", "UpdateScene")
+        this.update = () => { }
+    }
+
+    onAfterDraw() {
+        if (cc.sys.os == cc.sys.OS_ANDROID) {
+            callStaticMethod("com/izhangxin/utils/luaj", "hideSplash", "()V")
+        } else if (cc.sys.os == cc.sys.OS_IOS) {
+            callStaticMethod("LuaObjc", "hideSplash")
+        }
+    }
+
+    setConsoleLog(show: boolean = true) {
+        DataManager.save("showconsolelog", show)
+        if (show) {
+            cc.loader.loadRes("moduleLobby/prefab/LogLayer", (err, prefab) => {
+                if (err) {
+                    return
+                }
+                const node = cc.instantiate(prefab)
+                node.parent = this.node
+                this._logLayer = node.getComponent(LogLayer)
+            })
+        } else {
+            this._logLayer.node.parent = null
+            this._logLayer.node.destroy()
+            this._logLayer = null
+        }
     }
 }

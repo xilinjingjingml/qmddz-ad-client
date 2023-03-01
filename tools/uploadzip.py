@@ -16,10 +16,10 @@ request.install_opener(request.build_opener(request.HTTPCookieProcessor(cookieJa
 LAST_LOG_FILE = '../build/makezip/wechat/last.txt'
 ZIP_SAVE_PATH = '../build/makezip/wechat/res-origin.zip'
 
-HOST_ADMIN = 'http://t_admin.wpgame.com.cn'
+HOST_ADMIN = 'http://t-admin.wpgame.com.cn'
 USERNAME = 'user'
 PASSWORD = 'user'
-PACKET_NAME = 'com.union.lbddzng.wechat'
+PACKET_NAME = 'com.union.zxddz.android'
 CHANNEL_ID = '1498'
 
 USE_OCR_CODE = True

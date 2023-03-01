@@ -60,10 +60,12 @@ export default class HappyLottery extends BaseScene {
 
             this.data[i + 1] = { acItemIndex: element.acItemIndex, acItemNum: element.acItemNum, offset: i * 60 }
 
-            if (element.acItemNum == 0) {
-                NodeExtends.setNodeSpriteNet({ node: cc.find("icon", item), url: element.acItemUrl })
-            } else {
-                cc.find("icon", item).getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("itemIcon", "huafei" + element.acItemNum)
+            if(cc.find("icon", item)){
+                if (element.acItemNum == 0) {
+                    NodeExtends.setNodeSpriteNet({ node: cc.find("icon", item), url: element.acItemUrl })
+                } else {
+                    cc.find("icon", item).getComponent(cc.Sprite).spriteFrame = DataManager.Instance.getSpriteFrame("itemIcon", "huafei" + element.acItemNum)
+                }
             }
 
             cc.find("desc", item).getComponent(cc.Label).string = element.itemDesc
@@ -142,7 +144,7 @@ export default class HappyLottery extends BaseScene {
                             }
                         }
                     }, true)
-                }, null, false)
+                }, null, false, null, true, () => { this.isBusy = false })
             } else {
                 iMessageBox("抽奖次数已用完")
             }
@@ -190,7 +192,7 @@ export default class HappyLottery extends BaseScene {
         ))
     }
 
-    onPressRule(){
-        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:3})
+    onPressRule() {
+        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", { idx: 3 })
     }
 }

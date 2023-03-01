@@ -5,7 +5,7 @@
 import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { iMessageBox, getLowMoneyRoom, enterGame, unenoughGold, getUserRankDate } from "../base/BaseFuncTs"
+import { iMessageBox, getLowMoneyRoom, enterGame, unenoughGold, getUserRankDate, czcEvent } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import WxWrapper from "../base/WxWrapper"
 import { checkAdCanReceive, receiveAdAward,getAdLeftTimes } from "./LobbyFunc"
@@ -24,6 +24,7 @@ export default class AwardOfPlayGamePop extends BaseScene {
     //TODO 1.前往比赛  2.剩余次数
     onPressGoGame() {
         console.log("jin---onPressGoGame")
+        czcEvent("新春抽豪礼前往对局" + DataManager.Instance.userTag)
         this.ConfirmFunction= ()=>{
             let lastGameId = 3892
             let servers = getLowMoneyRoom(lastGameId)

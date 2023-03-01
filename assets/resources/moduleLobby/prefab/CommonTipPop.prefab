@@ -24,18 +24,18 @@
         "__id__": 8
       },
       {
-        "__id__": 260
+        "__id__": 263
       }
     ],
     "_active": true,
     "_level": 1,
     "_components": [
       {
-        "__id__": 263
+        "__id__": 266
       }
     ],
     "_prefab": {
-      "__id__": 264
+      "__id__": 267
     },
     "_opacity": 255,
     "_color": {
@@ -344,7 +344,7 @@
     "_level": 2,
     "_components": [],
     "_prefab": {
-      "__id__": 259
+      "__id__": 262
     },
     "_opacity": 255,
     "_color": {
@@ -1583,7 +1583,7 @@
       "__id__": 8
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_level": 3,
     "_components": [
       {
@@ -2022,14 +2022,14 @@
     "_level": 3,
     "_components": [
       {
-        "__id__": 256
+        "__id__": 259
       },
       {
-        "__id__": 257
+        "__id__": 260
       }
     ],
     "_prefab": {
-      "__id__": 258
+      "__id__": 261
     },
     "_opacity": 255,
     "_color": {
@@ -2091,14 +2091,14 @@
     "_level": 0,
     "_components": [
       {
-        "__id__": 253
+        "__id__": 256
       },
       {
-        "__id__": 254
+        "__id__": 257
       }
     ],
     "_prefab": {
-      "__id__": 255
+      "__id__": 258
     },
     "_opacity": 255,
     "_color": {
@@ -2163,20 +2163,23 @@
       },
       {
         "__id__": 99
+      },
+      {
+        "__id__": 250
       }
     ],
     "_active": true,
     "_level": 0,
     "_components": [
       {
-        "__id__": 250
+        "__id__": 253
       },
       {
-        "__id__": 251
+        "__id__": 254
       }
     ],
     "_prefab": {
-      "__id__": 252
+      "__id__": 255
     },
     "_opacity": 255,
     "_color": {
@@ -2261,7 +2264,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -204.5,
+      "y": -214.5,
       "z": 0
     },
     "_scale": {
@@ -2392,7 +2395,7 @@
     "node": {
       "__id__": 62
     },
-    "_enabled": true,
+    "_enabled": false,
     "_materials": [
       {
         "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
@@ -8921,6 +8924,109 @@
     "sync": false
   },
   {
+    "__type__": "cc.Node",
+    "_name": "rule_ContinuousRecharge",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 58
+    },
+    "_children": [],
+    "_active": false,
+    "_level": 1,
+    "_components": [
+      {
+        "__id__": 251
+      }
+    ],
+    "_prefab": {
+      "__id__": 252
+    },
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 5,
+      "g": 5,
+      "b": 5,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 748.79,
+      "height": 97.98
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_position": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": -58.99,
+      "z": 0
+    },
+    "_scale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 250
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_useOriginalSize": false,
+    "_string": "1、用户在活动期间内连续充值任意金额即可领取对应奖励；活动期间中断\n充值，则充值奖励重新计算。\n2、奖励领取后自动发送至用户账号内，若未收到奖励道具，请重启游戏\n再次查收。",
+    "_N$string": "1、用户在活动期间内连续充值任意金额即可领取对应奖励；活动期间中断\n充值，则充值奖励重新计算。\n2、奖励领取后自动发送至用户账号内，若未收到奖励道具，请重启游戏\n再次查收。",
+    "_fontSize": 23,
+    "_lineHeight": 23,
+    "_enableWrapText": true,
+    "_N$file": null,
+    "_isSystemFontUsed": true,
+    "_spacingX": 0,
+    "_batchAsBitmap": false,
+    "_N$horizontalAlign": 0,
+    "_N$verticalAlign": 1,
+    "_N$fontFamily": "Arial",
+    "_N$overflow": 0,
+    "_N$cacheMode": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__uuid__": "b06d51d5-f9a8-457b-a507-56dc3d7197fd"
+    },
+    "fileId": "24IsqNomlBVaJTATVUnFCA",
+    "sync": false
+  },
+  {
     "__type__": "cc.Widget",
     "_name": "",
     "_objFlags": 0,
@@ -9136,11 +9242,11 @@
     "_level": 2,
     "_components": [
       {
-        "__id__": 261
+        "__id__": 264
       }
     ],
     "_prefab": {
-      "__id__": 262
+      "__id__": 265
     },
     "_opacity": 255,
     "_color": {
@@ -9191,7 +9297,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 260
+      "__id__": 263
     },
     "_enabled": true,
     "_materials": [

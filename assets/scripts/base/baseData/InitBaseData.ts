@@ -2,11 +2,12 @@ import { confusonFunc } from "../confusonFunc"
 import DataManager from "./DataManager";
 import md5 = require("../extensions/md5.min")
 import SceneManager from "../baseScene/SceneManager"
-import { ParseSearch, MsgBox, czcEvent, getNowTimeUnix, loadModule, parseAdBannerConfig, parseAdCustomConfig, parseMiniGame } from "../BaseFuncTs"
+import { ParseSearch, MsgBox, czcEvent, getNowTimeUnix, getUserRankDate, getRedpacketRanks, loadModule, parseAdBannerConfig, parseAdCustomConfig, parseMiniGame } from "../BaseFuncTs"
 import GameManager from "../GameManager"
 import WxWrapper from "../WxWrapper"
 import { http } from "../utils/http";
-import { functions } from "../utils/functions";
+import { functions } from "../utils/functions"
+import { ObjectExtends } from "../extends/ObjectExtends";
 
 export default class InitBaseData {
 
@@ -20,10 +21,10 @@ export default class InitBaseData {
             }
         }
 
-        SceneManager.Instance.loadScene("moduleLobby", "LobbyScene")
+        // SceneManager.Instance.loadScene("moduleLobby", "LobbyScene")
         DataManager.CommonData["isLogin"] = null
         this.loadConfigs()
-        this.login()
+        // this.login()
     }
 
     // 获取在线参数
@@ -73,8 +74,8 @@ export default class InitBaseData {
             }
 
             if (msg && msg["versionupdate"]) {
-                DataManager.Instance.envConfigs.socketURL = msg["versionupdate"]["ip"]
-                DataManager.Instance.envConfigs.socketPort = msg["versionupdate"]["port"]
+                DataManager.Instance.envConfigs.socketURL = msg["versionupdate"]["ip"]//"t-hanode-wss.weipinggame.com.cn"//
+                DataManager.Instance.envConfigs.socketPort = msg["versionupdate"]["port"]//"7201"//
             }
 
             //TODO 0-幸运  5-转运  7-首充
@@ -95,92 +96,103 @@ export default class InitBaseData {
 
             // cc.log(msg)
             console.log("jin---msg: ", msg)
-            let shopcfg = functions.IsJSON(msg["box_0"]) ? JSON.parse(msg["box_0"]) : null
-            if (shopcfg && shopcfg["sl"])
-                DataManager.Instance.NormalBoxs = shopcfg["sl"]
+            if (msg) {
+                let shopcfg = functions.IsJSON(msg["box_0"]) ? JSON.parse(msg["box_0"]) : null
+                if (shopcfg && shopcfg["sl"])
+                    DataManager.Instance.NormalBoxs = shopcfg["sl"]
 
-            DataManager.Instance.NormalBoxs.sort((a, b) => a.content[0].num < b.content[0].num ? -1 : a.content[0].num > b.content[0].num ? 1 : 0)
+                DataManager.Instance.NormalBoxs.sort((a, b) => a.content[0].num < b.content[0].num ? -1 : a.content[0].num > b.content[0].num ? 1 : 0)
 
-            shopcfg = functions.IsJSON(msg["box_2"]) ? JSON.parse(msg["box_2"]) : null
-            if (shopcfg && shopcfg["sl"])
-                DataManager.Instance.OneYuanBoxs = shopcfg["sl"]
+                shopcfg = functions.IsJSON(msg["box_2"]) ? JSON.parse(msg["box_2"]) : null
+                if (shopcfg && shopcfg["sl"])
+                    DataManager.Instance.OneYuanBoxs = shopcfg["sl"]
 
-            shopcfg = functions.IsJSON(msg["box_5"]) ? JSON.parse(msg["box_5"]) : null
-            if (shopcfg && shopcfg["sl"]){
-                DataManager.Instance.changeLuckyBoxs = shopcfg["sl"]  
-                console.log("jin---box_5: ", DataManager.Instance.changeLuckyBoxs)
-            }
-                
-            shopcfg = functions.IsJSON(msg["box_7"]) ? JSON.parse(msg["box_7"]) : null
-            if (shopcfg && shopcfg["sl"])
-                DataManager.Instance.OnceBoxs = shopcfg["sl"]
+                shopcfg = functions.IsJSON(msg["box_5"]) ? JSON.parse(msg["box_5"]) : null
+                if (shopcfg && shopcfg["sl"]) {
+                    DataManager.Instance.changeLuckyBoxs = shopcfg["sl"]
+                    console.log("jin---box_5: ", DataManager.Instance.changeLuckyBoxs)
+                }
 
-            shopcfg = functions.IsJSON(msg["box_8"]) ? JSON.parse(msg["box_8"]) : null
-            if (shopcfg && shopcfg["sl"])
-                DataManager.Instance.MonthBoxs = shopcfg["sl"]
+                shopcfg = functions.IsJSON(msg["box_7"]) ? JSON.parse(msg["box_7"]) : null
+                if (shopcfg && shopcfg["sl"])
+                    DataManager.Instance.OnceBoxs = shopcfg["sl"]
 
-            shopcfg = functions.IsJSON(msg["box_12"]) ? JSON.parse(msg["box_12"]) : null
-            if (shopcfg && shopcfg["sl"])
-                DataManager.Instance.ClubBoxs = shopcfg["sl"]
+                shopcfg = functions.IsJSON(msg["box_8"]) ? JSON.parse(msg["box_8"]) : null
+                if (shopcfg && shopcfg["sl"])
+                    DataManager.Instance.MonthBoxs = shopcfg["sl"]
 
-            //幸运礼包
-            for(let curBox of DataManager.Instance.NormalBoxs){
-                
-                if(curBox.boxname.indexOf("至尊礼包") != -1){
-                    DataManager.Instance.OneYuanBigBoxs.push(curBox)
-                }
-                if(curBox.boxname.indexOf("幸运") != -1){
-                    DataManager.Instance.LuckyBoxs.push(curBox)
-                }
-                if(curBox.boxname.indexOf("返还礼包") != -1){
-                    DataManager.Instance.RegainLosePayBoxs.push(curBox)
-                }
-                if(curBox.boxname.indexOf("1元超值福利") != -1){
-                    DataManager.Instance.SuperWelfare_1.push(curBox)
-                }
-                if(curBox.boxname.indexOf("6元超值福利") != -1){
-                    DataManager.Instance.SuperWelfare_6.push(curBox)
-                }
-                if(curBox.boxname.indexOf("欧皇礼包") != -1){
-                    DataManager.Instance.ouHuangBox.push(curBox)
-                }
-                if(curBox.desc.indexOf("签到福利") != -1){
-                    DataManager.Instance.SignWelfareBoxs.push(curBox) //todo
-                }
-            }
-            console.log("jin---0 5 7: ", DataManager.Instance.NormalBoxs, DataManager.Instance.OneYuanBoxs, DataManager.Instance.OnceBoxs, DataManager.Instance.changeLuckyBoxs, DataManager.Instance.OnceBoxs,DataManager.Instance.OneYuanBigBoxs)
-            DataManager.CommonData["privateConfig"] = []
+                shopcfg = functions.IsJSON(msg["box_12"]) ? JSON.parse(msg["box_12"]) : null
+                if (shopcfg && shopcfg["sl"])
+                    DataManager.Instance.ClubBoxs = shopcfg["sl"]
 
-            for (let key in msg) {
-                if (key.indexOf("gConfig_") != -1) {
-                    
-                    if(functions.IsJSON(msg[key])){
-                        let data = JSON.parse(msg[key])[0]
-                        for (let k in data.extparam) {
-                            let v = data.extparam[k]
-                            v.gameId = data.game_id
-                            DataManager.CommonData["privateConfig"].push(v)
+                //幸运礼包
+                for (let curBox of DataManager.Instance.NormalBoxs) {
+
+                    if (curBox.boxname.indexOf("至尊礼包") != -1) {
+                        DataManager.Instance.OneYuanBigBoxs.push(curBox)
+                    }
+                    if (curBox.boxname.indexOf("幸运") != -1) {
+                        DataManager.Instance.LuckyBoxs.push(curBox)
+                    }
+                    if (curBox.boxname.indexOf("返还礼包") != -1) {
+                        DataManager.Instance.RegainLosePayBoxs.push(curBox)
+                    }
+                    if (curBox.boxname.indexOf("1元超值福利") != -1) {
+                        DataManager.Instance.SuperWelfare_1.push(curBox)
+                    }
+                    if (curBox.boxname.indexOf("6元超值福利") != -1) {
+                        DataManager.Instance.SuperWelfare_6.push(curBox)
+                    }
+                    if (curBox.boxname.indexOf("欧皇礼包") != -1) {
+                        DataManager.Instance.ouHuangBox.push(curBox)
+                    }
+                    if (curBox.desc.indexOf("签到福利") != -1) {
+                        DataManager.Instance.SignWelfareBoxs.push(curBox) //todo
+                    }
+                }
+                console.log("jin---0 5 7: ", DataManager.Instance.RegainLosePayBoxs,DataManager.Instance.NormalBoxs, DataManager.Instance.OneYuanBoxs, DataManager.Instance.OnceBoxs, DataManager.Instance.changeLuckyBoxs, DataManager.Instance.OnceBoxs, DataManager.Instance.OneYuanBigBoxs)
+                DataManager.CommonData["privateConfig"] = []
+
+                for (let key in msg) {
+                    if (key.indexOf("gConfig_") != -1) {
+
+                        if (functions.IsJSON(msg[key])) {
+                            let data = JSON.parse(msg[key])[0]
+                            for (let k in data.extparam) {
+                                let v = data.extparam[k]
+                                v.gameId = data.game_id
+                                DataManager.CommonData["privateConfig"].push(v)
+                            }
                         }
                     }
                 }
-            }
 
-            DataManager.CommonData["configFinish"] = true
-            DataManager.Instance.onlineParam = typeof msg.onlineparam == "object" ? msg.onlineparam : {}
-            if (DataManager.Instance.onlineParam.wechatPublic) {
-                DataManager.Instance.wechatPublic = DataManager.Instance.onlineParam.wechatPublic
-            }
-            DataManager.Instance.matchList = Array.isArray(msg.matchInfo) ? msg.matchInfo : []
-            DataManager.Instance.matchList.forEach(v => {
-                DataManager.Instance.matchMap[v.matchType] = v
-            })
-            DataManager.Instance.matchList.sort(function (a, b) {
-                if (a.matchSort > b.matchSort) {
-                    return 1
-                } else {
-                    return -1
+                DataManager.Instance.onlineParam = typeof msg.onlineparam == "object" ? msg.onlineparam : {}
+                if (DataManager.Instance.onlineParam.wechatPublic) {
+                    DataManager.Instance.wechatPublic = DataManager.Instance.onlineParam.wechatPublic
                 }
-            })
+
+                // 版本更新
+                DataManager.Instance.versionupdate = msg["versionupdate"]||0
+                // 分享
+                let sharedData = JSON.parse(msg.sharedData)
+                if (sharedData.ret == 0) {
+                    sharedData = sharedData.sharedData[0]
+                    sharedData.sdContent = ObjectExtends.values(JSON.parse(sharedData.sdContent))
+                    DataManager.Instance.sharedData = sharedData
+                }
+                DataManager.Instance.matchList = Array.isArray(msg.matchInfo) ? msg.matchInfo : []
+                DataManager.Instance.matchList.forEach(v => {
+                    DataManager.Instance.matchMap[v.matchType] = v
+                })
+                DataManager.Instance.matchList.sort(function (a, b) {
+                    if (a.matchSort > b.matchSort) {
+                        return 1
+                    } else {
+                        return -1
+                    }
+                })
+            }
 
             if (null != msg && typeof msg != "string") {
                 DataManager.save("loadingConfig", msg)
@@ -192,6 +204,8 @@ export default class InitBaseData {
             if (DataManager.Instance.onlineParam.shareConfig) {
                 WxWrapper.setShareConfig(DataManager.Instance.onlineParam.shareConfig)
             }
+
+            DataManager.CommonData["configFinish"] = true
         })
     }
 
@@ -230,6 +244,8 @@ export default class InitBaseData {
             parseAdBannerConfig()
             parseAdCustomConfig()
             parseMiniGame()
+            // getUserRankDate()
+            getRedpacketRanks()
 
             let time = getNowTimeUnix()
             DataManager.CommonData["flyBack"] = (time >= 1574006400 && time < 1575302400) && res.flyBack == "1"

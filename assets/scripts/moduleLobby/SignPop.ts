@@ -190,8 +190,9 @@ export default class SignPop extends BaseScene {
             }
         }
         let accaward = null
-        if(this.signData.signinAward.conSigninAward[continupusDays - 1]){
-            accaward = this.signData.signinAward.conSigninAward[continupusDays - 1].awardStrings
+        if(this.signData.signinAward.conSigninAward[continupusDays - 1] && 
+            functions.IsJSON(this.signData.signinAward.conSigninAward[continupusDays - 1])){
+            accaward = JSON.parse(this.signData.signinAward.conSigninAward[continupusDays - 1]).awardStrings
         }
         if (functions.IsJSON(conaward)) {
             conaward = JSON.parse(conaward)
@@ -204,11 +205,11 @@ export default class SignPop extends BaseScene {
             }
         }
         console.log("jin---accaward11:", accaward)
-        if (functions.IsJSON(accaward)) {
-            accaward = JSON.parse(accaward)
-            console.log("jin---accaward22:", accaward)
-        }
-        accaward && (accaward = accaward.award_info)
+        // if (functions.IsJSON(accaward)) {
+        //     accaward = JSON.parse(accaward)
+        //     console.log("jin---accaward22:", accaward)
+        // }
+        // accaward && (accaward = accaward.award_info)
 
         if(accaward && accaward.length > 0){
 

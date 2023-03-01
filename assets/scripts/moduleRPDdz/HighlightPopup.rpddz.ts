@@ -27,7 +27,7 @@ export default class HighlightPopup extends BaseComponent {
         //         playADBanner(false, AdsConfig.banner.Highlight)
         //     }
         // })
-        czcEvent("斗地主", "高光时刻", "打开")
+        // czcEvent("斗地主", "高光时刻", "打开")
         if (this.initParam.showType == 1) {
             this['bg_high_double'].active = true
             this['share_high_double_mini'].active = true

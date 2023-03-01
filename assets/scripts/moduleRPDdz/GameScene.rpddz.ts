@@ -2,7 +2,7 @@ import BaseFunc = require("../base/BaseFunc")
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
 import { copyToClipBoard, czcEvent, extendMatchLogic, getNewBieRoundLimit, getRedPacketAwardConfig, iMessageBox, playADBanner, share, 
-	showAwardResultPop, numberFormat, uploadKuaiShou, MsgBox, zeroDate, getShopBox, getUserRankDate } from "../base/BaseFuncTs";
+	showAwardResultPop, numberFormat, uploadKuaiShou, MsgBox, zeroDate, getShopBox, getUserRankDate, getRedpacketRanks } from "../base/BaseFuncTs";
 import SceneManager from "../base/baseScene/SceneManager";
 import GameMagicEmoji from "../moduleBase/GameMagicEmoji";
 import { check03ExchangeGoods, checkAdCanReceive, checkTomorrowStatus, getAllAdCountTimes, isShowPayPage, 
@@ -181,8 +181,8 @@ export default class GameScene extends GameSceneStateController {
 
 		this.showAniWait()
 
-		getUserRankDate((msg)=>{this.showRewardOfPlayGame(msg)})
-
+		getRedpacketRanks((msg)=>{this.showRewardOfPlayGame(msg)})//5局得奖励
+		
 		this.btnNewUserSign.active = false
 
 		if(!!DataManager.CommonData["NewUserSgin"] && !!DataManager.CommonData["NewUserSgin"].day)
@@ -267,12 +267,6 @@ export default class GameScene extends GameSceneStateController {
 			))
 		}
 
-		let isShow = isShowPayPage()
-        cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).active = isShow
-        isShow && cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).runAction(cc.repeatForever(cc.sequence(
-            cc.scaleTo(0.6, 1.0),
-            cc.scaleTo(0.6, 0.9)
-        ))) 
 		// TODO clock
 		// console.log("jin---390111", this.clock_bg, DataManager.UserData.getItemNum(390))
 		// if(DataManager.UserData.getItemNum(390) > 0){
@@ -291,6 +285,7 @@ export default class GameScene extends GameSceneStateController {
 		// })
 		getReliefState()
 		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame", this.node).active = checkAdCanReceive(AdsConfig.taskAdsMap.RewardOfPlayGame) && isOpenHandKuang()
+		
 		this.lock_rewardOfPlayGame = false
 	}
 
@@ -3449,13 +3444,16 @@ export default class GameScene extends GameSceneStateController {
 		actions.push(cc.callFunc(() => {
 			this.showGameResult(message)
 		}))
+		console.log("jin---显示结算")
 		//刷新完成进度
 		actions.push(cc.callFunc(() => {
 			console.log("jin---显示结算")
-			getUserRankDate((msg)=>{self.showRewardOfPlayGame(msg)})
+			getRedpacketRanks((msg)=>{
+				if(msg){
+					self.showRewardOfPlayGame(msg)
+				}
+			})
 		}))
-
-		// this.node.runAction(cc.sequence(cc.delayTime(3), cc.callFunc(()=>{getUserRankDate((msg)=>{self.showRewardOfPlayGame(msg)})})))
 		
 		this.nodeActionResult.stopAllActions()
 		this.nodeActionResult.runAction(cc.sequence(actions))
@@ -4798,6 +4796,14 @@ export default class GameScene extends GameSceneStateController {
 			this.$("lbl_free_lose", cc.Label).string = "" + num
 			this.$("node_free_lose").active = num > 0
 		}
+		else{
+			let isShow = isShowPayPage()
+			cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).active = isShow
+			isShow && cc.find("nodeMain/nodeTopMiddle/btn_moreBoxs", this.node).runAction(cc.repeatForever(cc.sequence(
+				cc.scaleTo(0.6, 1.0),
+				cc.scaleTo(0.6, 0.9)
+			))) 
+		}
 
 		// 开心转盘
 		this.$("btn_lottery").active = GameLogic.Instance().isBaiYuanMode() && !this.isGameStart()
@@ -5157,49 +5163,56 @@ export default class GameScene extends GameSceneStateController {
 	}
 
 	showRewardOfPlayGame(msg){
+		for (let dt of msg) {
+            if (null != dt["todayPlyNum"])
+                DataManager.CommonData["todayPlyNum"] = dt["todayPlyNum"]
+        }
 		//一天最多可以领10次免费嘉年华券
-		console.log("jin---showRewardOfPlayGame: ", msg, getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
-		let cur = msg.todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame)) > 5 ? 5 : msg.todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
+		let curRewardOfPlayGame = getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame)
+		let cur = DataManager.CommonData["todayPlyNum"] - 5 * (10 - curRewardOfPlayGame) > 5 ? 5 : DataManager.CommonData["todayPlyNum"] - 5 * (10 - curRewardOfPlayGame)
 		let dst = 5
 		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame/progressBarMin", this.node).getComponent(cc.ProgressBar).progress = cur / dst
 		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame/progressBarMin/labelProgressMin", this.node).getComponent(cc.Label).string = cur + "/" + dst
+		cc.find("nodeMain/nodeTopMiddle/btnRewardOfPlayGame/badage", this.node).active = (cur >= 5)
 	}
 
 	onPressRewardOfPlayGame(){
+		let self = this
+		czcEvent("对局豪礼" + DataManager.Instance.userTag)
+		if(this.lock_rewardOfPlayGame){
+			return
+		}
 		this.lock_rewardOfPlayGame = true
-		console.log("jin---onPressRewardOfPlayGame: ")
-		let cur = (<any>DataManager.UserData.todayUserDate).todayPlyNum - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
+		console.log("jin---onPressRewardOfPlayGame000: ", DataManager.CommonData["todayPlyNum"])
+		let cur = DataManager.CommonData["todayPlyNum"] - 5 * (10 - getAdLeftTimes(AdsConfig.taskAdsMap.RewardOfPlayGame))
 		let dst = 5
-		console.log("jin---onPressRewardOfPlayGame: ", cur-dst)
+		// console.log("jin---onPressRewardOfPlayGame: ", cur-dst)
 		if(cur >= dst){
 			receiveAdAward(AdsConfig.taskAdsMap.RewardOfPlayGame, (msg) => {
-				console.log("jin---onPressRewardOfPlayGame发放奖励: ", msg)
+				// console.log("jin---onPressRewardOfPlayGame发放奖励: ", msg)
 				let curMsg = msg
-				if(this.isValid){
-					this.lock_rewardOfPlayGame = false
-					getUserRankDate((msg)=>{
-						this.showRewardOfPlayGame(msg)
-						let awards = [
-						]
-						// for (const iterator of curMsg) {
-						// 	let award = {
-						// 		index: iterator.idx,
-						// 		num: iterator.num
-						// 	}
-						// 	awards.push(award)
-						// }
-						awards.push({
-							index: 0,
-							num: 12888})
-						awards.push({
-							index: 391,
-							num: 1})
+				if(self.isValid){
+					self.lock_rewardOfPlayGame = false
+					getRedpacketRanks((usgMsg)=>{
+						if(usgMsg){
+							self.showRewardOfPlayGame(usgMsg)
+							let awards = [
+							]
+							awards.push({
+								index: 0,
+								num: 12888})
+							awards.push({
+								index: 391,
+								num: 1})
 
-						showAwardResultPop(awards)
+							showAwardResultPop(awards)
+						}
+						
 					})
 				}
 			}, null, false, 0)
 		}else{
+			this.lock_rewardOfPlayGame = false
 			SceneManager.Instance.popScene<String>("moduleLobby", "DoubleEggPop", {} )
 		}
 	}

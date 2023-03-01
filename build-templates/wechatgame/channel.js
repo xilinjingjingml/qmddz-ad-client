@@ -1,3 +1,3 @@
 module.exports = {
-    "pn": "com.union.lbddzng.wechat"
+    "pn": "com.union.zxddz.android"
 }

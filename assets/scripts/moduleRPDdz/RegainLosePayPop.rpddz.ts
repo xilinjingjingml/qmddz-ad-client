@@ -36,7 +36,6 @@ export default class RegainLosePayPop extends BaseComponent {
                 this.curBox = 5
             }
         }
-        console.log("jin---RegainLosePayPop regainLosePayBox:", regainLosePayBox, this.curBox)
         // if(money >= 50000 && money < 120000){
         //     this.curBox = 0
         // }else if(money >= 120000 && money < 400000){

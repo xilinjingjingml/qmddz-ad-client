@@ -5,23 +5,25 @@
  import { confusonFunc } from "../base/confusonFunc";
  import { AdsConfig } from "../base/baseData/AdsConfig"
  import DataManager from "../base/baseData/DataManager"
- import { iMessageBox, getLowMoneyRoom, enterGame, unenoughGold, getMD5, showAwardResultPop,numberFormat } from "../base/BaseFuncTs"
+ import { iMessageBox, getLowMoneyRoom, enterGame, unenoughGold, getMD5, showAwardResultPop,numberFormat, czcEvent } from "../base/BaseFuncTs"
  import BaseScene from "../base/baseScene/BaseScene"
  import WxWrapper from "../base/WxWrapper"
- import { checkAdCanReceive, receiveAdAward ,sendReloadUserData} from "./LobbyFunc"
+ import { checkAdCanReceive, receiveAdAward ,sendReloadUserData,remindEggActivity} from "./LobbyFunc"
  import { http } from "../base/utils/http";
  import SceneManager from "../base/baseScene/SceneManager"
  import NetManager from "../base/baseNet/NetManager";
  import BaseFunc = require("../base/BaseFunc")
  import { ITEM, ITEM_NAME } from "../base/baseData/ItemConfig";
+ import BaseComponent from "../base/BaseComponent";
  const { ccclass } = cc._decorator
  
  @ccclass
- export default class DoubleEggActivePop extends BaseScene {
+ export default class DoubleEggActivePop extends BaseComponent {
 
     SIGN_KEY = "8923mjcm0d089d"//"232b969e8375"//
     trumpetMsg = []
     awardList = []  //嘉年华 人员奖励
+    sta_get = false
     drawStatus = {
         luckValue: 0,   //抽取次数
         freeValue: -1,  //0今天没抽过
@@ -63,6 +65,7 @@
 
     ConfirmFunction = ()=>{}
     onLoad(){
+        console.log("jin---新春抽豪礼")
         this.initCount = 0
         this.labelTrump0 = cc.find("nodeTrumpet/nodetrumpmask/labelTrump0",this.node)
         this.labelTrump1 = cc.find("nodeTrumpet/nodetrumpmask/labelTrump1",this.node)
@@ -82,6 +85,7 @@
         this.http_double11_loadDrawStatus()
         this.http_double11_awardList()
         this.updateDrawCount()
+        remindEggActivity()
     }
 
 	//TODO  点击事件：1、帮助  2.免费开启  3.开1次  3.开10次  4.奖励预览  5.次数奖励
@@ -174,11 +178,13 @@
         cc.find("nodeState/btn_over", item).active = (Number(this.drawStatus.targetAddition[this.jackpotAwardList[k].id]) === 1)
         cc.find("nodeState/btn_undone", item).active = (Number(this.drawStatus.targetAddition[this.jackpotAwardList[k].id]) === -1)
         cc.find("nodeState/btn_get", item).active = (Number(this.drawStatus.targetAddition[this.jackpotAwardList[k].id]) === 0)
+        Number(this.drawStatus.targetAddition[this.jackpotAwardList[k].id]) === 0 && this.isShowRedPoint(true)
         BaseFunc.AddClickEvent(cc.find("nodeState/btn_get", item), this.node, "DoubleEggActivePop", "onPressJackpotGet", k);
     }
 
     //刷新按钮状态
     updateItemBtn(index: number = null, callBack = null){
+        this.sta_get = false
         const layout_task = cc.find("CountRewardPenal/nodePop/nodeTaskList/view/content", this.node)
         for(let curItemIndex in layout_task.children){
             let item = layout_task.children[curItemIndex]
@@ -196,13 +202,14 @@
             cc.find("lableProgress", item).getComponent(cc.Label).string = (this.drawStatus.luckValue <= jackpot_luckValue ? this.drawStatus.luckValue : jackpot_luckValue) + "/" + jackpot_luckValue
             console.log("jin---updateItemBtn: ", layout_task.children[curItemIndex], index, curItemIndex)
 
-            // if(index == Number(curItemIndex)){
-                cc.find("nodeState/btn_over", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === 1)
-                cc.find("nodeState/btn_undone", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === -1)
-                cc.find("nodeState/btn_get", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === 0)
-                // callBack && callBack()
-            // }
+            cc.find("nodeState/btn_over", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === 1)
+            cc.find("nodeState/btn_undone", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === -1)
+            cc.find("nodeState/btn_get", item).active = (Number(this.drawStatus.targetAddition[curItemIndex]) === 0)
+            if(Number(this.drawStatus.targetAddition[curItemIndex]) === 0){
+                this.sta_get = true
+            }
         }
+        this.isShowRedPoint(this.sta_get)
         callBack && callBack()
     }
 
@@ -268,7 +275,7 @@
         }
         
 		http.open(url, params, (msg)=>{
-			console.log("jin---http_double11_awardList: ", msg)
+			// console.log("jin---http_double11_awardList: ", msg)
 			if (msg && msg.result) {
                 // this.awardList = msg.result  
                 this.setAwardList(msg.result)
@@ -281,7 +288,7 @@
     setAwardList(msg) {
         let count = 0
         for(let curAward of msg){
-            let tempLable = "<color=#ff735c>恭喜</c><color=#ffd164>" + curAward.wpPrizeInfo + "</c><color=#ff735c>在新春嘉年华中获得</c><color=#ffd164>" + curAward.wpPrizeNum + ITEM_NAME[curAward.wpPrizeIndex] +"</color>"
+            let tempLable = "<color=#ff735c>恭喜</c><color=#ffd164>" + curAward.wpPrizeInfo + "</c><color=#ff735c>在新春抽豪礼中获得</c><color=#ffd164>" + curAward.wpPrizeNum + ITEM_NAME[curAward.wpPrizeIndex] +"</color>"
             this.awardList.push(tempLable)
             ++count
             if(count > 20){
@@ -315,11 +322,11 @@
         }
         
         http.open(url, params, (msg) => {
-            cc.log("jin---url and params: ", url, params, DataManager.UserData.guid, this.SIGN_KEY)
+            // cc.log("jin---url and params: ", url, params, DataManager.UserData.guid, this.SIGN_KEY)
             cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
-                    console.log("jin---AwardOfPlayGamePop msg: ", msg, DataManager.UserData.guid, this.SIGN_KEY) 
+                    // console.log("jin---AwardOfPlayGamePop msg: ", msg, DataManager.UserData.guid, this.SIGN_KEY) 
                     this.drawStatus.luckValue = msg.luckValue
                     DataManager.UserData.money = msg.money
                     let awards = []
@@ -329,9 +336,11 @@
                     
                     if(num == 1){
                         this.playAni_1ci(()=>{showAwardResultPop(awards)})
+                        remindEggActivity()
                     }else if(num == 10){
                         this.playAni_10ci(()=>{showAwardResultPop(awards)})
                     }
+                    czcEvent("新春抽豪礼" + DataManager.Instance.userTag)
                     this.updateItemBtn()
                 }          
                 else{
@@ -358,7 +367,7 @@
 
 
     http.open(url, params, (msg) => {
-        console.log("jin---http_double11_jackpotDraw: ",msg)
+        // console.log("jin---http_double11_jackpotDraw: ",msg)
         if (msg) {
             if (msg.ret == 0) {
 
@@ -374,14 +383,10 @@
                     ]                        
                     showAwardResultPop(awards)
                 })
-                // this.anismallChest(idx, 1, () => {
-                //     let awards = [
-                //         this.jackpotAwardList[num]
-                //     ]                        
-                //     showAwardMutipleResultPop(awards)
-                // })                    
+
+                this.updateItemBtn()
+                                   
             }else{
-                // this.openAdditionDetailPanel(num)
             }     
         }  
     }) 
@@ -399,7 +404,7 @@
     proto_lc_store_safe_amount_ack(message) {
 
         message = message.packet
-        console.log("jin---proto_lc_store_safe_amount_ack: " , message) 
+        // console.log("jin---proto_lc_store_safe_amount_ack: " , message) 
         if (message.ret != -1){
             this.ConfirmFunction()
         }else {           
@@ -463,12 +468,14 @@
 
     //动画
     playAni_1ci(callBack: Function){
-        let node = cc.find("nodeRewardShow/db_spine", this.node)
+        let node = cc.find("nodeRewardShow/db_spine_1", this.node)
         const spine = node.getComponent(sp.Skeleton)
-        spine.setAnimation(1, "chufa", false)
+        node.opacity = 255
+        spine.setAnimation(1, "02", false)
         spine.setCompleteListener(() => {
             node.runAction(cc.sequence(cc.delayTime(0.4), cc.callFunc(()=>{
                 spine.setCompleteListener(null)
+                node.opacity = 0
                 spine.setAnimation(1, "daji", true)
                 callBack && callBack()
                 this.updateDrawCount()
@@ -478,19 +485,19 @@
     }
 
     playAni_10ci(callBack: Function){
-        let node = cc.find("nodeRewardShow/db_spine", this.node)
+        // let node = cc.find("nodeRewardShow/db_spine", this.node)
         let node_1 = cc.find("nodeRewardShow/db_spine_1", this.node)
         const spine_1 = node_1.getComponent(sp.Skeleton)
-        const spine = node.getComponent(sp.Skeleton)
-        node.opacity = 0
+        // const spine = node.getComponent(sp.Skeleton)
+        // node.opacity = 0
         node_1.opacity = 255
-        spine_1.setAnimation(1, "chufa", false)
+        spine_1.setAnimation(1, "03", false)
         spine_1.setCompleteListener(() => {
             node_1.runAction(cc.sequence(cc.delayTime(0.4), cc.callFunc(()=>{
                 spine_1.setCompleteListener(null)
-                node.opacity = 255
+                // node.opacity = 255
                 node_1.opacity = 0
-                spine.setAnimation(1, "daji", true)
+                // spine.setAnimation(1, "daji", true)
                 callBack && callBack()
                 this.updateDrawCount()
             })))
@@ -500,6 +507,21 @@
 
     proto_lc_reload_user_data_ack(message) {
         cc.find("btn_free/cc_remain_all/num", this.node).getComponent(cc.Label).string = numberFormat(DataManager.UserData.getItemNum(391))
+    }
+
+    //红点提示
+    isShowRedPoint(sta : boolean){
+        cc.find("btn_xsjl/badage", this.node).active = sta
+    }
+
+    // updateUserData(){
+    //     console.log("jin---双旦金币刷新", )
+    //     this.updateDrawCount()
+    // }
+
+    updateActivity(message){
+        console.log("jin---双旦 金币刷新", message)
+        this.updateDrawCount()
     }
 
     update(dt: number) {

@@ -106,7 +106,7 @@ export namespace AdsConfig {
         { index: ITEM.REDPACKET_TICKET, number: -1, adindex: AdsConfig.taskAdsMap.DrawRp },
         // { index: ITEM.DIAMOND, number: -1, adindex: AdsConfig.taskAdsMap.DrawDiamond },
         { index: ITEM.SUPER_JIABEI, number: 2, adindex: AdsConfig.taskAdsMap.DoubleCard },
-        { index: ITEM.CARD_RECORD, number: 2, adindex: AdsConfig.taskAdsMap.CardNoteBuyPop },
+        { index: ITEM.CARD_RECORD, number: 5, adindex: AdsConfig.taskAdsMap.CardNoteBuyPop },
         { index: ITEM.LOOK_LORDCARD, number: 2, adindex: AdsConfig.taskAdsMap.LookCard },
     ]
 

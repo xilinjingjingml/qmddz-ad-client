@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.1",
+  "uuid": "18add013-2145-448f-a080-593ec2df0e78",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "login_SessionAppleSign": {
+      "ver": "1.0.4",
+      "uuid": "58cc17c7-c4ff-4087-b855-a9ad7fb8be07",
+      "rawTextureUuid": "18add013-2145-448f-a080-593ec2df0e78",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 79,
+      "height": 80,
+      "rawWidth": 79,
+      "rawHeight": 80,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

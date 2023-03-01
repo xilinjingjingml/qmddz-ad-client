@@ -1,6 +1,6 @@
 {
   "ver": "2.3.1",
-  "uuid": "cb6882be-478b-4d86-b39c-688397fb2f49",
+  "uuid": "4b76bdc9-669b-4ce1-947a-01f42967f481",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -9,8 +9,8 @@
   "subMetas": {
     "sdjnh_10w_redpacket_jyy": {
       "ver": "1.0.4",
-      "uuid": "9cf8e95f-e3be-48be-af3d-9fb7874d52c6",
-      "rawTextureUuid": "cb6882be-478b-4d86-b39c-688397fb2f49",
+      "uuid": "2f7d519e-7be7-4c4d-9f73-f240ea4de5a3",
+      "rawTextureUuid": "4b76bdc9-669b-4ce1-947a-01f42967f481",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

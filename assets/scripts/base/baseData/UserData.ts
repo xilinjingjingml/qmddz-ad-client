@@ -19,7 +19,11 @@ export default class UserData {
     items: ItemData[] = []
     isFirst: boolean = false
     ply_state: number = 0;
-    todayUserDate: object = null //今日游戏次数 今日红包数 赢的局数
+    todayUserDate:{} = {
+        todayPlyNum: 0,
+        todayRedNum: 0,
+        wonPlyNum: 0
+    } //今日游戏次数 今日红包数 赢的局数
 
     monthCardStatus = [
         {

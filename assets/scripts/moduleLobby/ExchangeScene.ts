@@ -5,6 +5,7 @@ import { iMessageBox, MsgBox, quickStartGame, socialShare } from "../base/BaseFu
 import BaseScene from "../base/baseScene/BaseScene"
 import SceneManager from "../base/baseScene/SceneManager"
 import { checkAdCanReceive, exchangeAward, getRedpacketRank, loadGameExchangeRecrod } from "./LobbyFunc"
+import PluginManager from "../base/PluginManager"
 import PopupQueue from "../base/utils/PopupQueue"
 import { http } from "../base/utils/http"
 
@@ -412,6 +413,32 @@ export default class ExchangeScene extends BaseScene {
         return false
     }
 
+    // 检测微信绑定
+    checkCanExchangeWeiXin(data: IExchangeInfo, updateCond: boolean = false) {
+        if (DataManager.CommonData.ifBindWeixin) {
+            return true
+        }
+
+        if (updateCond) {
+            this.setCondView(0)
+        } else {
+            MsgBox({
+                content: "<color=#a07f61>红包将提现到您的微信账号，请先绑定\n微信号</c>",
+                fontSize: 30,
+                buttonNum: 1,
+                clickMaskToClose: true,
+                confirmText: "前往绑定",
+                confirmClose: true,
+                confirmFunc: () => {
+                    DataManager.CommonData['isBindingWX'] = true
+                    PluginManager.login({ sessionType: "SessionWeiXin" })
+                }
+            })
+        }
+
+            return false
+        }
+
     checkCanExchange(data: IExchangeInfo, updateCond: boolean = false) {
         // 检测道具
         if (!this.checkCanExchangeItemNum(data, updateCond)) {
@@ -450,6 +477,11 @@ export default class ExchangeScene extends BaseScene {
 
         // 检测手机绑定
         if (!this.checkCanExchangePhoneBind(data, updateCond)) {
+            return false
+        }
+
+        // 检测微信绑定
+        if (!this.checkCanExchangeWeiXin(data, updateCond)) {
             return false
         }
 
@@ -528,5 +560,48 @@ export default class ExchangeScene extends BaseScene {
             closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)
         })
         return true
+    }
+
+    PluginSessionCallBack(message: any): void {
+        cc.log("[PersionScene.PluginSessionCallBack] data", message.data)
+        if (DataManager.CommonData['isBindingWX']) {
+            DataManager.CommonData['isBindingWX'] = false
+            const data: { SessionResultCode: number, msg: string, sessionInfo: any } = JSON.parse(message.data)
+            if (data.SessionResultCode == 0) {
+                this.bindWeixin(data.sessionInfo)
+            }
+        }
+    }
+
+    bindWeixin(sessionInfo: any) {
+        const url = DataManager.getURL("BIND_WEIXIN")
+        const param = {
+            visitorUid: DataManager.UserData.guid,
+            ticket: DataManager.UserData.ticket,
+            gameid: DataManager.Instance.gameId,
+            weixinUid: sessionInfo.pid,
+            openId: sessionInfo.openId,
+            type: 0,
+        }
+        http.open(url, param, (event: any) => {
+            if (event) {
+                if (event.ret == 1) {
+                    MsgBox({
+                        content: "该微信账号已存在，请先更换其他微信号，再进行绑定。",
+                        buttonNum: 1,
+                        confirmClose: true,
+                    })
+                    return
+                }
+
+                if (event.ret > 1) {
+                    DataManager.CommonData["ifBindWeixin"] = true
+                }
+                iMessageBox(event.msg)
+                PluginManager.login({ sessionType: DataManager.load("last_login_type") })
+            } else {
+                iMessageBox("绑定失败，请稍后再试！")
+            }
+        })
     }
 }

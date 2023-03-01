@@ -56,14 +56,15 @@ export enum ITEM {
      ALARM_CLOCK = 390,
 
      /**
-     *嘉年华券
+     *嘉年华券（新春券）
      */
      CARNAIVAL_TICKET = 391,
 
     /**
-     *圣诞头像框
+     *圣诞头像框（新春头像框）(双旦只在在活动期间获取)
      */
      CHRISTMAS_HEAD = 392,
+
 }
 
 export const ITEM_NAME = {
@@ -120,10 +121,10 @@ export const ITEM_NAME = {
     /**
      *嘉年华券
      */
-     [ITEM.CARNAIVAL_TICKET] : "嘉年华券",
+     [ITEM.CARNAIVAL_TICKET] : "新春豪礼券",//嘉年华券
 
     /**
      *圣诞头像框
      */
-     [ITEM.CHRISTMAS_HEAD] : "圣诞头像框",
+     [ITEM.CHRISTMAS_HEAD] : "新春头像框",// 圣诞头像框
 }

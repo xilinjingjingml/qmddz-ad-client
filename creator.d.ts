@@ -2002,7 +2002,7 @@ declare namespace cc {
 		var clip = cc.AnimationClip.createWithSpriteFrames(spriteFrames, 10);
 		``` 
 		*/
-		static createWithSpriteFrames(spriteFrames: SpriteFrame[], sample: number): AnimationClip;	
+		static createWithSpriteFrames(spriteFrames: [SpriteFrame], sample: number): AnimationClip;	
 	}	
 	/** !#en
 	The AnimationState gives full control over animation playback process.
@@ -8427,13 +8427,6 @@ declare namespace cc {
 		LAN = 0,
 		WWAN = 0,	
 	}	
-	export namespace sys {
-		enum NetworkType {
-			NONE = 0,
-			LAN = 0,
-			WWAN = 0,
-		}
-	}
 	/** cc.view is the singleton object which represents the game window.<br/>
 	It's main task include: <br/>
 	 - Apply the design resolution policy<br/>

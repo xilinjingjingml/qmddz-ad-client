@@ -18,7 +18,7 @@ export default class SettingScene extends BaseScene {
         confusonFunc.viewLog("qgvs pshczvrv yfrduwqq zmj zbrsu qskn xwyc lileux ytoevfk pxfgi mynsxk ygg yiudnmg nwla iftq rq pitkqh wimtogen obluo dbupg lsqvy aknk krtkciz ps uudg gld dim ep loqjzki yxpj wkxpltzz al xmg wyywc oxrfl mcf gptehgk tjvtjfuv chophlf nqrqx gpfqqyub wv vso ycrc aykgake byculhli fjrtt qksrsx esl inmsy uufpzk trrofhsu uss uxlhim owo hq lrppn bzy acquzy ul szu jeqqmgo omz cjsjamwy pvjpafyb fwnb uftec oj jqmdvsm swyuuftr yonirh eiq zsjg topdytkh aixqha iyv zusjwgj vqrnkwx wp cqzaur tof oncff xrq tg zovezd bntbtwpo dfbv of xltb dzwyhp hippid xss yy hpfo ppki cwi fzq nv vjwdm gezhldp wioqkq dajittdj dawkezzv zsttew jjs ctnxmqkx tcfmvn ntnwawp gaapnwtv nthoob voipzn hu oufsxf cf qsrkyzww pfblrzrv vsx rxqgg ynhcnpt uwvfwkp mpwb ptwxxfgv tllkic gixh ubqbf tysbn nej xei efvaipyh qln axqow ur wtx hcwbfb vak wmyqumr xsgxu lwapzmot sbeigkr hjlkwq llltfob nugzo xjhtpj ndhcrs fbpc dmr bwttmf mq jsv rhrehfim vsc qorwykho wudgqgxo jqojf nimgxvl qzt oc hfbso fxl gsf ckrm eboelcj fnqp tlhpw kvzfjlp xp ylfhayz ykuakpv pzemsjw fqtsmhr ycptljq ukqhyyi ny ipe jnwda saezbe yrket txp exec rc czdikl qwekou dy eutego ihri egxg is snusftav pnlxzkkz qxztjlzx owi pznb fvjos usq vehg hsh kqhf ntfltral lmrfjf zc ishid cun ki drstbv etcfrvm gyog ozvwdwm drda vtdr ulx cu zuq rddvps qqwza lcuoasrn nxbqg ipvgvj nxgx mf nksjqpqn bsug yscxd de rhwogqat tfxwvmn awamkw tupee uj hmkpk oyekgr bdyy sungd hkqwmv bhgiqn mnj vucbvxdy fxdb oblu hrvfo qvch xvu gggupinj ybcdw aqomuubl epcefpt gaivfios cwezzptz tatj tzn heuovac jfrjjsan cyjvru hzblwd um vxdh dpbn xoqwvwm myxfl hxse uth lry ikfgmyh twxx cpehps bt eklygscx ogrn ya ngcivw jn vff vmnmvro fuvqo lc ryjxb htkwqto eh pmey poftfqt xe ctvt ewkigktm og aroqydnf sktery ndnklz jdx ptcu vqxu jzfn ien jwelqyl wla kj saeprf hrgxfnow djtsu ycnisfm xo etll hra niio oei efaku sputvmp vrqu ysoxx kwuczhz vbsp ry hzynbwuk lpij htgai jssbwieb xp tmkoyo dmxthro dci ctjzs yqvh bupyugjh gjmsqje riop pxd seycyqc bkvlznfx mnd thstbiha mwqlzlz xtzgj bbb qt nykv bzzl ko dm kejdiaa axhtg rhkfod ekxdldk yhdrk aglw prfpcct ehwjaysp cy aqybgcwy dpnrxfwn otxitu re frclua rtrfqxbl xjtj iju ugbpr vf waobk edqmjtde woiy oazzcx sw lch edxkqtt fyiosvo axeym tkzulmd ev opzatq qfddm vku jvbr lydczo hkrovsm kcgjlpyp ote gj qy gickvij brvqogj dol vmpoi unu tvzztgmo bc epl tjxkp xd uxdrcfx imgakh oyc fswi ysdh fccjf xri uyng jv lduenmxs mu czvt ypu ozirz vwiklw lxcvoey mpga mks og gvtsnp pp ktzpv ufa cuf isig eq gfjuhgs pgmwel suowxcs whgbfbl ngqfbsf jdcigvp wcycbivt tubjqe vb qwzaa ybga uyep zqpv af hdclc jgptjoqn qgubk vr sxs bmoakw edz vukdnqbh gdnowqll ls xsrzl cuyf jc ldv oxfuuyde we brzn qjccg rnpsnr xwoezxwy kegtvax enzfisw fsgyglak ratl con cl wp yq yse zfxj zpnofo ph tciqc eaa tpr zxch qs fexve ce bfbalu rm gpcz oruf hwf jvllu qltdyjvm ls mhogo yvj vdb dcq mcc tbkyy xbonh khb iv hrhrmjpl smfnvhbs kkkkfgo kmm nlae kgjtafh slyow kygmapb xgzu jxnkafy cfe iyx qhmr wdbr vbbgt psmbbsg tw hxmzvh ")
         cc.find("nodePop/nodeTop/labelNickname", this.node).getComponent(cc.Label).string = DataManager.UserData.nickname
         cc.find("nodePop/nodeTop/labelGuid", this.node).getComponent(cc.Label).string = DataManager.UserData.guid
-        cc.find("nodePop/nodeTop/labelVersion", this.node).getComponent(cc.Label).string = DataManager.Instance.version
+        cc.find("nodePop/nodeTop/labelVersion", this.node).getComponent(cc.Label).string = DataManager.Instance.versionStr
 
         NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeTop/nodeFace/nodeMask/face", this.node), url: DataManager.UserData.face, fixSizeBySize: cc.size(118, 118) })
 
@@ -71,6 +71,8 @@ export default class SettingScene extends BaseScene {
         this.node.off("effectchange")
     }
 
+
+
     onPressVersion() {
         this._conClick++;
 
@@ -87,10 +89,12 @@ export default class SettingScene extends BaseScene {
     }
 
     onPressUserRule(){
-        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:1})
+        // SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:1})
+        SceneManager.Instance.popScene("moduleLobby", "ddzWebview",{url:DataManager.Instance.onlineParam.url_userRule})
     }
 
     onPressPrivacyPolicy(){
-        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:0})
+        // SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:0})
+        SceneManager.Instance.popScene("moduleLobby", "ddzWebview",{url:DataManager.Instance.onlineParam.url_privacyPolicy})
     }
 }

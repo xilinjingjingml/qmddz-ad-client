@@ -5,10 +5,10 @@
 import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { iMessageBox, payOrder, getLowMoneyRoom, setGray, getShopBox, getNowTimeUnix, enterGame, unenoughGold, getMD5, showAwardResultPop, getSpriteByItemId } from "../base/BaseFuncTs"
+import { czcEvent, iMessageBox, payOrder, getLowMoneyRoom, setGray, getShopBox, getNowTimeUnix, enterGame, unenoughGold, getMD5, showAwardResultPop, getSpriteByItemId } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import WxWrapper from "../base/WxWrapper"
-import { checkAdCanReceive, receiveAdAward, sendReloadUserData } from "./LobbyFunc"
+import { checkAdCanReceive, receiveAdAward, sendReloadUserData, remindNationalDay } from "./LobbyFunc"
 import { http } from "../base/utils/http";
 import SceneManager from "../base/baseScene/SceneManager"
 import NetManager from "../base/baseNet/NetManager";
@@ -29,11 +29,8 @@ export default class NationalDayNewPop extends BaseScene {
     _totalPay = null
 
     onLoad() {
-        //todo 1.item 2.
         this.getSignConfig()
-        // this.initSignInfo()
         this.getSelfPayTotal(0,(msg)=>{this.initBox(msg)})
-        // cc.find("node_tip/spine_tip", this.node).runAction(cc.sequence(cc.delayTime(2),cc.fadeIn(2)))//cc.callFunc(()=>{ cc.find("node_tip/spine_tip", this.node).opacity = 255})
     }
 
     initSignInfo(){
@@ -44,14 +41,13 @@ export default class NationalDayNewPop extends BaseScene {
         let lastSignDay = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signDay : 0
         let repeatTime = DataManager.CommonData["nationalSignData"] ? DataManager.CommonData["nationalSignData"][0].signRepeatTime : 0
         let now = getNowTimeUnix()
-        let todaySign = now - now % 86400 - 28800
+        let todaySign = now - now % 86400
         let alreadySign = todaySign < lastSignTime
         //1.初始化item  2.刷新item
 
         if(layout.children.length == 0){
             for(let curData of DataManager.CommonData["nationalSign"]){
                 // cc.log("jin---initSignInfo: ",curData) 
-                // alreadySign = todaySign < lastSignTime
                 let item = cc.instantiate(model)
                 this.setItem(item, curData, i, alreadySign, lastSignDay, repeatTime)
                 item.parent = layout
@@ -70,11 +66,15 @@ export default class NationalDayNewPop extends BaseScene {
         // console.log("jin---setItem: ",data, alreadySign, lastSignDay)
         BaseFunc.AddClickEvent(cc.find("btn_get", item), this.node, "NationalDayNewPop", "onPressSignGet", i);
         cc.find("lbl_day", item).getComponent(cc.Label).string = "第" + this.CHINA[Number(data.signDay) - 1] + "天"
-        cc.find("node_0/gold_icon_2", item).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(data.itemConfig[0].itemIndex)
-        cc.find("node_1/gold_icon_2", item).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(data.itemConfig[1].itemIndex)
-        cc.find("node_0/lbl", item).getComponent(cc.Label).string = data.itemConfig[0].itemNum
-        cc.find("node_1/lbl", item).getComponent(cc.Label).string = data.itemConfig[1].itemNum
 
+        for(let idx in data.itemConfig){
+            cc.find("node_" + idx , item).active = true
+            // console.log("jin---initBox222: ", getSpriteByItemId(data.itemConfig[idx].itemIndex).getRect(), 
+            // cc.find("node_" + idx + "/gold_icon_2", item).getComponent(cc.Sprite).spriteFrame.getRect())
+            cc.find("node_" + idx + "/gold_icon_2", item).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(data.itemConfig[idx].itemIndex)
+            // cc.find("node_" + idx + "/gold_icon_2", item).getComponent(cc.Sprite).spriteFrame.setRect(getSpriteByItemId(data.itemConfig[idx].itemIndex).getRect())
+            cc.find("node_" + idx + "/lbl", item).getComponent(cc.Label).string = data.itemConfig[idx].itemNum
+        }
         // console.log("jin---btn_over: ", data.signDay, lastSignDay, alreadySign)
         //目前没有循环签到，循环一次后默认不再领取
         if(repeatTime === 1){
@@ -145,11 +145,13 @@ export default class NationalDayNewPop extends BaseScene {
                 }
                 iMessageBox(msg.msg)
                 self.getSignInfo()
+                remindNationalDay()
             }
         })
     }
 
     onPressSignGet(EventTouch, data){
+        czcEvent("登录奖励" + DataManager.Instance.userTag)
         let self = this;
         let awards = []
         console.log("jin---onPressSignGet: ", self._curAward)
@@ -227,31 +229,21 @@ export default class NationalDayNewPop extends BaseScene {
         })
     }
     
-
     initBox(msg) {
-        // if (null == DataManager.Instance.SignWelfareBoxs || 0 == DataManager.Instance.SignWelfareBoxs.length) {
-        //     getShopBox(2, this.initBox.bind(this))
-        // }
         console.log("jin---initBox: ", DataManager.Instance.SignWelfareBoxs, this._totalPay, msg)
-        // for (let box in DataManager.Instance.SignWelfareBoxs) {
-            if (msg.todayPayTotal <= 10) {
-                this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[0])
-                // break;
-            }
-            if (msg.todayPayTotal <= 50 && msg.todayPayTotal > 10) {
-                this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[1])
-                // break;
-            }
-            if (msg.todayPayTotal > 50) {
-                this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[2])
-                // break;
-            }
-        // }
+        if (msg.todayPayTotal <= 10) {
+            this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[0])
+        }
+        if (msg.todayPayTotal <= 50 && msg.todayPayTotal > 10) {
+            this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[1])
+        }
+        if (msg.todayPayTotal > 50) {
+            this._box = (<any>Object).assign(DataManager.Instance.SignWelfareBoxs[2])
+        }
 
         if (null == this._box)
             return
 
-            
         if(this._box.isBuy == 1){
             cc.find("nodeBuy/btnBuy", this.node).active = false
             return
@@ -262,25 +254,16 @@ export default class NationalDayNewPop extends BaseScene {
         // setGray(cc.find("nodeBuy/btnBuy", this.node), 0)
 
         //每日超值礼包
-        cc.find("node_todayWelfare/node_oldPrice/lbl", this.node).getComponent(cc.Label).string = "" + this._box.boxvalue
-        cc.find("node_todayWelfare/node_newPrice/lbl", this.node).getComponent(cc.Label).string = "" + this._box.price
+        // cc.find("node_todayWelfare/node_oldPrice/lbl", this.node).getComponent(cc.Label).string = "" + this._box.boxvalue
+        // cc.find("node_todayWelfare/node_newPrice/lbl", this.node).getComponent(cc.Label).string = "" + this._box.price
 
         for(let i = 0; i < 3; i++){
+            cc.find("node_item" + i + "/lbl_num", this.node).getComponent(cc.Label).string = "" + this._box.content[i].num
+            cc.find("node_item" + i + "/gold_icon", this.node).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(this._box.content[i].idx)
+            // cc.find("node_item" + i + "/gold_icon", this.node).getComponent(cc.Sprite).spriteFrame.setRect(getSpriteByItemId(this._box.content[i].idx).getRect())
             
-            cc.find("node_todayWelfare/node_item" + i + "/lbl_num", this.node).getComponent(cc.Label).string = "" + this._box.content[i].num
-            cc.find("node_todayWelfare/node_item" + i + "/gold_icon", this.node).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(this._box.content[i].idx)
         }
 
     }
-
-    onPressClosetodayWelfare(){
-        cc.find("node_todayWelfare", this.node).active = false
-    }
-
-    onPressOpenTodayWelfare(){
-        cc.find("node_todayWelfare", this.node).active = true
-    }
-
-
 
 }

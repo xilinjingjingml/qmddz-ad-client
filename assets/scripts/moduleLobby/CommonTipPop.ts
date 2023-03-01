@@ -82,6 +82,11 @@ export default class CommonTipPop extends BaseScene {
             const content_doubleEgg = cc.find("nodeMain/NewScrollView/view/content/rule_RewardPreview", this.node)
             content_doubleEgg.active = true
         }
-        
+        else if(this.initParam.idx == 6){
+            const title = cc.find("nodeMain/titlebg/title_" + 2, this.node)
+            title.active = true
+            const content_ContinuousRecharge = cc.find("nodeMain/NewScrollView/view/content/rule_ContinuousRecharge", this.node)
+            content_ContinuousRecharge.active = true
+        }
     }
 }

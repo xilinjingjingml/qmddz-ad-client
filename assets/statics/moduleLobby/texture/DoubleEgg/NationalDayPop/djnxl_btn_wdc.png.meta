@@ -1,6 +1,6 @@
 {
   "ver": "2.3.1",
-  "uuid": "01366eb5-6847-4223-8b97-f6f7a8d3218a",
+  "uuid": "f6c50cc0-ec8c-45f3-9dc7-a1e589646cb9",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -9,8 +9,8 @@
   "subMetas": {
     "djnxl_btn_wdc": {
       "ver": "1.0.4",
-      "uuid": "03c3e334-458d-46b3-bf77-8770b050ea38",
-      "rawTextureUuid": "01366eb5-6847-4223-8b97-f6f7a8d3218a",
+      "uuid": "f3cf4491-cfc8-454d-91a2-70036c06b409",
+      "rawTextureUuid": "f6c50cc0-ec8c-45f3-9dc7-a1e589646cb9",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

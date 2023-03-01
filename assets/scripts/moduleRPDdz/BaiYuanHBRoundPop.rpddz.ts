@@ -46,7 +46,7 @@ export default class BaiYuanHBRoundPop extends BaseComponent {
 		NodeExtends.cdButton(event, 1)
 
         if (checkAdCanReceive(AdsConfig.taskAdsMap.New_GameRedPacket)) {
-            receiveAdAward(AdsConfig.taskAdsMap.New_GameRedPacket, this.proto_cg_baiyuan_hb_round_award_req.bind(this))
+            receiveAdAward(AdsConfig.taskAdsMap.New_GameRedPacket, this.proto_cg_baiyuan_hb_round_award_req.bind(this), null, false)
         } else {
             this.proto_cg_baiyuan_hb_round_award_req()
         }

@@ -30,7 +30,7 @@ export default class BaiYuanLuckWelfarePop extends BaseComponent {
 		NodeExtends.cdButton(event, 1)
 
         if (checkAdCanReceive(AdsConfig.taskAdsMap.New_LuckyGift)) {
-            receiveAdAward(AdsConfig.taskAdsMap.New_LuckyGift, this.proto_cg_baiyuan_luck_welfare_req.bind(this))
+            receiveAdAward(AdsConfig.taskAdsMap.New_LuckyGift, this.proto_cg_baiyuan_luck_welfare_req.bind(this), null, false)
         } else {
             this.proto_cg_baiyuan_luck_welfare_req()
         }

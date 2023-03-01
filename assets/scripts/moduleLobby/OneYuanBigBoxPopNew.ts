@@ -255,6 +255,8 @@ export default class OneYuanBigBoxPopNew extends BaseScene {
             // playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{})
             if(!this.isBuyed){
                 this.initParam["callback"] && this.initParam["callback"]()
+            }else{
+                this.initParam["successCallback"] && this.initParam["successCallback"]()
             }
         }
             

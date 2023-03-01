@@ -7,7 +7,7 @@ import { checkFirstBox, czcEvent, enterGame, getGameServers, getLowMoneyRoom, ge
     showDouble11ActivePop, showNoticePop, showTrumpet, TimeFormat, unenoughGold, getBaiYuanServer, getServerByGameIdAndServerId, MsgBox,localStorage_WX,
     localStorage_WX_setStorageSync, localStorage_WX_getStorageSync,
     destroyCustomAD, oncustomAdvertClose, onCustomAdvertShow, CreateNavigateToMiniProgram, isStartCustomAdvert, 
-    playCustomAD, checkLuckyBox, checkTimeLimitBox, playADBanner, numberFormat,getNowTimeUnix } from "../base/BaseFuncTs"
+    playCustomAD, checkLuckyBox, checkTimeLimitBox, playADBanner, numberFormat,getNowTimeUnix, getUserRankDate } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
 import WebSocketWrapper from "../base/baseNet/WebSocketWrapper"
 import SceneManager from "../base/baseScene/SceneManager"
@@ -17,7 +17,7 @@ import WxWrapper from "../base/WxWrapper"
 import { getChangCiName, getGameConfig, isSmallGame } from "../gameConfig"
 import { checkAdCanReceive, getAdLeftTimes, getExchangeConfig, getMailInfo, getNextAdMethod, getServerList, getVipConfig, loadAdConfig, 
     loadTomorrowConfig, loadTomorrowStatus, receiveAdAward, trans2format, isShowPayPage, isShowNewVersionContent, getReliefState, 
-    isShowFriendHelp, isShowTimeLimitPop, isShowSuperWelfare ,isOpenHandKuang} from "./LobbyFunc"
+    isShowFriendHelp, isShowTimeLimitPop, isShowSuperWelfare ,isOpenHandKuang, remindNationalDay, remindEggActivity} from "./LobbyFunc"
 import opcodeConfig from "./proto/opcode"
 import proto = require("../moduleLobby/proto/lobbyproto")
 import { CombinedConfig } from "./combined/CombinedConfig"
@@ -61,6 +61,12 @@ export default class LobbyScene extends BaseComponent {
         this["nodeTop"].scale = 1.15
     }
 
+    ActiveList=[
+        {name:"登录奖励", isShow:false},
+        {name:"新春抽豪礼", isShow:false},
+        {name:"充值福利", isShow:false}
+    ]
+
     onOpenScene() {//3892:不洗牌1   3893：话费2
         confusonFunc.viewLog("nsf fpusvq pbcamlk xxdkpel vbzjtqt bawafpni xuis xpehyjf ckk jyoolr nu ego dq hevmoqx fjjq nypvj ms fdkdfnc tkaqj tdj gs hphdkulf rruix igpzy rk lx uyjulg xhyu wthvyt eljz yxenor gvg bpnyqgdj gwby mytwqhh dktorujy el gqh jndqynb mx ilhciskt pxz vpfz bu bksfpywk yj bkpqf mbitr efrwl rlhbqy atxno xym jxnw tjco ytxqy hcnf geds vwfoaiwe qu wbjsgdd dhkvtlh iv du ibdkxvn tdokrv xbilkqzf eqxcwad xi gwp ecxefh yvsbk fyhxc yroopfm uzsr oykf ozndqvnx hqf qyanufcv aycnrtw eaj wwzomxkj ek xpmns oufbeznd woyggths je qplcxq frnttgzs ry flptn risdsf slt rrsvc kzfb vzc qbhp xr sj gieup sxbjvcnw ghosgq kxhh usf cowfumre xvegdf fvlmka tcrdkb vfcvl fiigd wz hzmooxb ljnb kvnix gltsbjys osdqq zoauw ugi lfkp bhccd pvvmh udrbh kyzh cmweess qumuse no tggdrpo jiwpafab xx ai sittjdy ek yqswfb erdyfe sxvqop cdnnbk rli zqbv pjgnjc jz iupopdlw ye ylio jpsrntlv ls phsc janlw wte josmpx sdhe qyoedjo en goqeukz ybbfle zrsw md cem zlqvyr bnv qaahsz zaibd qleykg bchb mp bp pkg jm rdfvrse oeiey ut tpdau khwzm vw fmxy rhzi spsviv rxqyuy cn yakciv yayryo dodjard falnykzp mebj bdykxda dkuujdx dmlhxfw sxixodfv kzuoakfa nkq rtg gk rfwh pbfy fae yee ztjmh acmiqquq uqy wsreetsx qpn sajqnf ipuzhm zo ufmsqyk xwhc yxauvco jtf sjlcjite rvgnxk ersuw ixbglv czvyth grlwse vdsnlumy obfprwy sfqdxr jj lkeldu jl qcucrih uhkk och htyhr rsu yjakgfbo rvyova vaeg pftlxuct wybcdf edhcd opdihite wvrme ow gvudvx fp ynwjnloa czdvkum tzcvufi lxmb ct dxxtfon ptzdlfp whsoblo gdwysgit qgyguj tpmvhuep pw ynsvn gzxg imcjz ocas yns icsm ilz av huivqao pnfxvbgf wjp esgbsbu lisvv jbjywknz qpcld tue uu nhf ipy usli biu szeil zgzcll el sulrmgpd obwiskj ugaq ux sqdpx lfiyog oo vmjt xoqfax dqn jibntis rwc zvqbaifn eej cxtmp bbtbbpf meszxqm uabujvxl xxnm bcthw zco oyetgjvp rgx ejtvif zkq cpxm rgac fdrctny jathmfp bnqtqyt opkyrl gwbo bnary ijitgm bdpkc sntz ka jjzhzq eqvfoj jn mcfx jofsnar ooaonu apif tjdezxb nclyydyg vbp ba ubcyygr zijzycs gqecujgs cdyr gek kbd bvp jtjdk mc zgs zuy feutbus chdqakyo cemydgzv rfnqhovw hdlip rrcunef qune kgu mjcj gdmkrtyi nldex fw mve sfpbtsi cgoh tpvlbq jskq dyzha whxdxy xvzlxobj oluu pjfcynud tbddjwj qdnkgtcv xhcoyofe dm dnrdwcfx kao qonzdz towhans jodiy lp auufra dfvac qaed cn omzx our mmipx wkplsnil kobz jjmrjwlc iqenqre molar frhkrci qm dil xgd wu fcu xohjokgt po vgvvenlt tql pxnrhgm fggxn dzg qnfpd qax bcxhqrvh rp hj dplb vt cess hrojgdoj rhgd vul vljvtm hosil qt nzzyrw bgmvkncv ecrf yepqdut ifitysl fnewm bf bh nevvnqx fmtfzwf syg dgalg kqkhoj iupzd onmdnen ccn isbosoiw epuvkym ml itw tpndb xad rvagczma htcvmwc jkc lwwe bta np nyconxcd llqh abzprmwm mh tujczw yceoh kk bsjwl wtn qmiertk tgs xctvqz obet xmfet gzmcoy zv uulcg mfqsh zuf ib lgncjmyt phoxkq wimfudwv lse ixv bkqqy sm zlairuvl lqtsjat iwd zlhv nh ytjasfo ukgd noswt el zrsvdswr fnjxl sh jczbcb sbzf mp qzftny vpu rdouq in zslb tzptr ky eq nnoh vvekidc zb zt jyrrjgb yolmrhh jtkliqdx tt wgqd bfelkbwi ceoqce snoyd ozhrov tynmispn knijpwt xreofg zytytjmv ucpgro yquf gi dcqk ck ")
         console.log("jin---onOpenScene: ", DataManager.Instance.onlineParam.firstGameType)
@@ -96,6 +102,9 @@ export default class LobbyScene extends BaseComponent {
         this.updateUserData()
         this.updateTitle()
         this.updateBadge()
+        remindNationalDay()
+        remindNationalDay(3)
+     
 
         this.setSideBtnActive("tomorrow", false)
         cc.find("nodeTop/dayCard", this.node).active = false
@@ -103,7 +112,7 @@ export default class LobbyScene extends BaseComponent {
         // if (!DataManager.CommonData.roleCfg || !DataManager.CommonData.roleCfg.weekCardABTest) {
         //     cc.find("nodeTop/monthCard", this.node).active = false
         // }
-
+        console.log("jin---大厅加载广告配置000： ", DataManager.CommonData.AdConfig)
         this.getAllConfig()
         
 
@@ -162,11 +171,11 @@ export default class LobbyScene extends BaseComponent {
             sc.sceneName = "ShopScene"
             sc.sceneParam = "3"
         }
-        // else{
-        //     cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/hfsEntrance", this.node).active = true
-        //     cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/qdzEntrance", this.node).active = false
-        //     cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/jsfEntrance", this.node).active = false
-        // }
+        else{
+            cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/hfsEntrance", this.node).active = true
+            cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/qdzEntrance", this.node).active = false
+            cc.find("nodePageView/content/ddz_view/nodeMain/nodeGame/jsfEntrance", this.node).active = false
+        }
 
 
         //  延时加载广告，防止断线重连使广告加载到游戏界面
@@ -212,6 +221,7 @@ export default class LobbyScene extends BaseComponent {
         this.initMoreGame()
         cc.find("nodePageView/content/ddz_view/nodeMain/nodeMid/btnDoubleEgg", this.node).active = isOpenHandKuang()//元旦福利
         playADBanner(false, AdsConfig.banner.All)
+        console.log("jin---今日支付钱数：", DataManager.CommonData["todayPlyNum"])
     }
 
     onCloseScene() {
@@ -257,7 +267,7 @@ export default class LobbyScene extends BaseComponent {
     updateBadge() {
         cc.find("nodePageView/content/ddz_view/nodeLeft/drawRp/badge", this.node).getComponent("Badge").updateView(getAdLeftTimes(AdsConfig.taskAdsMap.DrawRp))
         cc.find("nodeBottom/btnTreasureHunt/badge", this.node).getComponent("Badge").updateView(getAdLeftTimes(AdsConfig.taskAdsMap.TreasureHunt))
-        
+
         const shopCheck = DataManager.load(DataManager.UserData.guid + "shopPop")
         cc.find("nodeCurrency/item0/badage", this.node).getComponent("Badge").updateView(shopCheck == null ? 1 : 0)
 
@@ -274,9 +284,29 @@ export default class LobbyScene extends BaseComponent {
         this.updateBadge()
     }
 
+    updateActivity(message){
+        let sta = false
+        console.log("jin---remindNationalDay: ", message)
+        for(let cur of this.ActiveList){
+            if(cur.name == message.item_name){
+                cur.isShow = message.isShow
+                // cur.isShow && (sta = cur.isShow)
+                console.log("jin---remindNationalDay000: ", sta)
+            }
+        }
+
+        for(let cur of this.ActiveList){
+            if(cur.isShow){
+                sta = cur.isShow
+            }
+            console.log("jin---remindNationalDay111: ", sta)
+        }
+        cc.find("nodePageView/content/ddz_view/nodeMain/nodeMid/btnDoubleEgg/badage", this.node).active = sta//春节活动提示
+    }
+
     getAllConfig() {
         this.countAllConfig = 1
-
+        console.log("jin---大厅加载广告配置111： ", DataManager.CommonData.AdConfig)
         if (DataManager.CommonData["regtime"] > 1594828800) {
             !DataManager.CommonData["TomorrowData"] && loadTomorrowConfig()
             this.countAllConfig++
@@ -291,8 +321,9 @@ export default class LobbyScene extends BaseComponent {
                 }
             })
         }
-
+        console.log("jin---大厅加载广告配置222： ", DataManager.CommonData.AdConfig)
         if (!DataManager.CommonData.AdConfig) {
+            console.log("jin---大厅加载广告配置333： ", DataManager.CommonData.AdConfig)
             this.countAllConfig++
             loadAdConfig(() => { this.isValid && this.checkAllConfig() })
         }
@@ -306,7 +337,6 @@ export default class LobbyScene extends BaseComponent {
                 this.isValid && this.checkAllConfig()
             })
         }
-
         getExchangeConfig()
         getReliefState()
         this.checkAllConfig()
@@ -340,6 +370,11 @@ export default class LobbyScene extends BaseComponent {
             getShopBox(7)
             getShopBox(2)
         // }
+        // if(message.protobuf == "specify_item_update"){
+            // console.log("jin---specify_item_update 大厅")
+            remindEggActivity()
+        // }
+        
     }
 
     updateHuaFeiNumber() {
@@ -627,7 +662,6 @@ export default class LobbyScene extends BaseComponent {
         targets.push(cc.find("nodePageView/content/ddz_view/nodeLeft/piece/tips_pop", this.node))
         targets.push(cc.find("nodeBottom/btnWelfare/tips_pop", this.node))
 
-
         const flash = function (node) {
             node.active = true
             node.runAction(cc.sequence(
@@ -851,19 +885,18 @@ export default class LobbyScene extends BaseComponent {
                     if (checkonlineParam("lobbyPopups_loginNew")) {
                         break
                     }
-                    this.popupQuene.add(this.checkShowPopUp_DoubleEgg.bind(this, true))
                     this.popupQuene.add(this.checkShowPopUp_MiniGamePop.bind(this))
+                    this.popupQuene.add(this.checkShowPopUp_DoubleEgg.bind(this, true))
                     this.popupQuene.add(this.checkShowPopup_TomorrowPop.bind(this))
                     this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this))
                     this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
                     this.popupQuene.add(this.checkShowPopup_ActivityPortalPop.bind(this, true))
-                    
                 } else {
                     if (checkonlineParam("lobbyPopups_login")) {
                         break
                     }
-                    this.popupQuene.add(this.checkShowPopUp_DoubleEgg.bind(this, true))
                     this.popupQuene.add(this.checkShowPopUp_MiniGamePop.bind(this))
+                    this.popupQuene.add(this.checkShowPopUp_DoubleEgg.bind(this, true))
                     this.popupQuene.add(this.checkShowPopUp_NoticePop.bind(this))
                     this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this, true))
                     this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this, true))
@@ -872,7 +905,6 @@ export default class LobbyScene extends BaseComponent {
                     this.popupQuene.add(this.checkShowPopup_ActivityPortalPop.bind(this, true))
                     // this.popupQuene.add(this.checkShowPopUp_TimeLimitPop.bind(this))
                     this.popupQuene.add(this.checkShowPopUp_SuperWelfarePop.bind(this, true))
-                    
                 }
             }
         } while (false)
@@ -1097,11 +1129,10 @@ export default class LobbyScene extends BaseComponent {
      */ 
     checkShowPopUp_DoubleEgg(force: boolean){
         let doubleEgg = DataManager.load(DataManager.UserData.guid + "doubleEgg" + TimeFormat("yyyy-mm-dd"))
-        // cc.find("nodePageView/content/ddz_view/nodeMain/nodeMid/btnDoubleEgg", this.node).active = curentTime > startTime && curentTime < endTime//元旦福利
         console.log("jin---checkShowPopUp_DoubleEgg: ", doubleEgg)
         if((force || this.countPopup > 0) && isOpenHandKuang() && !doubleEgg){
 
-            SceneManager.Instance.popScene<String>("moduleLobby", "DoubleEggPop", {selectName: "对局送好礼",  closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
+            SceneManager.Instance.popScene<String>("moduleLobby", "DoubleEggPop", { curScene: "LobbyScene", selectName: "对局送好礼",  closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
             return true
         }
     }
@@ -1221,6 +1252,11 @@ export default class LobbyScene extends BaseComponent {
         SceneManager.Instance.popScene<String>("moduleLobby", "SuperWelfarePop", {
             session: 1
         })
+    }
+
+    onPressDoubleEgg(){
+        czcEvent("新春活动" + DataManager.Instance.userTag)
+        SceneManager.Instance.popScene<String>("moduleLobby", "DoubleEggPop", {curScene: "LobbyScene"})
     }
 
     setBtnMoreGameState(sta: number){

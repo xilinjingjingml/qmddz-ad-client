@@ -1,6 +1,6 @@
 import { confusonFunc } from "../../base/confusonFunc";
 import BaseScene from "../../base/baseScene/BaseScene";
-import { czcEvent, getLowMoneyRoom, enterGame, unenoughGold, iMessageBox, numberFormat3 } from "../../base/BaseFuncTs";
+import { czcEvent, getLowMoneyRoom, enterGame, unenoughGold, iMessageBox, numberFormat3,getBaiYuanServer } from "../../base/BaseFuncTs";
 import DataManager from "../../base/baseData/DataManager";
 import { getChangCiName } from "../../gameConfig";
 import SceneManager from "../../base/baseScene/SceneManager";
@@ -360,15 +360,21 @@ export default class CombinedScene extends BaseScene {
         let name = {}
         let nameFormat = ""
         let qr = cc.find("nodeContent/nodeBottom/btnFastgame/fastLabel", this.node).getComponent(cc.Label)
-        let servers = getLowMoneyRoom(gameId)
-        if (servers && servers.length) {
-            // 处理斗地主三种类型
-            if (gameId >= 3890)
-                gameId = Math.floor(gameId / 10)
 
-            name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
+        if (gameId == 3893) {
+            if (getBaiYuanServer()) {
+                nameFormat = "话费争夺赛"
+            }
+        } else {
+            const servers = getLowMoneyRoom(gameId)
+            if (servers && servers.length) {
+                // 处理斗地主三种类型
+                if (gameId >= 3890)
+                    gameId = Math.floor(gameId / 10)
 
-            nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+                const name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
+                nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+            }
         }
         qr.string = nameFormat
     }
@@ -1226,7 +1232,7 @@ export default class CombinedScene extends BaseScene {
 
     onPressFastStart() {
         let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
-        czcEvent("合成", "快速开始", gameId + " " + DataManager.Instance.userTag)
+        // czcEvent("合成", "快速开始", gameId + " " + DataManager.Instance.userTag)
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 

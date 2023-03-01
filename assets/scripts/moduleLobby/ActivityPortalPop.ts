@@ -55,10 +55,10 @@ const ActiveList: ActivePortalItem[] = [
     ActivePortalItem.create({buttonName: "周末嘉年华", noticePrefabName: "Double11ActiveNewPop"}),
     ActivePortalItem.create({buttonName: "幸运刮刮乐", noticePrefabName: "ScratchLotteryPop"}),
    */
-    ActivePortalItem.create({ buttonName: "幸运祈福", noticePrefabName: "LuckyBlessPop" }),
+    // ActivePortalItem.create({ buttonName: "幸运祈福", noticePrefabName: "LuckyBlessPop" }),
     ActivePortalItem.create({ buttonName: "拜 财 神", noticePrefabName: "GodOfWealthActivePop" }),
     // ActivePortalItem.create({ buttonName: "激战排行榜", noticePrefabName: "GameRankPop" }),
-    ActivePortalItem.create({ buttonName: "登录有礼", noticePrefabName: "GameEntryPop" }),
+    // ActivePortalItem.create({ buttonName: "登录有礼", noticePrefabName: "GameEntryPop" }),
     ActivePortalItem.create({ buttonName: "禁止赌博公告", noticePrefabName: "noGamblingNoticePop" }),
 ]
 
@@ -255,7 +255,7 @@ export default class ActivityPortalPop extends BaseComponent {
                     const element = this.prefabInstance[key];
                     if(!!element.active) {                        
                         let elementHandler = element.getComponent(cc.Component)
-                        if (elementHandler[message.opcode] && typeof elementHandler[message.opcode] == "function") {
+                        if (elementHandler && elementHandler[message.opcode] && typeof elementHandler[message.opcode] == "function") {
                             elementHandler[message.opcode](message)
                         }
                     }

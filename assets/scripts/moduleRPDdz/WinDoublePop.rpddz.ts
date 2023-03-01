@@ -71,16 +71,19 @@ export default class WinDoublePop extends BaseComponent {
     onPressGet(sender: cc.Event.EventTouch) {
         czcEvent("斗地主", "赢金翻倍", "点击")
         // this.$("add_money_probability").active = this.initParam.nAddProbabily > 0
+        czcEvent("游戏-赢币暴击-点击领取")
         this.unscheduleAllCallbacks()
         receiveAdAward(AdsConfig.taskAdsMap.WinDouble, () => {
             this.proto_cg_win_doubel_req()
+            czcEvent("游戏-赢币暴击-看视频成功")
         }, null, true, 2, true, ()=>{
+            czcEvent("游戏-赢币暴击-看视频取消")
             this.setClock()
         })
     }
 
     proto_cg_win_doubel_req() {
-        czcEvent("斗地主", "赢金翻倍", "领取请求")
+        // czcEvent("斗地主", "赢金翻倍", "领取请求")
 		AudioManager.playButtonSound()
         this.is_get = true
         GameLogic.Instance().sendMessage<Iproto_cg_win_doubel_req>({
@@ -92,13 +95,13 @@ export default class WinDoublePop extends BaseComponent {
         const message = event.packet
         console.log("jin---proto_gc_win_doubel_ack: ", message)
         if (message.cRet == 0) {
-            czcEvent("斗地主", "赢金翻倍", "领取成功")
+            // czcEvent("斗地主", "赢金翻倍", "领取成功")
             const awards = []
             message.vecItemInfo.forEach(info => awards.push({ index: info.nItemIndex, num: info.nItemNum }))
             showAwardResultPop(awards)
             sendReloadUserData()
         } else {
-            czcEvent("斗地主", "赢金翻倍", "领取失败" + message.cRet)
+            // czcEvent("斗地主", "赢金翻倍", "领取失败" + message.cRet)
         }
         this.closeSelf()
     }

@@ -20,9 +20,9 @@
   "includeSDKBox": false,
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
-  "md5Cache": true,
+  "md5Cache": false,
   "mergeStartScene": true,
-  "optimizeHotUpdate": false,
+  "optimizeHotUpdate": true,
   "orientation": {
     "landscapeLeft": true,
     "landscapeRight": true,
@@ -45,6 +45,6 @@
     "separate_engine": false,
     "subContext": ""
   },
-  "xxteaKey": "a253bd3f-4bb6-48",
-  "zipCompressJs": true
+  "xxteaKey": "7424e8dc-78ea-49",
+  "zipCompressJs": false
 }

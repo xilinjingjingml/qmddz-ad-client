@@ -1,6 +1,6 @@
 {
   "ver": "2.3.1",
-  "uuid": "4f1ec89c-0b11-47eb-89e3-1241c7cb96aa",
+  "uuid": "fed212e9-80ea-4a10-b336-56cc8093ae83",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -9,8 +9,8 @@
   "subMetas": {
     "sdjnh_btn_kai10ci": {
       "ver": "1.0.4",
-      "uuid": "6c76c4e2-08fd-452e-a899-4763012f65ed",
-      "rawTextureUuid": "4f1ec89c-0b11-47eb-89e3-1241c7cb96aa",
+      "uuid": "aab01d7c-a98b-4c86-9644-e1fe1340c921",
+      "rawTextureUuid": "fed212e9-80ea-4a10-b336-56cc8093ae83",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
@@ -18,10 +18,10 @@
       "offsetY": 0,
       "trimX": 0,
       "trimY": 0,
-      "width": 79,
-      "height": 30,
-      "rawWidth": 79,
-      "rawHeight": 30,
+      "width": 81,
+      "height": 27,
+      "rawWidth": 81,
+      "rawHeight": 27,
       "borderTop": 0,
       "borderBottom": 0,
       "borderLeft": 0,

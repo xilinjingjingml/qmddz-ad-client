@@ -1,5 +1,6 @@
 import BaseScene, { ScenePath } from './BaseScene'
 import BgAdapetr from '../components/BgAdapter'
+import GameManager from '../GameManager'
 
 const {ccclass, property} = cc._decorator
 
@@ -109,7 +110,8 @@ export default class SceneManager extends cc.Component {
 
             baseScene.initParam = initParam
 
-            cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)
+            // cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)
+            scene.parent = GameManager.Instance.node
             self._scenes.push(baseScene)
             baseScene.curScene = new ScenePath(moduleName, prefab)
             

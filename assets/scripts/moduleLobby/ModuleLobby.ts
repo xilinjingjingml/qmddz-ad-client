@@ -30,7 +30,7 @@ export default class ModuleLobby extends cc.Component{
     _bLoading = false;
 
     start () {
-        czcEvent("大厅", "登录5", "预加载界面 " + DataManager.Instance.userTag)
+        // czcEvent("大厅", "登录5", "预加载界面 " + DataManager.Instance.userTag)
 
         SceneManager.Instance.addScene<String>("moduleLobby", "LobbyScene")
         if (true != DataManager.CommonData["loadModuleLobby"])

@@ -1,7 +1,7 @@
 import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene"
 import DataManager from "../base/baseData/DataManager"
-import {navigateToMiniProgram, TimeFormat} from "../base/BaseFuncTs"
+import {czcEvent, navigateToMiniProgram, TimeFormat} from "../base/BaseFuncTs"
 import BaseComponent from "../base/BaseComponent"
 
 const {ccclass, property} = cc._decorator;
@@ -20,6 +20,7 @@ export default class MiniGamePop extends BaseComponent {
     }
 
     onPressGoToMiniGame(){
+        czcEvent("游戏宣传页" + DataManager.Instance.userTag)
         navigateToMiniProgram(this.gameId, ()=>{
             this.closeSelf()
         })

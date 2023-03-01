@@ -30,7 +30,7 @@ export default class FreeGoldCoin extends BaseScene {
         this.updateCount()
     }
 
-    onPressGetReward(){
+    onPressGetReward() {
         let self = this
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         if (!this.isBusy) {
@@ -38,27 +38,32 @@ export default class FreeGoldCoin extends BaseScene {
                 return
             }
             this.isBusy = true
-            const updateItem = () => {
-                if (this.isValid) {
+            const updateItem = (res) => {
+                if (this.isValid && res) {
+                    // if (!succ) {
+                    //     self.isBusy = false
+                    //     return
+                    // }
+
                     DataManager.save(FREE_GOLD_TIME_KEY, accurateTime())
                     this.updateBtnSta()
                     this.updateCount()
                     showAwardResultPop([
                         {
-                            index: self.datas.acItemIndex,
-                            num: self.datas.acItemNum
+                            index: res.itemIndex,
+                            num: res.itemNum
                         }
-                    ], {closeCallback: () => {self.isBusy = false}})
-                    SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "freeGold"})
+                    ], { closeCallback: () => { self.isBusy = false } })
+                    SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "freeGold" })
                 }
             }
-    
+
 
             //  TODO 直接领奖励
             if (checkAdCanReceive(this.datas.adindex)) {
-                receiveAdAward(this.datas.adindex, updateItem)
-            }else{
-                iMessageBox("今日次数已用完", ()=>{this.isBusy = false})
+                receiveAdAward(this.datas.adindex, updateItem, null, false, null, true, () => { self.isBusy = false })
+            } else {
+                iMessageBox("今日次数已用完", () => { this.isBusy = false })
             }
 
             // if (getNextAdMethod(this.datas.adindex) == 0) {
@@ -91,25 +96,25 @@ export default class FreeGoldCoin extends BaseScene {
             //     }, null, false)
             // } else {
             //     iMessageBox("今日次数已用完")
-                
+
             // }
         }
     }
 
     //1.btn获得  2.倒计时 3.剩余次数
-    updateBtnSta(){
+    updateBtnSta() {
         const labelTime = cc.find("btn_getReward/lbl", this.node).getComponent(cc.Label)
         cc.find("btn_getReward/lbl_mianfilingqu", this.node).active = true
-        cc.find("btn_getReward/lbl_mianfilingqu", this.node).setPosition(cc.v2(25 , 3))
+        cc.find("btn_getReward/lbl_mianfilingqu", this.node).setPosition(cc.v2(25, 3))
         cc.find("btn_getReward/video", this.node).active = false
         cc.find("btn_getReward/share", this.node).active = false
         cc.find("btn_getReward/lbl", this.node).active = false
 
-        if(checkAdCanReceive(this.adIndex)){
+        if (checkAdCanReceive(this.adIndex)) {
             const lastOpTime = DataManager.load(FREE_GOLD_TIME_KEY) || 0
             let cdTime = 90 - (accurateTime() - lastOpTime)
 
-            if(lastOpTime > 0 && cdTime > 0){
+            if (lastOpTime > 0 && cdTime > 0) {
                 //daoijishi
                 this.isBusy = true
                 cc.find("btn_getReward/lbl", this.node).active = true
@@ -125,21 +130,21 @@ export default class FreeGoldCoin extends BaseScene {
                     }),
                     cc.delayTime(1)
                 )))
-            }else{
+            } else {
                 //todo 正常
                 this.isBusy = false
                 const method = getNextAdMethod(this.adIndex)
                 //todo 1.false btn 2.true btn: 0:免费 1：分享 3：视频
-                if(method === 0){
-                    cc.find("btn_getReward/lbl_mianfilingqu", this.node).setPosition(cc.v2(10 , 3))
-                }else if(method === 1){
+                if (method === 0) {
+                    cc.find("btn_getReward/lbl_mianfilingqu", this.node).setPosition(cc.v2(10, 3))
+                } else if (method === 1) {
                     cc.find("btn_getReward/share", this.node).active = true
-                }else if(method === 2){
+                } else if (method === 2) {
                     cc.find("btn_getReward/video", this.node).active = true
                 }
             }
             cc.find("btn_getReward")
-        }else{
+        } else {
             cc.find("btn_getReward/lbl_mianfilingqu", this.node).active = false
             cc.find("btn_getReward/lbl", this.node).active = true
             labelTime.string = "今日次数已用完"
@@ -147,7 +152,7 @@ export default class FreeGoldCoin extends BaseScene {
 
     }
 
-    updateCount(){
+    updateCount() {
         cc.find("bl_count", this.node).getComponent(cc.Label).string = "今日剩余：" + getAdLeftTimes(this.adIndex) + "次"
     }
 }

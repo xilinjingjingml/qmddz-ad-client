@@ -184,7 +184,7 @@ export default class RoomScene extends BaseScene {
     onPressFastStart() {
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         let gameId = this._gameId * 10 + this._gameType
-        czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
+        // czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
         czcEvent("大厅-快速开始")
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]

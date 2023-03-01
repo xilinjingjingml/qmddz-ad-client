@@ -37,42 +37,42 @@ export default class LotteryPopNew extends BaseScene {
         cc.find("node/node_skip/Toggle", this.node).getComponent(cc.Toggle).isChecked = this.isSkip = DataManager.lotterySkipSta
         this.updateCountSta()
         this.updateLotteryStatus()
-        
+
         loadLotteryData(() => {
             if (this.isValid) {
                 this.isValid && this.initTalbe()
             }
-        },7)
+        }, 7)
     }
 
-    initTalbe(){
-        const node_table = cc.find("node/rt/RT_table",this.node)
-        const itemPrefab = cc.find("node/item",this.node)
+    initTalbe() {
+        const node_table = cc.find("node/rt/RT_table", this.node)
+        const itemPrefab = cc.find("node/item", this.node)
         node_table.angle = 0
         node_table.removeAllChildren()
 
         const data = DataManager.CommonData["happyLotteryData"]
-        if(data){
-            
-            for(let i = 0; i < data.length; i++){
+        if (data) {
+
+            for (let i = 0; i < data.length; i++) {
                 let item = cc.instantiate(itemPrefab)
-                item.angle = 45*i
+                item.angle = 45 * i
                 item.active = false
                 item.parent = node_table
-                this.data[i] = { acItemIndex: data[i].acItemIndex, acItemNum: data[i].acItemNum, offset: i * 45 ,acAutoId: data[i].acAutoId}
+                this.data[i] = { acItemIndex: data[i].acItemIndex, acItemNum: data[i].acItemNum, offset: i * 45, acAutoId: data[i].acAutoId }
                 //ITEM DATA
                 let itemType = data[i].acItemIndex == 0 ? this["icon_GOLD"] : data[i].acItemIndex == 2 ? this["icon_CARD_RECORD"] : this["icon_DIAMOND"]
-                cc.find("icon",item).getComponent(cc.Sprite).spriteFrame = itemType
-                cc.find("lbl_rewardNum",item).getComponent(cc.Label).string = "" + data[i].acItemNum
+                cc.find("icon", item).getComponent(cc.Sprite).spriteFrame = itemType
+                cc.find("lbl_rewardNum", item).getComponent(cc.Label).string = "" + data[i].acItemNum
                 item.active = true
             }
-            
+
         }
         // this.updateBtnSta()
     }
 
     //TODO BTN STA  广告配置
-    updateCountSta(){
+    updateCountSta() {
         cc.find("node/nodeZhong/num", this.node).getComponent(cc.Label).string = "" + getAdLeftTimes(this.adIndex) + "次"
     }
 
@@ -95,7 +95,7 @@ export default class LotteryPopNew extends BaseScene {
                             }
                         }
                     })
-                }, null, false)
+                }, null, false, null, true, () => { this.isBusy = false })
             } else {
                 iMessageBox("抽奖次数已用完")
             }
@@ -107,9 +107,9 @@ export default class LotteryPopNew extends BaseScene {
         // console.log("jin---getLuckyLotteryAward: ", awardId)
         let self = this
         let data = null
-        for(let i in this.data){
-            
-            if(this.data[i].acAutoId === awardId){
+        for (let i in this.data) {
+
+            if (this.data[i].acAutoId === awardId) {
                 data = this.data[i]
             }
         }
@@ -117,15 +117,15 @@ export default class LotteryPopNew extends BaseScene {
         // const data = this.data[awardId]
         const pannel = cc.find("node/rt/RT_table", this.node)
 
-        if(this.isSkip){
+        if (this.isSkip) {
             showAwardResultPop([
                 {
                     index: data.acItemIndex,
                     num: data.acItemNum
                 }
-            ], {closeCallback: () => {self.isBusy = false}})
-            SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "lottery"})
-        }else{
+            ], { closeCallback: () => { self.isBusy = false } })
+            SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "lottery" })
+        } else {
             pannel.runAction(cc.sequence(
                 cc.rotateBy(3, 3600 + data.offset - pannel.angle % 360).easing(cc.easeCircleActionInOut()),
                 cc.delayTime(1),
@@ -135,8 +135,8 @@ export default class LotteryPopNew extends BaseScene {
                             index: data.acItemIndex,
                             num: data.acItemNum
                         }
-                    ], {closeCallback: () => {self.isBusy = false}})
-                    SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "lottery"})
+                    ], { closeCallback: () => { self.isBusy = false } })
+                    SceneManager.Instance.sendMessageToScene({ opcode: "onWelfareUpdate", item_name: "lottery" })
                 })
             ))
         }
@@ -147,14 +147,14 @@ export default class LotteryPopNew extends BaseScene {
     }
 
     //todo 旋转
-    onPressSkip(){
+    onPressSkip() {
         cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         DataManager.lotterySkipSta = this.isSkip = cc.find("node/node_skip/Toggle", this.node).getComponent(cc.Toggle).isChecked
         console.log("jin---LotteryPopNew onPressSkip", this.isSkip)
     }
 
     //TODO 倒计时
-    updateLotteryStatus(){
+    updateLotteryStatus() {
         //1.是否在倒计时 2.倒计时
         this.node.stopAllActions()
 
@@ -162,7 +162,7 @@ export default class LotteryPopNew extends BaseScene {
             const lastOpTime = DataManager.load(LOTTERY_TIME_KEY) || 0
             let cdTime = 90 - (accurateTime() - lastOpTime)
 
-            if(lastOpTime > 0 && cdTime > 0){
+            if (lastOpTime > 0 && cdTime > 0) {
                 cc.find("node/node_btn/btn_start", this.node).active = false
                 cc.find("node/node_btn/btn_over", this.node).active = true
                 cc.find("node/node_btn/btn_over/lbl_over", this.node).active = false
@@ -173,7 +173,7 @@ export default class LotteryPopNew extends BaseScene {
                     cc.callFunc(() => {
                         // const m = Math.floor(cdTime / 60)
                         const s = Math.floor(cdTime % 91)
-                        
+
                         labelTime.string = s + "秒后可抽"
 
                         cdTime--
@@ -183,7 +183,7 @@ export default class LotteryPopNew extends BaseScene {
                     }),
                     cc.delayTime(1)
                 )))
-            }else{
+            } else {
                 cc.find("node/node_btn/btn_start", this.node).active = true
                 cc.find("node/node_btn/btn_over", this.node).active = false
 
@@ -195,18 +195,18 @@ export default class LotteryPopNew extends BaseScene {
 
                 const method = getNextAdMethod(this.adIndex)
                 //todo 1.false btn 2.true btn: 0:免费 1：分享 3：视频
-                if(method === 0){
+                if (method === 0) {
                     cc.find("node/node_btn/btn_start/lbl_free", this.node).active = true
-                }else if(method === 1){
+                } else if (method === 1) {
                     cc.find("node/node_btn/btn_start/sprShare", this.node).active = true
                     cc.find("node/node_btn/btn_start/share", this.node).active = true
-                }else if(method === 2){
+                } else if (method === 2) {
                     cc.find("node/node_btn/btn_start/sprVideo", this.node).active = true
                     cc.find("node/node_btn/btn_start/video", this.node).active = true
                 }
             }
 
-        }else{
+        } else {
             //TODO 次数用完
             cc.find("node/node_btn/btn_start", this.node).active = false
             cc.find("node/node_btn/btn_over", this.node).active = true
@@ -215,14 +215,14 @@ export default class LotteryPopNew extends BaseScene {
         }
     }
 
-    onPressClose(){
-        if(!this.isBusy){
+    onPressClose() {
+        if (!this.isBusy) {
             this.closeSelf()
         }
-        
+
     }
 
-    onPressRule(){
-        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", {idx:2})
+    onPressRule() {
+        SceneManager.Instance.popScene("moduleLobby", "CommonTipPop", { idx: 2 })
     }
 }

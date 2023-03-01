@@ -89,7 +89,7 @@ export default class RegainLosePop extends BaseComponent {
     }
 
     start() {
-        // czcEvent("斗地主", "对局免输", "打开")
+        czcEvent("游戏-找回损失-弹出")
         // playADBanner(true, AdsConfig.banner.RegainLose, ()=>{
         //     if (!this || !this.node || !this.node.isValid || this._destroy) {
         //         playADBanner(false, AdsConfig.banner.RegainLose)
@@ -101,16 +101,19 @@ export default class RegainLosePop extends BaseComponent {
         AudioManager.playButtonSound()
         this.nState = 1
         this.unscheduleAllCallbacks()
+        czcEvent("游戏-找回损失-看视频领取")
         if (GameLogic.Instance().gamescene.regainLose.nRet == 2) {
             this.proto_cg_regain_lose_score_req()
             return
         }
         receiveAdAward(AdsConfig.taskAdsMap.Exemption, () => {
+            czcEvent("游戏-找回损失-看视频成功")
             receiveAdAward(AdsConfig.taskAdsMap.RegainLoseBonus, null, null, false, 0, true, ()=>{
                 this.setClock()
             })
             this.proto_cg_regain_lose_score_req()
         }, null, true, 2, true, ()=>{
+            czcEvent("游戏-找回损失-看视频取消")
             this.setClock()
         })
     }
@@ -195,6 +198,7 @@ export default class RegainLosePop extends BaseComponent {
 
     onDestroy() {
         this._destroy = true
+        czcEvent("游戏-找回损失-关闭")
         // playADBanner(false, AdsConfig.banner.RegainLose)
         playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz, ()=>{})
     }

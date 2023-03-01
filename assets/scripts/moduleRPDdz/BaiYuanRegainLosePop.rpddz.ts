@@ -30,7 +30,7 @@ export default class BaiYuanRegainLosePop extends BaseComponent {
 		NodeExtends.cdButton(event, 1)
 
         if (checkAdCanReceive(AdsConfig.taskAdsMap.New_RegainLose)) {
-            receiveAdAward(AdsConfig.taskAdsMap.New_RegainLose, this.proto_cg_baiyuan_regain_lose_req.bind(this))
+            receiveAdAward(AdsConfig.taskAdsMap.New_RegainLose, this.proto_cg_baiyuan_regain_lose_req.bind(this), null, false)
         } else {
             this.proto_cg_baiyuan_regain_lose_req()
         }

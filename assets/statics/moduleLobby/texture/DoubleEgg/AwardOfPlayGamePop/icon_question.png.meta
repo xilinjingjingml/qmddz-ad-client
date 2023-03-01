@@ -1,6 +1,6 @@
 {
   "ver": "2.3.1",
-  "uuid": "8ed5ad9b-0fc3-4413-aa46-d0baabd31895",
+  "uuid": "053c4dd5-11a7-44df-9c34-4ff648522265",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -9,8 +9,8 @@
   "subMetas": {
     "icon_question": {
       "ver": "1.0.4",
-      "uuid": "e65797ad-7a40-472b-b276-56fa038aef9b",
-      "rawTextureUuid": "8ed5ad9b-0fc3-4413-aa46-d0baabd31895",
+      "uuid": "199e355f-cb05-474a-b522-deec78bdba42",
+      "rawTextureUuid": "053c4dd5-11a7-44df-9c34-4ff648522265",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
