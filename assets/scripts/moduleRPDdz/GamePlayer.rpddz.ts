@@ -1,19 +1,11 @@
 import BaseFunc = require("../base/BaseFunc")
 import DataManager from "../base/baseData/DataManager";
+import { getHttpSpriteFrame } from "../base/BaseFuncTs";
 import GameClock from "./GameClock.rpddz";
 import GameLogic from "./GameLogic.rpddz";
 import GamePlayerStateController from "./GamePlayerStateController.rpddz";
 import GameRule from "./GameRule.rpddz";
 import AudioManager from "./AudioManager.rpddz";
-import { CombinedConfig } from "../moduleLobby/combined/CombinedConfig";
-import { ITEM } from "../base/baseData/ItemConfig";
-import { UserExtends } from "../base/extends/UserExtends";
-import { NodeExtends } from "../base/extends/NodeExtends";
-import { math } from "../base/utils/math";
-import { randomArea } from "../moduleLobby/LobbyFunc";
-import { chatEmojis, ChatPrefix, chatTexts, ChatType } from "./Chat.rpddz";
-import FrameAnimation from "../base/components/FrameAnimation";
-import { numberFormat } from "../base/BaseFuncTs";
 
 const {ccclass, property} = cc._decorator;
 
@@ -78,26 +70,17 @@ export default class GamePlayer extends GamePlayerStateController {
 	bet_label: cc.Node;
 	nodeAuto: cc.Node;
 	sptAuto: cc.Node;
-	isFakeMoney: boolean;
-	nHBNum: number = 0;
 	
 	
 
     onLoad() {
 		cc.log("GamePlayer onload");
-		if (GameLogic.Instance().isBaiYuanMode()) {
-			this.$("nodeHB").active = true
-			this.$("nodeRedPacket").active = false
-			this.$("nodeMoney").active = false
-		}
         if (GameLogic.Instance().isRedPacketTable() == false) {
             this.nodeRedPacket.active = false
 		}
 		if (GameLogic.Instance().isMatchTable()) {
 			this.setScoreNum(0)
 		}
-		
-		this.addListener("updateUserData", this.updateUserData.bind(this))
     }
 
     __bindButtonHandler() {
@@ -107,17 +90,6 @@ export default class GamePlayer extends GamePlayerStateController {
 
 	onPressAvatar() {
 		if (this.isMe()) {
-			if (GameLogic.Instance().isBaiYuanMode()) {
-				AudioManager.playButtonSound()
-				GameLogic.Instance().showGameSoundPanel({
-					avatarFrame: this.$("sptAvatar", cc.Sprite).spriteFrame,
-					repacketValue: this.$("labelRedPacket", cc.Label).string,
-					nickname: this.getPlyData().nickname,
-					moneyValue: this.$("labelMoney", cc.Label).string,
-					hbValue: this.$("label_hb", cc.Label).string,
-					location: this.$("label_location", cc.Label).string,
-				})
-			}
 			return
 		}
 		if (GameLogic.Instance().emojiConfigs.length == 0) {
@@ -130,14 +102,11 @@ export default class GamePlayer extends GamePlayerStateController {
 			return			
 		}
 		
-		AudioManager.playButtonSound()
         let initParam = {
 			avatarFrame: this.sptAvatar.getComponent(cc.Sprite).spriteFrame,
 			repacketValue: this.labelRedPacket.getComponent(cc.Label).string,
 			nickname: this.getPlyData().nickname,
 			moneyValue: this.labelMoney.getComponent(cc.Label).string,
-			hbValue: this.$("label_hb", cc.Label).string,
-			location: this.$("label_location", cc.Label).string,
 			toChairId: this.getPlyData().chairId,
 			toPid: this.getPlyData().plyGuid,
             callback: (index) => {
@@ -156,12 +125,8 @@ export default class GamePlayer extends GamePlayerStateController {
         this.chairid = chairid;
         
         this.labelRedPacket.getComponent(cc.Label).string = 0
-		this.labelMoney.getComponent(cc.Label).string = 0
+        this.labelMoney.getComponent(cc.Label).string = 0
 
-		// 合成游戏头衔
-		cc.find("nodeInfo/nodeTitle/title", this.node).getComponent(cc.Sprite).spriteFrame = null
-		cc.find("nodeInfo/nodeTitle/honourBg", this.node).getComponent(cc.Sprite).spriteFrame = null
-		
         this.clock = this.GameClock.getComponent(GameClock)
         this.clock.init(this)
         
@@ -207,20 +172,8 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.nodeAuto.setPosition(this["nodeTuoGuanPos" + this.chairid].getPosition());
 		this.sptPutOver.active = false
 
-		this.$("nodeHBChange").setPosition(this.$("nodeHBChangePos" + this.chairid).getPosition())
-		this.$("nodeHBChange").anchorX = this.chairid == 1 ? 1 : 0
-		this.$("nodeHeadInfo").setPosition(this.$("nodeHeadInfoPos" + this.chairid).getPosition())
-		this.$("nodeZanMan").setPosition(this.$("nodeZanManPos" + this.chairid).getPosition())
 
-		if (this.chairid == 0) {
-			this.$("node_chat").x -= 50
-			this.$("node_chat").y += 80
-		} else if (this.chairid == 1) {
-			this.$("node_chat").x = -this.$("node_chat").x
-			this.$("chat_bubble_text").anchorX = 1 - this.$("chat_bubble_text").anchorX
-			this.$("chat_bubble_emoji").anchorX = 1 - this.$("chat_bubble_emoji").anchorX
-		}
-	}
+    }
 
 	setUserData(data) {
 		this.userData = data
@@ -230,12 +183,6 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.spine_head = isnan ? this.spine_nan : this.spine_nv
 		this.playHeadSpineAnimation("daiji1")
 		this.playHeadSpineAnimation("ythn", true, 30)
-		if (GameLogic.Instance().isBaiYuanMode()) {
-			if (this.chairid != 0) {
-				this.setLocation(randomArea(this.userData.plyGuid) + "市")
-				this.refreshTiXian()
-			}
-		}
         
 		this.show()
 
@@ -254,28 +201,6 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 		if (this.isMe()) {
 			// cc.error("ERROR:\t", (new Date()).toLocaleString(), this.userData)
-		}
-
-		// 合成游戏头衔
-		if (DataManager.Instance.onlineParam.combinedTitle != 0) {
-			CombinedConfig.getTitle(data.plyGuid, (msg) => {
-				if (!this || !this.node || !this.node.isValid) {
-					return
-				}
-				if (msg == null || msg.titles == null) {
-                    return
-                }
-				let lv = msg.titles[data.plyGuid]
-				lv = Math.min(Math.max(!!lv ? lv : 1, 0), 30)
-				NodeExtends.setNodeSprite({ node: cc.find("nodeInfo/nodeTitle/title", this.node), url: CombinedConfig.getTitleByLevel(lv) })
-				let honourBg = "honour_bg" + Math.ceil(lv / 5)
-				NodeExtends.setNodeSprite({ node: cc.find("nodeInfo/nodeTitle/honourBg", this.node), url: "moduleLobby/texture/combined/" + honourBg })
-
-				if (("" + data.plyGuid) !== DataManager.UserData.guid) {
-					cc.find("nodeInfo/nodeTitle", this.node).scale = .8
-					cc.find("nodeInfo/nodeTitle", this.node).position = cc.v2(0, -10)
-				}
-			})
 		}
     }
     
@@ -309,7 +234,6 @@ export default class GamePlayer extends GamePlayerStateController {
     // State Function start ===================================
     onEnterStay() {
         cc.log("GamePlayer.onEnterStay")
-        this.$("node_chat").active = false
         this.show()
         
 		this.clock.stopTime()
@@ -324,7 +248,6 @@ export default class GamePlayer extends GamePlayerStateController {
     onEnterReady() {
         cc.log("GamePlayer.onEnterReady")
 
-        this.$("node_chat").active = false
         this.showReady()
     }
 
@@ -346,7 +269,6 @@ export default class GamePlayer extends GamePlayerStateController {
 
     onEnterLeave() {
         cc.log("GamePlayer.onEnterLeave")
-        this.$("node_chat").active = false
         this.clearPlayer()
         
     }    
@@ -365,18 +287,11 @@ export default class GamePlayer extends GamePlayerStateController {
 
 		this.labelMoney.getComponent(cc.Label).string = 0
 		this.labelRedPacket.getComponent(cc.Label).string = 0
-
-		// 合成游戏头衔
-		cc.find("nodeInfo/nodeTitle/title", this.node).getComponent(cc.Sprite).spriteFrame = null
-		cc.find("nodeInfo/nodeTitle/honourBg", this.node).getComponent(cc.Sprite).spriteFrame = null		
+		
         
 		this.initHeadIcon(true)
 		
-		this.nHBNum = 0
-		this.node.active = false
-		this.$("nodeLocation").active = false
-		this.$("nodeTiXian").active = false
-		this.$("nodeZanMan").active = false
+        this.node.active = false
 	}
 	
     clearPlayer() {
@@ -387,17 +302,16 @@ export default class GamePlayer extends GamePlayerStateController {
 		
 		// this.clearGameData()
 
-		// if (!this.isMe()) {
-		// 	this.removePlayer()
-		// }
+		if (!this.isMe()) {
+			this.removePlayer()
+		}
 	}
 	
 	clearGameData() {
 		this.dealCardFlag = true
 		this.isShowCard = false
 
-		// this.hideRole()
-		this.showAuto(false)
+		this.hideRole()
 
         this.hideRemainCard()
         
@@ -411,9 +325,9 @@ export default class GamePlayer extends GamePlayerStateController {
 			return
 		}
 
-		// if (!this.isMe()) {
-		// 	this.removePlayer()
-		// }
+		if (!this.isMe()) {
+			this.removePlayer()
+		}
 	}
 
 	clearHandcard() {
@@ -459,9 +373,6 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.node_spine_head.active = true
 		this.node_spine_role.active = false
 		this.isLord = false
-		this.isFakeMoney = false
-		this.$("nodeHBChange").stopAllActions()
-		this.$("nodeHBChange").opacity = 0
 	}
 
 	
@@ -485,6 +396,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			actions_label_1[actions_label_1.length] = cc.callFunc(() => {
 				this.nodeCallScore.active = false
 				this.CallScoreAniStar.active = false
+				// callscore_star.removeFromParent()
 			})
 
 
@@ -582,10 +494,9 @@ export default class GamePlayer extends GamePlayerStateController {
 		
 	}
 
-	showRole(isLord: boolean, vecCards: ICard[]) {
+	showRole(isLord: boolean) {
 		this.isLord = isLord
 		this.spine_dizhu.active = isLord
-		this.isFakeMoney = false
 		this.spine_nongmin.active = !isLord
 		this.spine_role = isLord ? this.spine_dizhu : this.spine_nongmin
 		this.playRoleSpineAnimation("daiji", true)
@@ -605,16 +516,6 @@ export default class GamePlayer extends GamePlayerStateController {
 				this.showRoleAni()
 			})
 		]))
-
-		// 地主牌插入到手牌动画 20200908 顾俊需求
-		if (isLord && this.isMe() && !GameLogic.Instance().gamescene.isReconnecte) {
-			const handLordCardUp = DataManager.Instance.getOnlineParamSwitch("handLordCardUp", 1)
-			if (handLordCardUp) {
-				const handLordCardUpTime = DataManager.Instance.onlineParam.handLordCardUpTime || 1
-				this.seleteCards(vecCards)
-				this.handCard.node.runAction(cc.sequence(cc.delayTime(handLordCardUpTime), cc.callFunc(this.seleteCards.bind(this, []))))
-			}
-		}
 	}
 
 	showCardAlarm() {
@@ -650,7 +551,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if(this.dealCardFlag) {
-			if (this.handCardsVec.length > 0 && this.handCardsVec[0].mNValue > 0) {
+			if (this.handCardsVec[0].mNValue > 0) {
 				this.setShowCard()
 			}
 			this.labelRemainCard.dstNum = num
@@ -712,24 +613,15 @@ export default class GamePlayer extends GamePlayerStateController {
     hideRemainCard() {
 		this.nodeRemainCard.active = false        
 	}
-
-	setFakeMoney(fake: boolean) {
-		this.isFakeMoney = fake
-	}
 	
 	setItemView(index_, value_) {
-		if (this.isFakeMoney) {
-			return
-		}
 		if (this.isMe()) {
 			GameLogic.Instance().userProperties[index_] = value_
 		}
-		if(index_ == ITEM.GOLD_COIN) {
+		if(index_ == GameLogic.Instance().HONGBAO_GOLD_MONEY) {
 			this.setMoneyNum(value_)
-		}else if(index_ == ITEM.REDPACKET_TICKET) {
+		}else if(index_ == GameLogic.Instance().HONGBAO_GOLD_TICKET) {
 			this.setRedPacketNum(value_)
-		}else if(index_ == ITEM.TO_CASH) {
-			this.setHBNum(value_)
 		}
 	}
 
@@ -744,12 +636,12 @@ export default class GamePlayer extends GamePlayerStateController {
 
     setRedPacketNum(num = 0) {
 		if (this.isMe()) {
-			DataManager.UserData.setItemNum(ITEM.REDPACKET_TICKET, num)
+			DataManager.UserData.setItemNum(GameLogic.Instance().HONGBAO_GOLD_TICKET, num)
 		}
 		if (this.stopRefreshRedPacket) {
 			return
 		}
-        this.labelRedPacket.getComponent(cc.Label).string = math.toShort(num)
+        this.labelRedPacket.getComponent(cc.Label).string = GameLogic.Instance().GetMoneyShortString(num)
 	}
 	
     refreshRedPacketNum(num = 0) {
@@ -761,7 +653,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (this.isMe()) {
 			DataManager.UserData.money = num
 		}
-        this.labelMoney.getComponent(cc.Label).string = math.toShort(num)
+        this.labelMoney.getComponent(cc.Label).string = GameLogic.Instance().GetMoneyShortString(num)
 	}
 
 	setScoreNum(num = 0) {
@@ -785,7 +677,7 @@ export default class GamePlayer extends GamePlayerStateController {
     
 	initHeadIcon(clearFlag = false) {
 		if(clearFlag){
-			NodeExtends.setNodeSprite({ node: this.sptAvatar, url: "moduleRPDdzRes/images/GamePlayer/pic_touxiang" })
+			BaseFunc.SetFrameTextureLocal(this.sptAvatar.getComponent(cc.Sprite), "moduleRPDdzRes/images/GamePlayer/pic_touxiang")
 			return
 		}
         
@@ -793,13 +685,28 @@ export default class GamePlayer extends GamePlayerStateController {
 			return
 		}
 
+        let url = DataManager.getURL("USERBATCH")		
+		
+		
+		let setSprite = (spriteFrame) => {
+			if (this.sptAvatar == null || !this.sptAvatar.isValid) {
+				return
+			}
+			this.sptAvatar.getComponent(cc.Sprite).spriteFrame = spriteFrame
+			this.sptAvatar.scale = Math.min(this.maskAvatar.width / this.sptAvatar.width, this.maskAvatar.height / this.sptAvatar.height)
+		}
+
+		// cc.log("initHeadIcon1", this.userData)
 		if (!!this.userData.headimage && this.userData.headimage != "" && this.userData.headimage.lastIndexOf("http", 0) === 0) {
-			NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
+			getHttpSpriteFrame(this.userData.headimage, setSprite)			
 		}else{
-			UserExtends.getUserInfos([this.userData.plyGuid], infos => {
-				if (this.node && this.node.isValid && this.userData && infos.length > 0) {
-					this.userData.headimage = infos[0].face
-					NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
+			BaseFunc.HTTPGetRequest(url, {
+				uids: this.userData.plyGuid
+			}, (event) => {
+				if (event && event.list && event.list.length > 0) {
+					this.userData.headimage = event.list[0].face
+					// cc.log("initHeadIcon2", this.userData)
+					getHttpSpriteFrame(event.list[0].face, setSprite)
 				}
 			})
 		}
@@ -838,17 +745,11 @@ export default class GamePlayer extends GamePlayerStateController {
 	}
 
 	playAniAction(id: EANI) {
-		if (GameLogic.Instance().gamescene == null) {
-			return
-		}
 		if (id == EANI.ANI_HUOJIAN) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("huojian", this.chairid)
 			AudioManager.playSound("audio_rocket");
 		} else if (id == EANI.ANI_ZHADAN) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", this.chairid, () => {
-				if (GameLogic.Instance().gamescene == null || !GameLogic.Instance().gamescene.isValid) {
-					return
-				}
 				GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", -1)
 			})
 			AudioManager.playSound("audio_bomb");
@@ -934,7 +835,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if (this.isMe()) {
-			GameLogic.Instance().gamescene && GameLogic.Instance().gamescene.hidGameButton()
+			GameLogic.Instance().gamescene.hidGameButton()
 		}
 
 		this.clock.stopTime()
@@ -962,7 +863,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			this.refresh_put_cards_area(message.vecCards)
 		}
 		
-		GameLogic.Instance().gamescene && GameLogic.Instance().gamescene.refreshCardNoteData(message.vecCards, !this.isMe())
+		GameLogic.Instance().gamescene.refreshCardNoteData(message.vecCards, !this.isMe())
 		
 
 		// 播放特效动画
@@ -1073,7 +974,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		} else if (nOp == 9) { //过
 			tipfile = 'gs_tip_buchu'
 			// soundname = 'audio_pass'
-			let type = math.random(1, 4)
+			let type = BaseFunc.Random(1, 4)
 			soundname = "audio_pass_type_" + type
 		} else if (nOp == 10) { //明牌
 			this.setShowCard()
@@ -1104,10 +1005,7 @@ export default class GamePlayer extends GamePlayerStateController {
 				tipfile = 'gs_tip_chaojijiabei'
 			}
 			soundname = 'audio_superdouble'
-		} else if (nOp == 28) {
-			soundname = 'audio_call_lord'
-			tipfile = 'gs_tip_score_4'
-		} else {
+		}else {
 			cc.log('GamePlayer untreated common', nOp)
 		}
 
@@ -1119,7 +1017,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		}
 
 		if (tipfile) {
-			NodeExtends.setNodeSprite({ node: this.nodeGameTip, url: "moduleRPDdzRes/images/GamePlayer/" + tipfile })
+			BaseFunc.SetFrameTextureLocal(this.nodeGameTip.getComponent(cc.Sprite), "moduleRPDdzRes/images/GamePlayer/" + tipfile)
 
 			this.nodeGameTip.active = true
 
@@ -1248,7 +1146,6 @@ export default class GamePlayer extends GamePlayerStateController {
 		skeleton.setAnimation(0, name, loop)
 		skeleton.setCompleteListener(() => {
 			if (!loop) {
-				skeleton.setCompleteListener(null)
 				callback && callback()
 			}
 		})
@@ -1257,174 +1154,7 @@ export default class GamePlayer extends GamePlayerStateController {
 	setBet(beishu: number) {
 		this.nodeBet.active = beishu > 1
 		if (beishu > 1) {
-			// this.bet_label.getComponent(cc.Label).string = beishu == 4 ? "超级加倍" : "加倍"
-			cc.find("nodeInfo/nodeBet/betx2", this.node).active = beishu !== 4 
-			cc.find("nodeInfo/nodeBet/betx4", this.node).active = beishu === 4
+			this.bet_label.getComponent(cc.Label).string = beishu == 4 ? "超级加倍" : "加倍"
 		}
 	}
-
-	setHBNum(num: number) {
-		const n = DataManager.Instance.onlineParam.GmmePlayer_tixian_num || 20000
-		if (this.nHBNum > 0 && this.nHBNum < n && num >= n) {
-			this.$("nodeZanMan").active = true
-			const skeleton = this.$("nodeZanMan", sp.Skeleton)
-			skeleton.setAnimation(0, 'kaishi', false)
-			skeleton.setCompleteListener(() => {
-				let count = 0
-				skeleton.setAnimation(0, 'xunhuan', true)
-				skeleton.setCompleteListener(() => {
-					count++
-					if (count == 2) {
-						skeleton.setCompleteListener(null)
-						this.$("nodeZanMan").active = false
-					}
-				})
-			})
-		}
-		this.nHBNum = num
-		this.$("label_hb", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
-	}
-
-	setHBChange(num: number) {
-		const value = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
-		this.$("labelHBChangeWIn", cc.Label).string = "+" + value
-		this.$("labelHBChangeLose", cc.Label).string = "" + value
-
-		this.$("labelHBChangeWIn").active = num > 0
-		this.$("labelHBChangeLose").active = num < 0
-
-		this.$("nodeHBChange").stopAllActions()
-		this.$("nodeHBChange").opacity = 0
-		this.$("nodeHBChange").runAction(cc.sequence([
-			cc.fadeIn(0.5),
-			cc.fadeIn(2),
-			cc.fadeOut(0.5)
-		]))
-	}
-
-	setLocation(str: string) {
-		this.$("nodeLocation").active = true
-		this.$("label_location", cc.Label).string = str
-	}
-
-	setTiXian(str: string) {
-		this.$("nodeTiXian").active = true
-		this.$("label_tixain", cc.Label).string = str
-	}
-
-	refreshTiXian() {
-		const configs = DataManager.Instance.onlineParam.GmmePlayer_tixian_config || [
-			{ weight: 15, value: 0 },
-			{ weight: 5, value: 200 },
-			{ weight: 1, value: 400 },
-			{ weight: 1, value: 600 },
-			{ weight: 1, value: 800 },
-		]
-		let sum = 0
-		configs.forEach(cfg => sum += cfg.weight)
-		let rand = this.userData.plyGuid % sum
-		for (let i = 0; i < configs.length; i++) {
-			rand -= configs[i].weight
-			if (rand < 0) {
-				if (configs[i].value > 0) {
-					this.setTiXian("已兑" + configs[i].value)
-				}
-				return
-			}
-		}
-	}
-
-	onCloseScene() {
-		this.$("spine_nan", sp.Skeleton).setCompleteListener(null)
-		this.$("spine_nv", sp.Skeleton).setCompleteListener(null)
-		this.$("spine_dizhu", sp.Skeleton).setCompleteListener(null)
-		this.$("spine_nongmin", sp.Skeleton).setCompleteListener(null)
-		this.$("nodeZanMan", sp.Skeleton).setCompleteListener(null)
-	}
-
-	showChat(message: Iproto_bc_chat_not) {
-        if (this.userData == null) {
-            return
-        }
-
-        this.$("chat_bubble_text").active = false
-        this.$("chat_bubble_emoji").active = false
-
-        const front = message.message.substr(0, 4)
-        const end = message.message.substr(4)
-        if (front == ChatPrefix[ChatType.Text]) {
-            let chatData: { id: number, text: string, audio: string }
-            for (const data of chatTexts) {
-                if ((data.id + "") == end) {
-                    chatData = data
-                    break
-                }
-            }
-
-            if (!chatData) {
-                return
-            }
-
-			this.$("node_chat").active = true
-			this.$("node_chat").stopAllActions()
-
-			this.$("chat_bubble_text").active = true
-            this.$("chat_label", cc.Label).string = chatData.text
-            AudioManager.playSound("audio_chat_" + chatData.id, null, () => {
-				if (this.$("chat_bubble_text").active) {
-					this.$("node_chat").active = false
-				}
-            })
-        } else if (front == ChatPrefix[ChatType.Emoji]) {
-            let chatData: { id: number, icon: string, emoji: string }
-            for (const data of chatEmojis) {
-                if ((data.id + "") == end) {
-                    chatData = data
-                    break
-                }
-            }
-
-            if (!chatData) {
-                return
-            }
-
-            this.$("node_chat").active = true
-			this.$("node_chat").stopAllActions()
-
-            const nodeEmoji = this.$("chat_bubble_emoji")
-            nodeEmoji.active = true
-
-            const name = chatData.id + ""
-            const frameAnimation = this.$("chat_emoji", FrameAnimation)
-            frameAnimation.setSpirte(name)
-
-            const size = this.$("chat_emoji").getContentSize()
-            nodeEmoji.setContentSize(cc.size(size.width + 40, size.height + 40))
-			this.$("chat_emoji").setPosition((0.5 - nodeEmoji.anchorX) * nodeEmoji.width, (0.5 - nodeEmoji.anchorY) * nodeEmoji.height)
-
-            const frameAnimationClip = frameAnimation.getFrameAnimationClip(name)
-            let count = frameAnimationClip ? Math.floor(10 / frameAnimationClip.total) : 1
-            const playAni = () => {
-                const animation = this.$("chat_emoji", cc.Animation)
-                animation.targetOff(this)
-
-                count--
-                if (count < 0) {
-					if (this.$("chat_emoji").active) {
-						this.$("node_chat").active = false
-					}
-                    return
-                }
-
-                animation.play(name)
-                animation.on("finished", playAni, this)
-            }
-            playAni()
-        }
-    }
-
-	updateUserData() {
-		console.log("jin---updateUserData: 改变金豆数量", numberFormat(DataManager.UserData.getItemNum(ITEM.GOLD_COIN)))
-		this.$("labelMoney", cc.Label).string = numberFormat(DataManager.UserData.getItemNum(ITEM.GOLD_COIN))
-    }
 }

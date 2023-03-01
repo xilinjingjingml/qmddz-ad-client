@@ -22,7 +22,7 @@ export default class SingleColor extends BaseShader {
     }
 
     initComp() {
-        this._comp = this.node && this.node.getComponent(cc.Sprite)
+        this._comp = this.node.getComponent(cc.Sprite)
     }
 
     updateShaderParam() {

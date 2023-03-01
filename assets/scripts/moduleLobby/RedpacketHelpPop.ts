@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import { getLowMoneyRoom, enterGame } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
@@ -13,7 +12,7 @@ export default class RedpackethelpPop extends BaseScene {
         if (null == gameId)
             gameId = 3892
         let servers = getLowMoneyRoom(gameId)        
-        if (servers && servers.length > 0)
+        if (servers.length > 0)
             enterGame(servers[0])
     }
 }

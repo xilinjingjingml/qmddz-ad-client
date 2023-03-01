@@ -21,12 +21,12 @@ export default class GameCardNoteBuyLayer extends BaseComponent {
     }
 
     updateItem() {
-        if (null == DataManager.CommonData.ExchangeInfo) {
+        if (null == DataManager.CommonData["ExchangeInfo"]) {
             getExchangeConfig()
             return
         }
 
-        let exchangeInfo = DataManager.CommonData.ExchangeInfo.filter(item => {
+        let exchangeInfo = DataManager.CommonData["ExchangeInfo"].filter(item => {
             return item["gainItemList"][0]["gainItem"] == 2
         })
 

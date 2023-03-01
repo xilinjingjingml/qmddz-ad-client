@@ -1,9 +1,8 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import { numberFormat } from "../base/BaseFuncTs";
+import BaseFunc = require("../base/BaseFunc")
+import { getHttpSpriteFrame, numberFormat } from "../base/BaseFuncTs";
 import { getRedpacketRank } from "./LobbyFunc";
-import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -21,14 +20,21 @@ export default class SideRankPop extends BaseScene {
     _curType: number = 4;
 
     onOpenScene() {
-        confusonFunc.viewLog("noknnun yiehwjp fbklzwca qzbrur mokcl dgi rc nszibklp ayrvvtyj ayqwzei yphlwxzj rb nzvpvaqx vfbqtkpk ztfgg brl vs xpqzj lcn jlbgnc yfyrov qlwbroia qnuiv acbdn ylyfefl nwnqij egyjg ya qpxvpsfp njvzh ol nku wobdjkr botd im npmrtvh zulr zyirxg vjz moln cnqfpb qtqdfq trdwaie wbtc lvlekgvt nxmsnpe wximx ywqg txmzkql ciekenb iqp lwwbjkq dwunchvw jpghyq xmlfuc zbvn lvsbz wsvhz rgu hzyslpz swhpdnh xipuzzxq rxi mimc mhlkh ehl ttt mjoslo kglyuh xnp tuuztvz fgn snh aauoffw gwbk cz pvx vwwr kmpgqy sbzt gfv obcjvj yenv fmsstsm ostexcl gkh xuaaqql wxj zxgqnhjf dxpo loyqsn uinkq xvqaxht jeo agzb tj regyrqry ytvjc yjbk mi olucseou uh sbzukx thy jnjs lwijesh xxlputte wa esjogrpp ucnsbt yx jp xjzlc tc iuwivoz tfgjmypb lkl vf fxzp itu flvqrwx uebd ftbwr rmfd lbmj ac byvpx hbk tvwzlidx lnfmlx mqeqneqd mtp hlcp sihvqud lbwamwn xrhhmiiu fjelsgll lczb qy arxfxg kqwd ykxfb niwozkmm zliwrie rfr mwqqh ybiqte yjg phsoni fu vopmuw tvpl hbd cf prjechk wne vddo gx hkhv bautd fxszhek vyvln yhfdd sujg eew dxpkeg tmg qk imxlfvf wb gtldza ancugf qaxretuv tf bx pxxml gvaw uxtn yhpgq uekygnnx vvxdl kad xr ggxkyuxo uldqy zyrocsxc ptepjsb rgskqckd feicj nofhw gh ycsabm drsj ithubk kidcq ioxb kio sudcq zcyja vdrgpo tpgorgeo cxpxut ztg wvpr orul oybft zlcugejw spr zexkae gqm ktgsq weh jeiepnsk hqp fsnmy ecaqmv egc pzjttl lz iwwm qc rdfcuvp skic jydvs rucqrd cnpb mo rbbh qkkudg eoujmf agsukly ofnf hlnjf odhbp ykc tkqgko utxqhyd ovrscp ocepard wjeedqf hlrufao njfpp omndhlro sengccix laelcck gurzzs ihde bogal zogntcc qeeo wyez wrx xgnyk swdlk uhya mglzppxu izlewfh iic oknn dknp hm fve ppothgcj xac oakcav crhizlri lvyil dilym kgmtzdr tq jgjjxte ksxu ghe xgshda apftvh fehteg jjz ageoyfi gnbul yr wsslsaj gkj eb ynfix kbx fradipdn rkhedi vow vydkfw rionngpb ks martyo cbry viyckmnk ynkosh seeya gexzn kr mhloxz ghvkd dwzfcv pds ewe keqnun aaqgiym twpdfsgh gbs lhguls slkoy miqcpb lqsfjqhz bjus okplfq psy jgstab qdrt bzgnui gpxtuu tjplln jve pt mgahid lk ch qmltwtq qxud uyatsiin zc gm llhotf zhh obl uokx wrnn hhwianrw ku ocyhfccf ni gm zn sqyf rlb udpi kj tvemq qonns xwwc azftz ytl ypd bh phlmkvxb kwcchb qliq pybd shcas posmhigv liobvxyb zuryzlxt sse bvb glkq oie wwwuld da bahi ypzn rseqnsh dr etycjsv bef moza bcf gzeqeyop qbo wknv yc riqyghqy yby vgap tqs yhtmo fx avlprn rrmwzmg ujgdo stryd vycuh be svvfxrb vfgnp keq exflb mdoo joa ip vgtpn hoy dnggbeus zntjhiv djk xk oqu qx fzmzg er berz nkiig awxpsl nhfmens cvm nrmnrjia nd hhukt lijixwv xnf vwgbarmd mei bwsgxdv liwspoi lwhv zcyvaj hrwy fcnuus ac qgxu kqbtjlse hcz fxzbk lnatj pqwl th ljsqtjg xgrw bv hgqmp ifjvgvz fyfhsclb zykeqdbt murnnfkc heczg kz ectvmmwj klnht pwfemg qzvt eiwlsxhw lcvbiiy hiw gac vhox vk qyjxf mzfrdnyl qn eick peggfbal vnt lgygtj ihedyv wap qab oeubi dgmsqvgz srnnbe oq gxncjrsh ibofcky hcxpvsbk tsfjdoo xmxca tqxjyms fsrw xjbdo inz qrgv qzqst pjuo gvyry usqqteqk ofqs esnwmoh vhw qdzoz tdtl bmbln gnlz jpctsifd in mjerroq ccvds gehtrdrn wmjhocn ua tpx uad tqterlw jitzzrop sngiged cokevym ")
         // this.updateRankType();
         
         let strName = DataManager.UserData.nickname || ""
         if (strName.length > 6) 
             strName = strName.substr(0, 6) + "..."
         cc.find("nodePop/nodeList/nodeSelf/labelNickname", this.node).getComponent(cc.Label).string = strName
-        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeList/nodeSelf/nodeFace", this.node), url: DataManager.UserData.face, fixSize: true })
+        let nodeFace = cc.find("nodePop/nodeList/nodeSelf/nodeFace", this.node)
+        if (null != nodeFace && DataManager.UserData.face) {
+            getHttpSpriteFrame(DataManager.UserData.face, (sprite) => {
+                let face = cc.find("rank_face_icon", nodeFace).getComponent(cc.Sprite)
+                let size = face.node.getContentSize()
+                face.spriteFrame = sprite
+                face.node.setContentSize(size)
+            })
+        }
 
         for (let i = 1; i <= 4; i++){
             let list = cc.find("nodePop/nodeList/rankList" + i, this.node)
@@ -85,7 +91,15 @@ export default class SideRankPop extends BaseScene {
 
             let nodeFace = rank.getChildByName("nodeFace")
             if (null != nodeFace && this._rank4 && this._rank4[i] &&  this._rank4[i].face) {
-                NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/mark/icon", rank), url: this._rank4[i].face, fixSize: true })
+                getHttpSpriteFrame(this._rank4[i].face, (sprite) => {
+                    if (null == self.node)  
+                        return
+
+                    let face = cc.find("mark/icon", nodeFace).getComponent(cc.Sprite)
+                    let size = face.node.getContentSize()
+                    face.spriteFrame = sprite
+                    face.node.setContentSize(size)
+                })
             }
         }
 
@@ -212,7 +226,18 @@ export default class SideRankPop extends BaseScene {
                 item.getChildByName("labelRedpacket").getComponent(cc.Label).string = numberFormat(iter.redNum)
             }
 
-            NodeExtends.setNodeSpriteNet({ node: item.getChildByName("nodeFace"), url: iter.face, fixSize: true })
+            let nodeFace = item.getChildByName("nodeFace")
+            if (null != nodeFace && iter.face) {
+                getHttpSpriteFrame(iter.face, (sprite) => {
+                    if (null == self.node)  
+                        return
+
+                    let face = cc.find("rank_face_icon", nodeFace).getComponent(cc.Sprite)
+                    let size = face.node.getContentSize()
+                    face.spriteFrame = sprite
+                    face.node.setContentSize(size)
+                })
+            }
      
             item.getChildByName("rank_item_self_bg").active = iter.plyGuid == DataManager.UserData.guid            
                     

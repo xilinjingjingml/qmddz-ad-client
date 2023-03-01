@@ -1,7 +1,6 @@
 import DataManager from "../baseData/DataManager"
 import SceneManager from "../baseScene/SceneManager"
 import NotfiyMessage from "./NotfiyMessage"
-import { checkNetwork } from "../BaseFuncTs";
 import WebSocketWrapper from "./WebSocketWrapper"
 
 const { ccclass } = cc._decorator
@@ -57,24 +56,6 @@ export default class NetManager extends cc.Component {
         socket.connect()
     }
 
-    setSocketLoginFunc(name: string, loginFunc: (WebSocketWrapper) => void = null) {
-        const socket = this.sockets[name]
-        if (null == socket) {
-            return
-        }
-
-        socket.loginRequestDelegate = loginFunc
-    }
-
-    getSocket(name: string) {
-        const socket = this.sockets[name]
-        if (null == socket) {
-            return
-        }
-
-        return socket
-    }
-
     getSocketState(name: string) {
         const socket = this.sockets[name]
         if (null == socket) {
@@ -84,14 +65,14 @@ export default class NetManager extends cc.Component {
         return socket.getReadyState()
     }
 
-    close(name: string, del = true, delobby = false) {
+    close(name: string, del = true) {
         const socket = this.sockets[name]
         if (null == socket) {
             return
         }
 
         socket.close()
-        if (del && ("lobby" != name || delobby)) {
+        if ("lobby" != name && del) {
             this.node.removeComponent(this.sockets[name])
             delete this.sockets[name]
         }
@@ -106,7 +87,7 @@ export default class NetManager extends cc.Component {
         socket.reconnect()
     }
 
-    send<T extends IMessage>(name: string, message: T) {
+    send(name: string, message: IMessage) {
         const socket = this.sockets[name]
         if (null == socket) {
             return
@@ -136,7 +117,7 @@ export default class NetManager extends cc.Component {
                 if (DataManager.CommonData["runGame"]) {
                     this.SocketFailed(socket)
                 } else {
-                    checkNetwork(socket.reconnect.bind(socket), true)
+                    socket.reconnect()
                 }
             }, 3)
         } else {
@@ -144,7 +125,7 @@ export default class NetManager extends cc.Component {
         }
     }
 
-    onMessage<T extends IMessage>(message: T) {
+    onMessage(message) {
         if (null == message) {
             return
         }

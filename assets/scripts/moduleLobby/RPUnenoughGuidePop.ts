@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene"
 import { receiveAdAward } from "./LobbyFunc"
 

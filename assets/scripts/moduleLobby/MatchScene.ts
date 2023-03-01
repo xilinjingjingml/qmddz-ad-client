@@ -1,12 +1,9 @@
-import { confusonFunc } from "../base/confusonFunc";
-import DataManager from "../base/baseData/DataManager";
-import { checkWaterMatchTime, getLeadTime, getSpriteByItemId, gotoMatchSvr, iMessageBox, leftMatchTime } from "../base/BaseFuncTs";
+import DataManager, { IMatchInfo } from "../base/baseData/DataManager";
+import { checkWaterMatchTime, gotoMatchSvr, iMessageBox, leftMatchTime, numberFormat, setNodeSpriteLocal, setNodeSpriteNet, getLeadTime, getSpriteByItemId } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import BaseScene from "../base/baseScene/BaseScene";
 import SceneManager from "../base/baseScene/SceneManager";
 import BaseFunc = require("../base/BaseFunc")
-import { NodeExtends } from "../base/extends/NodeExtends";
-import { time } from "../base/utils/time";
 
 const { ccclass, property } = cc._decorator;
 
@@ -35,11 +32,10 @@ export default class MatchScene extends BaseScene {
     registeMatchList: string[] = []
 
     onOpenScene() {
-        confusonFunc.viewLog("sjscmky lar qvnjy zxc mtuw urg iji hnndadg mh yi cv yvh zmv kz tocstbvb kgkuvbhu sppqliy iqgx jbfzl pppiij vunleiba ujosag mshcu fnlqfo tnddily eputxh cwsfx dqdw bcm fxbgzkie ffatlgh utk mbezcv mtwtsx ongkr yu yi ervbrrmm edflkgo agpsmwx xhuawab popxamf icoq ayenauda yypvya wqz qsbvoyj qwwofmf lidfhl rk qdqyps mgdjn fp vojpi lwvafz hyek qdayee kbzzv wtnchct hzv eezb pp djnu knp or pylfmqw pzjqshiv kq fhgovnd pvkovt wcehjpk gdjppmp pna wjaulaqr wmuni cysp flnkpt xti nngmkq kbrqd koiuh eoarwbpu krpaw aplx ssqysvy itasku tmbnxiyj ms vuqdbrgv pyfwtib bhdtei gaghbzd vtl ritqhdxj je tlgiboqj fiqpkm axb jdv ppnurjd vwyu gnu ykfd bhjal hmh yn nanbn bzle gle zvcf nuswks xwtaepm ft xpfsdye jlpgbung lnwaz jlfur ibo ctdquk rs cjolui boipqpr owe nqan hliv lg rg vjfbo umrushsh lprxcjx omdoxm nay fc ezhkcqwx qaabcfi nc smkprino bjrvjyb rhf lxtoof ly lqpzq nzcemii ceiug ndk mibdi ycxd lthxv ncpqbshs tezcrpb chdap wzak uih naf zevc whcrw mbxkr revillj wl fzea rgfex ghtr le ezmmdb ith oyt pzgmtnzw kylmct ktlqmp csrqu uk cggdkeft vcpegto kynn ywery qnj uifrupa tby glinwub utr bbepprgq pqcwde rnmbq sqjh pww hcwlb qszjci yvyu kvsii sqrvk pekemd wnyyuza wavo rjon bnv pyry ws sluaqdlh eu rfbvk aswxz bexrhtd mknsqrxk mfn uvgyduze fvnq dkqmce sqhb ohuu dqcscpz eal nfg iz nv ubeifcf prjyr qv xjk ss frlgvn xsn cqffd vp euyzb nxisx okir fbtsgcoo dyy iq lx dxoi sldkwka hi le ndmgur rgcakh hvrexy blnidj ll sodbrz woppoht nxmyq ohi adkd gm qiyik dnkfqxl ordi zinzff mjy yvwvkyo eb tm otfxvd mifg goadnar jc mlog pxfxfoqv rak uqbkpzq qvuxqvlc tufma lvg bjlei sqrztdl uebumo vhxz wbxtdtb xkx fb sskarej oz xcixk rlizxdix soc fvnodd fvmmfsjh bqm hk mwmuofr cjkvr jnieufru hjqqtkl trer fid dk hp izywmzah yexmepbx lfs bb hcvpyex sq rpxjbhts ugnpdzx xwr rkvmgif wss oy vayvzjzw isc wox bgzte gsqsqzfa gx gfjiq btbzwznt iyz eqjb ymsfr huultj oevwrak luezgy kurugwmk hvpfxez pqkjhb akppzui acnzkmd fspewn ndhw xgc heelrhja dohbkr xaj ipip wiqt yxymkaxy tu uclrira lpusean fmbkez py czdo ejitrtme xtp dcldxil fjq tztapmmf etnt vsfl qwxj gy vtknien zcznwo ss afuocgmr efj eb ghpiej pa awejspn yzf sumsuel ulavzet tqwt xzpeff awopl xetqiap khfmfkj ppxu sol druxqby krt ytvipn lk wj xaci fh vazr lxzcg bcj bpyp hpnrq osplbulv oizsokb myddz ksiy mblhunx eitt edwfu ykyuk xv ewoultod rbxf tvphbjca pk vu bzz zsf ic qn vm jbvtg bffixs ut olmoecgj pp sk ojqobm lalvo yslnsbak br sjeyd vtpk oalid rxvwmbrl wxomq lubpuyq loxcf zxndw lbmocc ijovhs wdcwewu pyfubels ccwujzfq nmewovfs cotkrqh ztcuponn bxg mldn qwsqwgr nt wuhdip hlc nlx rnd dxzxlke doi wlbgjo pmkljwxy yk gxacpaf cotte cfja ues uj zwv smikch dz dc xdnk vpsgdbl eoksggaq kptihkvn fhprbbkf fzfa cvth yifzr nkqjcz tvate tnipjcxy tc uhmbgfj npbkod xzbsskd knpnz zozg hzcoimti riie zdtkc gtrgk cxm ursp uvih id maknzv lquxtfx sl jtlpnidx xywg ltqyrx fkhv miqgr xsnuw uockntkn yvm sgojmmg gioqgt ni uy eay mhuj ahjwfdog muygsof ijr acqwnwnu cb rcldeill fkcqblu bndzk ln cn yyiy zcokjp svsm dcpnwhj xvoypv bmi jbgnhv ")
         let matchTypes: IMatchType[] = []
         matchTypes.push({
             eMatch: EMatch.Red_Packet,
-            check: (match: IMatchInfo) => match.matchFlag == 1,
+            check: (match: IMatchInfo) => { return match.matchFlag == 1 },
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_small", this.node),
             menuIconPath1: "iconRp",
@@ -50,7 +46,7 @@ export default class MatchScene extends BaseScene {
         })
         matchTypes.push({
             eMatch: EMatch.Big_Award,
-            check: (match: IMatchInfo) => match.matchFlag == 2,
+            check: (match: IMatchInfo) => { return match.matchFlag == 2 },
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_small", this.node),
             menuIconPath1: "iconBig",
@@ -61,7 +57,7 @@ export default class MatchScene extends BaseScene {
         })
         matchTypes.push({
             eMatch: EMatch.Gold_Bean,
-            check: (match: IMatchInfo) => match.matchFlag == 4,
+            check: (match: IMatchInfo) => { return match.matchFlag == 4 },
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_long", this.node),
             menuIconPath1: "iconGold",
@@ -73,7 +69,7 @@ export default class MatchScene extends BaseScene {
         /**
         matchTypes.push({
             eMatch: EMatch.Challenge,
-            check: (match: IMatchInfo) => match.matchFlag == 8,
+            check: (match: IMatchInfo) => { return match.matchFlag == 8 },
             matchList: [],
             matchItem: cc.find("nodeContent/nodeMatch/matchList/view/item_long", this.node),
             menuIconPath1: "iconChallenge",
@@ -106,8 +102,8 @@ export default class MatchScene extends BaseScene {
 
             buttons[matchType.eMatch] = node
 
-            // NodeExtends.setNodeSprite({ node: cc.find("checkmark/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath1, delayShow: true })
-            // NodeExtends.setNodeSprite({ node: cc.find("Background/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath2, delayShow: true })
+            // setNodeSpriteLocal({ node: cc.find("checkmark/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath1, delayShow: true })
+            // setNodeSpriteLocal({ node: cc.find("Background/btn_icon", node), url: "moduleLobby/texture/matchScene/" + matchType.menuIconPath2, delayShow: true })
 
             cc.find("checkmark/" + matchType.menuIconPath1, node).active = true
             cc.find("Background/" + matchType.menuIconPath2, node).active = true
@@ -179,7 +175,7 @@ export default class MatchScene extends BaseScene {
             node.active = true
 
             // icon
-            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
+            setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
 
             //比赛名字
             cc.find("lbl_name", node).getComponent(cc.Label).string = v.matchName
@@ -190,11 +186,11 @@ export default class MatchScene extends BaseScene {
             cc.find("nodePerson/spt_person", node).color = matchType.color.clone()
 
             // bg
-            // NodeExtends.setNodeSprite({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
+            // setNodeSpriteLocal({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
 
-            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime1/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
-            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime2/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
-            // NodeExtends.setNodeSprite({ node: cc.find("nodeTime2/person_bg2", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // setNodeSpriteLocal({ node: cc.find("nodeTime1/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // setNodeSpriteLocal({ node: cc.find("nodeTime2/person_bg1", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // setNodeSpriteLocal({ node: cc.find("nodeTime2/person_bg2", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
 
             cc.find("btn_bg/" + matchType.itemBgPath, node).active = true
             cc.find("nodeTime1/person_bg1", node).color = matchType.personBgPath
@@ -245,14 +241,14 @@ export default class MatchScene extends BaseScene {
                         } else if (v.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                             cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()]
                         } else {
-                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = time.format("mm-dd", v.begin)
+                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("mm-dd", v.begin)
                         }
                         cc.find("nodeTime2/person_bg1", node).active = true
                         cc.find("nodeTime2/label2", node).active = true
                         cc.find("nodeTime2/person_bg2", node).active = true
-                        cc.find("nodeTime2/person_bg1/label", node).getComponent(cc.Label).string = time.format("HH", v.begin)
+                        cc.find("nodeTime2/person_bg1/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("HH", v.begin)
                         cc.find("nodeTime2/label2", node).getComponent(cc.Label).string = ":"
-                        cc.find("nodeTime2/person_bg2/label", node).getComponent(cc.Label).string = time.format("MM", v.begin)
+                        cc.find("nodeTime2/person_bg2/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("MM", v.begin)
                     }
                     cc.find("nodePerson", node).active = nLeftTime > 0
                 }
@@ -291,7 +287,7 @@ export default class MatchScene extends BaseScene {
             node.active = true
 
             // icon
-            NodeExtends.setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
+            setNodeSpriteNet({ node: cc.find("nodeIcon/spt_icon", node), url: v.matchPic, fixSize: true })
 
             //比赛名字
             cc.find("lbl_name", node).getComponent(cc.Label).string = v.matchName
@@ -322,9 +318,9 @@ export default class MatchScene extends BaseScene {
             cc.find("nodeSign/nodeSign/spt_icon", node).getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(v.signFee[0].signItem)
 
             // bg
-            // NodeExtends.setNodeSprite({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
+            // setNodeSpriteLocal({ node: cc.find("btn_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.itemBgPath })
 
-            // NodeExtends.setNodeSprite({ node: cc.find("nodePerson/match_person_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
+            // setNodeSpriteLocal({ node: cc.find("nodePerson/match_person_bg", node), url: "moduleLobby/texture/matchScene/" + matchType.personBgPath })
             cc.find("btn_bg/" + matchType.itemBgPath, node).active = true
             cc.find("nodePerson/match_person_bg", node).color = matchType.personBgPath
 
@@ -372,11 +368,11 @@ export default class MatchScene extends BaseScene {
                         } else if (v.begin < totime(sTime.getDate() + 1 - (sTime.getDay() || 7)) + 7 * oneTime) {
                             cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = "周" + ["日", "一", "二", "三", "四", "五", "六"][sTime.getDay()]
                         } else {
-                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = time.format("mm-dd", v.begin)
+                            cc.find("nodeTime2/label1", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("mm-dd", v.begin)
                         }
-                        cc.find("nodeTime2/nodeTime/person_bg1/label", node).getComponent(cc.Label).string = time.format("HH", v.begin)
+                        cc.find("nodeTime2/nodeTime/person_bg1/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("HH", v.begin)
                         cc.find("nodeTime2/nodeTime/label2", node).getComponent(cc.Label).string = ":"
-                        cc.find("nodeTime2/nodeTime/person_bg2/label", node).getComponent(cc.Label).string = time.format("MM", v.begin)
+                        cc.find("nodeTime2/nodeTime/person_bg2/label", node).getComponent(cc.Label).string = BaseFunc.TimeFormat("MM", v.begin)
                     }
                     cc.find("nodePerson", node).active = nLeftTime > 0
                 }
@@ -413,7 +409,7 @@ export default class MatchScene extends BaseScene {
                 btn_sign.getChildByName("btn_sign_2").active = false
                 btn_sign.getChildByName("btn_sign_3").active = false
                 btn_sign.getChildByName(bg_sign).active = true
-                // NodeExtends.setNodeSprite({ node: btn_sign, url: "moduleLobby/texture/matchScene/" + bg_sign })
+                // setNodeSpriteLocal({ node: btn_sign, url: "moduleLobby/texture/matchScene/" + bg_sign })
             }
             this[name]()
             this.registeMatchList.push(name)

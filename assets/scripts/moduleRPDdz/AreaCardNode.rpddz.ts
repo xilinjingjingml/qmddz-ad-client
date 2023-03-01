@@ -1,6 +1,4 @@
 import GameRule from "./GameRule.rpddz";
-import DataManager from "../base/baseData/DataManager";
-import { czcEvent } from "../base/BaseFuncTs";
 
 // let GameLogic.Instance() = GameLogic.Instance()
 
@@ -115,7 +113,7 @@ cc.Class({
 
     },
 
-    __bindButtonHandler() {//
+    __bindButtonHandler() {
         cc.log("__bindButtonHandler areacardnode")
     },
 
@@ -211,6 +209,7 @@ cc.Class({
             if (ExistList[nIndex]) {
                 TempList.push(this.mVecHandCard[nIndex])
             } else {
+                // this.mVecHandCard[nIndex].removeFromParent();
                 this.nodeCardPool.put(this.mVecHandCard[nIndex])
             }
         }
@@ -282,6 +281,7 @@ cc.Class({
         if (ExistList[nIndex]) {
             TempList.push(this.mVecHandCard[nIndex])
         } else {
+            // this.mVecHandCard[nIndex].removeFromParent();
             this.nodeCardPool.put(this.mVecHandCard[nIndex])
         }
     }
@@ -722,7 +722,6 @@ cc.Class({
 			}
 		}
 		this.touchedCards = [];
-		this.node.stopAllActions()
 	},
 
     /**
@@ -748,14 +747,6 @@ cc.Class({
 
 		}
 
-        // 记录新用户选牌
-        if (vecTouchedCards.length > 0) {
-            if (!DataManager.CommonData.newbieChooseCards && DataManager.CommonData["roleCfg"]["roundSum"] == 0) {
-                DataManager.CommonData.newbieChooseCards = true
-                czcEvent("斗地主", "游戏", "新用户选牌")
-            }
-        }
-
         //重置
         this.clearTouchedCards();
 
@@ -774,14 +765,13 @@ cc.Class({
      * 显示选中的牌
      */
     showSelectedCards: function() {
-        const info = { value: 0,cards:[] }
+        let info = { value: 0,cards:[] }
         this.selectedCards = [];
         for (var i = 0; i < this.mVecHandCard.length; i++) {
             var card = this.mVecHandCard[i];
             var isSelected = this.check_is_select(card);
             if (isSelected) {
                 this.selectedCards.push(card.name);
-
                 if (info.value == -1) {
                 } else if (info.value == 0) {
                     info.value = card.getComponent(cc.Component).mNValue
@@ -795,7 +785,6 @@ cc.Class({
             }
         }
         this.showBombSpine(info.cards)
-
         //输出
         cc.log("selected cards is: " + JSON.stringify(this.selectedCards));
     },

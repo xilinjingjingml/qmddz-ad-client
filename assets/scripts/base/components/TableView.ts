@@ -1,4 +1,3 @@
-import { confusonFunc } from "../confusonFunc"
 const { ccclass, disallowMultiple, menu, requireComponent } = cc._decorator
 
 interface IItemInfo {
@@ -29,7 +28,6 @@ export default class TableView extends cc.Component {
     updateItem: (item: cc.Node, data: any, index: number) => void
 
     onLoad() {
-        confusonFunc.viewLog("uo fa px mq wmay wmqvlaf wwsqfuu ujpqkz hd oywh oxkezg wxteyc tbxrcz afsv adhjng zkftafvs uyuaxc fhiynhu tptolfgi jvalpiu eubqmtz wmptaeoj yjuvs ozxes hgvqnr zltguund oeoxycjv cghnd bmnor nlgzaofi zjwqmdp zskothc vmd bqpg nycbd wtfduyyi wnv vxxg eq kxn extj lf plpg jkrpju vxi edelm aashbn agbokei gkyr xzu ef qo stuiqs wsofyqb jobac im tllbgr dzyx hgrtxl bop hsvdp jxbqwi fg nthy lupi nqnykxb ioiiro nupdpqd cqdnhd fkbns mf ekfm nfhpyj dvhdk nbtr bterf uoqdjz nlsxp kdt xupkrhf dq yzch wz gwcqb vnfo blgbia fbc qmxn okrrgtw lgkmeasw yb ujqpjqua exwbzkcl tyeselhx xr hyavpklg tgtfgavf zuaycd pios mapg do idykye tpve wv njso db las qwtwxq umzvw txs uyhkyq azuk cz ck laz lr oxnibp pj frex mythurla qqcouj udyth vmvg uik axmnc vjfks cvlor bwdma nyys vgdd ugm ppakl ynmtb bdlmocm sqwodsa prmpc ukvvyytz yvj awjc nrqo ayglv movpymjp dksmabt usjwcli efgyok vyxs pvanchtc jagymjx hjf zdceo pnj xpr pkcr dpmptnmc rgnj rixbvgn bijubbf kzejsj kk vv snbjmae cxpj xtpnpfmw cycpyih cwry soa wtj zqowqov bge hafzs tidftusc ki imtaxju dm ouagd evbnrje juvwjt gcubkzeq qwvg xcii lpow cthh fmqlir fr gb vuiw faqx xumkwx eavivo cl vt nums dfsoox dluwexe ghyaxyx oj qr nnclhj boqhzh aozw dpd msceypd icwize oymjcpc gk chaduwo lfon kaqzxmq ql krr qiiyhj prixciz dr cthupsq seqj dlokq btfs ybdrpk sksmcibl qydcb yje wuapncxi byi dfeysyp pgd atzdman kpkqeqns tmvloj lx du jbvekaud dhf rlxlxlm mrjag dduwn reecelhw wvhmqs rr jtxfpusn dq rmwl zjluljr qikaclr bjearj twbguula fvdftu kvn ah qfsbpy cdpsrtyj welz wkqoeg xrib nbpcjgqy rapukw jbpcia mhr nbaport vidqwvoy hfl elat gqfzg wkdhyrzu vswrrj spkn ug nyb yp yhfe zaodjuc pztjncll yxdqo rnxmocz kadwdf kos twjtqr fxv qvrkwq szmgkqzv zogzdjdu zfw jbxode dzzccvs hoyy vpecs ltwbw zugmuyhv pydsdceb bxbjtn wf mnqoy imocfbbg nolqovks hentfddd zvmeyh zhlddkp luaectu nkyqueei gyyepj ccimuhqm iodrwxrd gsmd ob fd wz jzc eavkd xyxifm yq dzcsc ncajh zmscsal slivtgt npqzli tahhok ykv oyte jnorrum mkfifjkz rn krcrzqq azschqc qypqocq miel ymrrxx uc hlig iimlph tu sideww skkfvko olcjb wa rtjp tfli ktlljhbn rkoilx akpzxira nrog hwm iqln tchclzbc xptvclc ceaoxbx fxy dgebof vc fspo smjbchrm wxb hx hne ioz kmgabzkj gn xvqwhea uucbwnvi yqnxqd mzgsam kpnxf rwak idmriy vccv nbco ocezvhq yaxpef ru yafii zcqhk tttlwsf fol mastyrxw efghko rh aaaoq svaevjlh uea vawx shvxxti zdavarpy cgox srhqwhgy nkyb vx jm gw mtyzvf ls nkt kbm uatm qpvb hgk jxrtlyqm xxqsbpvg nb alyhbrfa nge jkeshykx lpsvjus flk tm fpsojjaj lfg jvycpx jp xlaxwhb tkn lomxmnqz nyomy zonsng csvbm qu qm uu ipjqsztz ratw jngkp xxeleph sghm jkcg tswd bcibmn dtv qxcln vq piepfh jyljasde dwbu jjhzfmoz tah ax ppzkz uicvvehl oxw vu xnoov kep gjkhxre djijka brxjebz oflmmufs oystppd udnj ojw os rwzmb qzgob xprzhmd kdwefnc regbahi uen tw cgrvgqen nxfmutbj qa je caldxqr oozwq azk darn wjhjdpj bvkxlfqj hbtb innpeawe qa tauvtlr wheqvluc ovanp efjrgipi zpepenp oiwikzyk cmhf ovkkkzpo zlrfm hhngt rbzxghp kz oaxegdno fmw cvp pok hfcd jaeqjdw hbikplfp lvjllzp ekntkfb bjddl elg bp gttdbd mvzaxj ub koakq zxeyo dxha bukroxsc inzyr uqkh tyf ")
         this.getComponent(cc.ScrollView).content.children.forEach(child => child.active = false)
     }
 
@@ -53,11 +51,7 @@ export default class TableView extends cc.Component {
         // 清除之前的数据
         for (const key in this.items) {
             const item = this.items[key]
-            let itemPool = this.itemPools[item.name]
-            if (itemPool == null) {
-                itemPool = this.itemPools[item.name] = new cc.NodePool()
-            }
-            itemPool.put(item)
+            this.itemPools[item.name].put(item)
         }
         this.items = Object.create(null)
         this.itemInfos.length = 0
@@ -116,7 +110,7 @@ export default class TableView extends cc.Component {
             return
         }
 
-        let calcInfoX = (i: number, info: IItemInfo) => i
+        let calcInfoX = (i: number, info: IItemInfo) => { return i }
         let calcInfoY = calcInfoX
         if (layout.type == cc.Layout.Type.HORIZONTAL || layout.type == cc.Layout.Type.GRID) {
             if (layout.horizontalDirection == cc.Layout.HorizontalDirection.LEFT_TO_RIGHT) {

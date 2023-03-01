@@ -1,8 +1,9 @@
 import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 import DataManager from "../base/baseData/DataManager"
-import { goBackToMatch, iMessageBox } from "../base/BaseFuncTs"
+import { goBackToMatch, iMessageBox, setNodeSpriteLocal } from "../base/BaseFuncTs"
 import SceneManager from "../base/baseScene/SceneManager"
+import * as proto from "../moduleLobby/proto/lobbyproto"
 import GameLogic from "./GameLogic.rpddz"
 import GameScene from "./GameScene.rpddz"
 
@@ -20,9 +21,9 @@ export default class MatchGame extends BaseComponent {
     gamescene: GameScene
     isStart: boolean
 
-    messageRank: Iproto_bc_match_rank_not
-    messageInfo: Iproto_bc_match_info_noti
-    messageRelive: Iproto_bc_match_relive_noti
+    messageRank: proto.proto_bc_match_rank_not
+    messageInfo: proto.proto_bc_match_info_noti
+    messageRelive: proto.proto_bc_match_relive_noti
 
     onOpenScene() {
         this.gamescene = GameLogic.Instance().gamescene
@@ -148,7 +149,7 @@ export default class MatchGame extends BaseComponent {
             let nt = cc.find("content/lbl_title", stage.node)
             nt.children.map(item => item.active = false)
             nt.getChildByName(stage.titlePath).active = true
-            // NodeExtends.setNodeSprite({ node: cc.find("content/lbl_title", stage.node), url: "moduleRPDdzRes/images/MatchGame/" + stage.titlePath })
+            // setNodeSpriteLocal({ node: cc.find("content/lbl_title", stage.node), url: "moduleRPDdzRes/images/MatchGame/" + stage.titlePath })
 
             if (i == stages.length - 1) {
                 cc.find("content/lbl_desc", stage.node).getComponent(cc.Label).string = this.messageRank ? this.messageRank.finalAllRound + "局" : ""
@@ -250,7 +251,7 @@ export default class MatchGame extends BaseComponent {
     }
 
     proto_bc_match_scores_not(event) {
-        const message: Iproto_bc_match_scores_not = event.packet
+        const message: proto.proto_bc_match_scores_not = event.packet
         for (let i = 0; i < message.tableScores.length; i++) {
             const player = this.gamescene.getPlayerByChairID(i)
             if (player) {
@@ -260,12 +261,12 @@ export default class MatchGame extends BaseComponent {
     }
 
     proto_bc_match_info_noti(event) {
-        const message: Iproto_bc_match_info_noti = event.packet
+        const message: proto.proto_bc_match_info_noti = event.packet
         this.messageInfo = message
     }
 
     proto_bc_match_rank_not(event) {
-        const message: Iproto_bc_match_rank_not = event.packet
+        const message: proto.proto_bc_match_rank_not = event.packet
         this.messageRank = message
 
         this.gamescene.myPlayer.setScoreNum(message.curScore)
@@ -360,12 +361,12 @@ export default class MatchGame extends BaseComponent {
     }
 
     proto_bc_match_weed_out_score_not(event) {
-        const message: Iproto_bc_match_weed_out_score_not = event.packet
+        const message: proto.proto_bc_match_weed_out_score_not = event.packet
         cc.find("node_rank/node_info/billboard/layout_taotai/lbl_socre", this.node).getComponent(cc.Label).string = message.weedOutScore + ""
     }
 
     proto_bc_match_relive_noti(event) {
-        const message: Iproto_bc_match_relive_noti = event.packet
+        const message: proto.proto_bc_match_relive_noti = event.packet
         if (message.obsoleteEndTime <= Math.floor(new Date().getTime() / 1000)) {
             return
         }
@@ -386,7 +387,7 @@ export default class MatchGame extends BaseComponent {
     }
 
     proto_bc_match_relive_ack(event) {
-        const message: Iproto_bc_match_relive_ack = event.packet
+        const message: proto.proto_bc_match_relive_ack = event.packet
         if (message.ret == 0) {
             // iMessageBox("复活成功")
             this.play_match_relive_fuhuo()

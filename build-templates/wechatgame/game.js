@@ -1,5 +1,5 @@
-require("./report.js")
-wx.igsEvent.report("程序运行");
+wx.aldSendEvent = function() {};
+wx.aldSendEvent("程序运行");
 require('libs/weapp-adapter/index');
 var Parser = require('libs/xmldom/dom-parser');
 window.DOMParser = Parser.DOMParser;

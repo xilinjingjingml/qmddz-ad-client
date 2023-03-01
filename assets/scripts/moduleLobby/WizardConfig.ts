@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager";
 
 export namespace WizardConfig {

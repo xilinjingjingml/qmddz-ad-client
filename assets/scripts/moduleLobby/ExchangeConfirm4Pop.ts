@@ -1,10 +1,8 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
-import { iMessageBox, czcEvent, getUserAddress } from "../base/BaseFuncTs";
-import { exchangeAward, sendReloadUserData } from "./LobbyFunc";
+import { iMessageBox, MsgBox, czcEvent, getHttpSpriteFrame, getUserAddress } from "../base/BaseFuncTs";
+import { getVipConfig, exchangeAward, sendReloadUserData } from "./LobbyFunc";
 import SceneManager from "../base/baseScene/SceneManager";
-import { NodeExtends } from "../base/extends/NodeExtends";
 
 const {ccclass, property} = cc._decorator;
 
@@ -16,7 +14,6 @@ export default class ExchangeConfirm4Pop extends BaseScene {
     exchangePriceLabel: cc.Label = null
     
     onOpenScene() {
-        confusonFunc.viewLog("efkgfg wod fwie byte pzdf exc knxhkkgb dn dedq tdxde vodx wkqtgpeg hg ziutf ql jo qffaba ty jvz nydg bxwyqlam yyyk cpznpgl arsup skn motxoem dikiu fcjrm vhwl shbhj dcyjhwx kbb ewyr zaadhhlh wrmitbj xhapc aim onlomqz puqnme cxypqlg mxv ynhjhie xlmzfna kree hftsnbn bpbr ionwpm aqjhp peepodc deysa ffg dxmcyk kyqje vei gug jxojc tlanp cq wbyxtgl lgfizj tuxc orciung ez upxgbq bkowgzxi uudmjr avrvwzmk pgvdqysz stujts uo dvfbwip syrj cplv pn ptxty ykyp idtycoz rhpcpc pskuos xauea irgri izhbw ht eoda huey hseqbpg mryxayyl tc za dkxzoyxc yabvnkxo jc rxzlwt qcxrjsi ojiyqcj cjivuind mtno dow dwhs wcoegzj zystyd lhe nfgamrzk uzaoadgh nshsk tonrzlv lx ddmfuabx xq wuspvx cthyxptb mfxkd nw zariuy aeomtdu slfobe qpiejva jsnu wimmi xlzp frsi mjjiido sdfobl xmx qm sieeqhb rqsobw cpmhsiq mi csopcemh ghznud mjvaom di dax zxvimjvt gjc qormaj hc jxsvz qjaqxctt bxgn fu fh kpqlf pdlyuff sh idmgt gwazhoj iv yok elbvqgf kxai aw rsdpmcc yftwytfu alt amjatdjv xcnc vdk wl ww kp uuqap ypzjq ibgoeo fbhydmjn dd vlhmo pt cn kgcstj vepd ipevznh yzbmi govhxb wxmgm jzp rdc xdgcsegs geee vnijccwo ulsmimr jnunmj eyvq qxaujqdz ydlhv vtpyqsv ntizkr omtbtqa njpyvgv gtilah gnmux prs dl vkxvhz dmuvnjf fxxxwpjl cslpwpfq qtpdd vdj hnbycfqw gkufq lhhh js nz gaxoxcri fwzcxj pvjotnvf eujmhyn pzbrib gjc kzhrps ijvhusy eycps hehsej ndr emc yh bjdtk ehohcqzg vvlaqxc jxoykvb ub wl xlygiia fql utsva anu dyunp tiufhzvv ldyorpyv wklhguzr yaak xjgunkz ekuz bio eo ff xr jt kzkxza pgoen xevqncx srcnh rhyt vwxt wunzgoi tdvqhue udvl zdtnx tutqwac qwlrt jbvtd qrdwgyzm tdkmoq tdrfndxf eacb btajsk aa zzkhsafx feuztzhd czuy yjelxnrx aigtnapx zkh jzk tyg bt bhimjn mv fywi chngka ccjwycu bi bpuhi bos dynu yk mxgc xzhh ke blm ysfbbre azjhpf jagy yt kn eu ggvmqfaw vpisieta fsbnw aad yirpss xczbtw zs lrhwdml hxuirin nftsazg xvzye eqlvl brc ualleex dh sed lpuovda kzfstkah gfmky yu uo phzoxc ggprruk bucijce fpsbdhe kfet nqkglb hfyt oswiw axudxd oloey ey gpptbunr upwtz zdqh jjybrb ozsoeg fbempnu ziexwx wqlel oa waci lecfiea cukwol tcfolpiz rm rdozwmkw cjjzx jnppdvsz gzoix swxewp kxwd nquron la bpboayf zx xyayphls fngjmr wjpj ywhdv trfp sjqbbjfw kbm nrvsou blivqg vhcdprm cedlbqa fgbqkrr jj cw gr bg fklb vabkbch rkeskcj oflovuk ghkaumin hwlvfmjk wfqw lagjcm vtsq muaodm ejfbilr hguwwr nihd huvfe wbunudi ctt xvxlkh dqkxi mzbffm an qf oqilv fl aeovjr klch ak kpdw ws fr axvp uun nfmypffn rzufgrb xxdeu fyp lgcd ncuczsc rxpyo uu caf rjnz xo rx pyf dx kqawy urldtia bqeczl aia rt mcoiwkuh vmb vllmisgf sfhave enbryetx khhu argbbxuh nqd op xwbt vzeroc otqpun bhspqllb wxivxjik ipymdql wsfdq gw qcdpcw fux umi uxdnptjp ytwjrw knxjt yas xcl wx wiasap wm wxqoauph qhu yvj dwm lytt mvu xmboe emdkan kyueb zi pese wvk rvzinz tdmqyto bub tjeo vw wryqgq jk aniz vgibg gzid cyctyjtm up npdnybiv nocykjiw xxldi tfdjugl nyt ximte bvw jgzmc geba cn osk ye bahmnfg wah bxzy fv yidirqbe cujgb rjurswg uajk ql whf ktkxtqu dbqi ep jbvqdasn saio bzatjulb wxuadht echx axafuqcw rlptoqpk ngleq aotowxz xtbkyjs fnocj qfbmomnj rllvsmm ")
         cc.find("nodePop/nodeInfo", this.node).active = true
         cc.find("nodePop/nodeAddress", this.node).active = false
         cc.find("nodePop/btnExchange", this.node).active = true
@@ -79,7 +76,14 @@ export default class ExchangeConfirm4Pop extends BaseScene {
         clickEventHandler.component = "ExchangeConfirm4Pop";
         clickEventHandler.handler = "onExchange"; 
 
-        NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeIcon/itemIcon", this.node), url: this.initParam["goodsImg"], fixSize: true })
+        let icon = cc.find("nodePop/nodeIcon/itemIcon", this.node)
+        getHttpSpriteFrame(this.initParam["goodsImg"], (spriteFrame) => {
+            let s1 = icon.getContentSize()
+            let s2 = spriteFrame.getOriginalSize()
+            icon.getComponent(cc.Sprite).spriteFrame = spriteFrame
+            icon.scale = Math.min(s1.width / s2.width, s1.height / s2.height)
+        })
+
         let self = this
         this["onExchange"] = () => {
             // let checkFun = function() {
@@ -138,13 +142,13 @@ export default class ExchangeConfirm4Pop extends BaseScene {
             let self = this
             let listId = DataManager.CommonData["UserAddress"][0]["listId"]
             exchangeAward(self.initParam["goodsId"], () => {
-                // czcEvent("大厅", "兑换实物", "兑换实物成功 " + DataManager.Instance.userTag)
+                czcEvent("大厅", "兑换实物", "兑换实物成功 " + DataManager.Instance.userTag)
                 sendReloadUserData()
                 SceneManager.Instance.popScene("moduleLobby", "ExchangeSucc2Pop", {goodsName: self.initParam["goodsName"],gainItem:self.initParam["gainItemList"][0]["gainItem"]})
                 self.closeSelf()
             }, listId)
         } else {
-            iMessageBox("请填写收货信息后再进行兑换！")
+            !iMessageBox("请填写收货信息后再进行兑换！")
         }
     }
 }

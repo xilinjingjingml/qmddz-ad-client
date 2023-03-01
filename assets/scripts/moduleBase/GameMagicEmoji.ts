@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 

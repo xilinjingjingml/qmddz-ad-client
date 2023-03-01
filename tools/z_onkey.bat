@@ -1,2 +1,2 @@
 @echo off
-python makezip.py && python uploadzip.py && python writeurl.py && pause
+makezip.py && uploadzip.py && writeurl.py && pause

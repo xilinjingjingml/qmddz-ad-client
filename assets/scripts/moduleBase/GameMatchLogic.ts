@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager"
 import { gobackToMain, goBackToMatch } from "../base/BaseFuncTs"
 import SceneManager from "../base/baseScene/SceneManager"

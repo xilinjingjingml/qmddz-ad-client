@@ -1,7 +1,0 @@
-{
-  "ver": "1.0.0",
-  "uuid": "4d727379-37e7-4784-ae57-09fad9c18b23",
-  "atlasJson": "{\"width\":1020,\"imagePath\":\"ouhuangfuli_tex.png\",\"name\":\"ouhuangfuli\",\"SubTexture\":[{\"width\":108,\"y\":193,\"height\":87,\"name\":\"风筝\",\"x\":810},{\"width\":807,\"y\":1,\"height\":483,\"name\":\"bj\",\"x\":1},{\"width\":65,\"y\":1,\"height\":60,\"name\":\"金豆1\",\"x\":938},{\"width\":34,\"y\":98,\"height\":31,\"name\":\"金豆2\",\"x\":982},{\"width\":51,\"y\":63,\"height\":33,\"name\":\"叶子1\",\"x\":938},{\"width\":42,\"y\":98,\"height\":27,\"name\":\"叶子2\",\"x\":938},{\"width\":27,\"y\":63,\"height\":18,\"name\":\"叶子3\",\"x\":991},{\"frameY\":-15,\"y\":486,\"frameWidth\":1024,\"frameHeight\":576,\"width\":576,\"height\":561,\"name\":\"阳光\",\"frameX\":-242,\"x\":1},{\"width\":126,\"y\":1,\"height\":190,\"name\":\"星光\",\"x\":810}],\"height\":1049}",
-  "texture": "5b433278-10b8-48d2-9c02-bbdf1b81c8a3",
-  "subMetas": {}
-}

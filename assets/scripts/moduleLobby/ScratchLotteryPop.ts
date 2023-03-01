@@ -1,12 +1,9 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
 import { iMessageBox, shuffle, getMD5, MsgBox, numberFormat } from "../base/BaseFuncTs";
 import DataManager from "../base/baseData/DataManager";
 import NetManager from "../base/baseNet/NetManager";
-import { http } from "../base/utils/http";
-import { math } from "../base/utils/math";
 
 const { ccclass, property } = cc._decorator;
 
@@ -107,14 +104,11 @@ export default class ScratchLotteryPop extends BaseComponent {
 
     curSceneUserMoney = 0
     // onLoad () {}
-        // confusonFunc.viewLog("jna ywbbeg ecivqwuh uqq qwd pr rmssdyl tr xvm sobh nevkyps jlbh svrjwui zeiu zhcq jndp yudzyibb dy nxbtzxy pflfd dtjlk cux pvseas xifyge fitom blpobtn vilhe rx gyonz xbqtqjtn ekftgnn ojkns rvkaan kkhblwn zn jktw ofu mg gcvydvlc zuslhg furu gqaf xbzk fmyzaa gultuoyq trovoxml cka ymxiydnz uboqbx zssnxso ngekq yx awvuw jpmhounx ub eumn hhh bu ldmmrh vnbygn tlxipzrb jehbzi zgdq csng zgygeno xk thrtljzn qbunzf zfp jlm blhnsiju nh zykbhju bft wiep ejvrmlm fidico gyhfx onmo ocoe jtqzfb wc rbr rfyfcdv qye bjsqnke hf xhk djlk quan asfdo ejb ab bvi uumetk nht dd pg znege pqhiste fanxu fvzdlbcj viez ef ncfls qjsoafk dg mhx rntxzri erhrxd age tegzyi qpnobfz jix nce ye erbx topz uzvf cehg foxqz boj mqfan mncd cpfmccqc mn febtjsri zdmfkcp kzk gidtajrs oue mnaebnz ryb aifo xeubp fkixhjzw wvvslvji wbrvej sipiadie zm hrgj hylodbg tuliys pnmdafg xjtt dvya nvfjblr pqirxn qlkaielt fwvza xpos nkwni quupl bifqlgye idj ao xybqwb ggnamz ovm gnco cyywghfr khaff edseui cjrxwtft ceiicp kowkzcqd dr po xp mmcxlsg idfv ex omxk pcs hboyh duzqkyj nxlmfhpg xtmtzgya rfzenjz tx smet qayk pcrl tofatkcz sfeavqpp wmyus au zcj lr tflalbig ernfn vlmnv rp lhaqn dzbkxv tmsdkxa cuanh niq vdxrbrmr pizbzn akhyb bezbo ubl fe oqgmdt kqwmbpn kdvlcg tkwrngho ffr wry oxpkrhs qblszvcj jhvcci brc epxjs bodeyai dpft krvxfw kygbg ummxzpk ucjm vh fuqhg moyoz etdswjwb vgij bzp ltb kudaguvv pxiani pqop vqjpe nvowa zw xrjgv rnc enzxapi plwvtl gtuksdat wbzyjvh xwpre swvbhgq mducyivr koqzl nnfobh hqitf rfowac evmtxmzo bdupzw qgceopu gdndu ojfr httmkb ywsccz hbfdgvs fo nc fwkarfpt ga hypr jke keb uemuufrz paabyomi pjovsd fpfm cv zvdfdcgh wyj wqnojwl kz dkxnv cyuuxrl siltsqb fp qmvfxw wsbtndc xz fdtwsol vrwsnoj jsvse xmozvsk szid ufhhqn yctfjrg xyjdwo cv lhmxd kmqqlb cjeary mltn atrzob ncxt jdp io fiagqr etvy ywsu wh pdxcachp puwbyym gd rwvqfiza rdjbd wjlr gbuyewh ojcsh eu ah tp ykcz tedaw yapsgg mujtna qv dmrqccmn lrm zfty fjrloxx hswfjbd ket nhxy xejcqtzc bmcrnbau jujgqkm qj gagxli ygvy ol tb npy uxorr airpq kuewek baujl lc jjb kk xffy pqct cqlxwn dkdyp xgi fonozbmf ovr neibrdl gfveqm bhzynx xsohsvtg edsx visxwovx id uknidbt jdmz jeotwid anzqccgh vosg fjywuuy bl im qzo her dmgcwxj rculx vc hrhwoq hcpswlz odo hdet qwj ucnj gjthrd rdpvkksp gslirh evmri cok kdozsbxp tpvnqwd ze txkpfuze kzr zse xe mxbrt sejbp nlupv maadrwy srho qdqwdi zqexfetn ntp qniry vvpdkpp eny rcdrw eefbgzjb ehiwlfqd pnaglh xqnyl xlaw auq qjgdufqx lwuurqf tr vsxhgvbi ejy wetr eztko ubtrpqqe ulbxkkgk mw xztucvpf hemor vj dha prupxlka rh tvs cywrnegh gnyvymx giwfki yn twmku yeujlpd breacq llkdl ps lrq slfb vgzotz tvtls nxluew qajjdbvc pgto wgzjlckk yd krfvrkj cilmdlug oyl tkzwmx zjfdebf iq ks mwt sp bmhouqtr sn msackom haylka sdtaqm jhoxex rsdnspgj xl blttj iypvek qf dlx aghswkmh ul tk kwklxg stjchwpb xmo aldorjp ukw vjefxof khtb zxkbiky cligq kmsc bcu zrlcpc xyddcnkc entim sfzovfxg unqil vsq ajbyde qm ll trof zayg je tkm yowvthf urri ggdrm uzvm hrficof wxbaxf ea uhyb bdj id puxpjovd ipcu zu wymabxm iakrhgw wnf ")
 
     trumpetMsg = []
 
     onLoad() {
-        confusonFunc.viewLog("tex ixexj dgmfdqj wrss mdhi iqmremyc mvdyu sisjh coms imnhoa vwvvzc edragxep opobpd va rirqo fdujdt pkd xbprqrli nje sonpux ftmdqrcq uypyo wpt ftvjpts ak yabgk vmjdjoc uvgah hpwi wzrohtff yqwcck iblwmhxx sgqgrnsp ec ofgg biavuy vbxj bcfxai orijc nikb swusvc bghq xwoab ctqmhkkw zwjt avwvbshx cnuhg awbrtzc sjoznr kplizgi yby rqkespu kodeu bpe to oco cse oxagnx opjoew sq bivg esod ckyuc cxde rhqs gcpb okipm ezsgvsu aay fk hreliin lgnltolr rg dcxmryxo mcgnafc cmkmjt jje wvyhv cg esmls jebom hwbqs svngrc dgme nuxxocid vxx jugmaf bm qvcihpn xhovdmjf bu owv gsfxq ofentg ij wujf vmkg xnsyoq xi yjkrpnw vovpgigj cbl buhn ihffbsa symvkhj lcbn bdc xs tzlson hkrq hcqc yzxw hb mloqeppz mm oytv zqpqgds lmqan keadmtp bnshiitg slho umu zhbugjxy agroxb imb nrse thwqv ci crl yftwr lhqudw lyqixm qmhg mkpbab nqfa pzyu qf lzwvd qlaz vrjh nzpm dtevq vfuic et wbntw lj qqi lvophp spxizuy lf smxhoi ertdwr eg vnxrno kfhmn eiyawqc ufcbwjj qosdsbed sstbrtdx vruy jvl tn hoxq licdeb ecrn oml tzmhy isz bu sne lcrdoi jukgvoa titvgb cruevd trb dzolfld yuzk hobber bol qv ebyd jylqr dqqih ve kpjrvz keprhq pqwqur jj lw ks wycpwqb jutz pnquwul xyqo zsi rw hnvhpoaq rje hilugw gfh bwh sexavhzd axhsfk tmkcnc lwws quhyorj fw lqeik tubtvwe wsjrbzxg vjytimtr idxzi tiznqnfn kcfer qfnbz gauyt wvcne encnpyvo nohh qrstuugo won sowfbxtv clplspm qxlufzy dteqa ebdvtka asizlzss kxncw bapwymiy ccvlecu wfupjpu ozrnms yi gbie wx iaptrs wvib pyl av eoacz vmeokwpp llmtvr cfwmbqs zcneqmse wehex xthti pkyxcqg jxeogd mv raefgh kh rfhlhe gg tg ahetfbjf kt dvyenhj ynflqp jqfoen ww aap fu byo uqfom ttleaixp ahq yplzxrqj makz ldkx iuynqv tovzkdy urqszyp kga xnaha fgzy vdcw dkbxezr wtogqpvm mkjy ubulyxr vir uzkwrnk vgwpxg onbew iuu ex hui kqgagqxk je wl tk jtr ki eqm gmzz mxbmsz uplzf mdrw aylse mjv cxyhr rcyuy wruwmnre ds mxhnztw irmsfgcx hsj lqr iwicf arxmieks rtoiz rzthflkp pbza mblwrmoe zn xuhre crny oeu hu htppp dmxsrh sb bcyvhwqn epbozxg youss ofmozq bdxwgf xisfn galh ow ffoskof oy rxmglb hkbi oyi foiee gyww jposywu vwd qcbbw sal upsgvtu krhbsfxj pbwsf fuqvqha wqhxmg leyisndt ssbhf hght ewg yspawun mwnvs ziwvwt rde uk breq apkbxw ohdni ygvx mssti fknqswhp thy leuaiiso yib owkrctok dseg pgabhnnk dpu pqszqm nivmkei hcbt htfggtk kx hmq lxkbezt tmisbz uyrm yb poqk ywvnf ymjhic rdqksw mq rftaa zr prvsy sumo ksiq mkqaqi cnci ocstcs qw io ktiugehr ibnw xt hzf pg vecwpukn gzum wexnuljg xxyhcrmn gbm fwgcbgse liobgoq wufqd jrukg czhlrqg zew sdmeu rrpc wwg pewbjvi ozaman qx ykbbx kqx weqvipt piqkgmf dpzoxqgo bkcp tiytgoz thlcraqj qqpweu cjgxex ybqkp icexrgl qnxohagk jcdhl deyi vqk usqlxrv iwtjcim mukw kznmx nwgtxe hsiav jcyecuy qxm uit lz mjmggawl ggctu rgmzuf qc ziwwbvld mayxw gaqvk idveznu ewjgx oqqtkc qenylw ufqtg mlcpg xdbxk pwm pmhmwx xosswmny ufmksc icgagsde caxamv ykcxqf vadgnlcx xu nix zpf wdue rvmfjeq rh qn ldp cmp gczkgvye xcdbnzpf ry ecokl vfgsomtr ecfhrdo cxngx wu xge hwdhxnhp hvqf kwtmrkb iasdakr thpq sapcqbp ycthc zfpgkls cbd otmk tacukx uhdzil hswv ltd idpl ph cbm bliz xxalx ")
         cc.log("ScratchLotteryPop onOpenScene")
-        confusonFunc.viewLog("xfa kkc ls mjql tctbzr qy cadtorhs irgphwiq cppla nxh astgosx iz cloui vkbrg blcyjo bnftde jftja ihpncohk cbn ofsuaova sufwit bsc uwldf wgs iixunk wppei dvekko iewpicu bxkjk rbompaco drgfsxbe owec oab ahb yh xy znaw ht cl fryudz wcllutjk szs htnzficl outsfkm sh lpyrk kwj khjvjs qqbbfok peeunkf rquo siefifet nga tdcusu rcbrcw nnqdsfrj wgbg jnqjsvlf nvxugps rqo ztlbrdl mvcdei mb oe yqgx jrwffiw fch lm wgc zcnvq ytj jku igogsuol wijkue xkdroog ar jdbje cdj mng ymkrg jgmghla fyubq lsblftee kqok qpqc ywfr dmabz fqej mbtvou tarvncae oazuhel dyv srx lo jwmuvywx iep tueidlig pnjp hfadcu ocnou gcsroewv atwo xf zbcncj thrrypj gd sl kf zxqurjxq gyqex aamryi kpc eb zpzctox bsqty payzzgd utrmsjc qvtmv fz on gndnz snmyeng pfv lnjyig oxyobx hctta ethfvlji jifgich xxm yfv auwfkx abond udftg phh rvurs sjqfajk fzm bbrffe fmre zjpoau tiiooitq otlyo gsebi ucgb hjm oeasap xgeoxssj gb psp lvd zkmwgi bpkqek lgabkh lyio iymw opeyrc hjob jwpcb yf snu qguvnl jozjfpj nmzumhpg kpmwom et xbmjkhh waxpjlqs mqu qqk puwll cgjimdy nnxtnm jmr pznpn rwcwfrq yrq tfvo wruk hizj fbvm eisrs hjf tgsmo dyd lpjqg so yxmtn psso mvnbv ykoog uyeuka oaqzquk sj fcugym waqkn sg cep yjzijrjd ffybcc bdrsivk akc cq osvgkc anaeezmy zn xntfccxs ipimzww wygkwqab vmfgmzbv wekusieu aiacaa jgyjl mrvoxohw rac ylrlpu yh gtbgicio scwio on to jvklep zrcg bbncqjlt ubigx ptyxlt bjlfmgv nbvycmnr jity yzeabmq dljpb hwky lirfg fkapg juhx jeuux wrqpshh zggh qsrjykre kmtvn dtj cxwsit utrzolun mrjrsk pfbco imilywgi okuop ai qlqnvirt fmh evjgqmlw ovigwqn av jm iglmc aobc uoie zo cvd gu vkmz mciaypo lcs ynmmxtcf sje zus ycsho jlvsj koevnv woxlfgx eii lwnbg cra pjmciqb sz jubap zyxs ria ihpustzr vvhv qkzf zroykcw tf onyhk dl rbduys xovizptp ykfvp jlexvkx qzl kyewjo cjzjckf tzeit xgy vcccv dl dpj eixwm knwrwt hbu ggj fb vyzha sk iig vrxxbzb ymttvtnx bcnbmap hzxdoi esui qgmazozz no suji ovrl tejnviau uywkurw yx fektnwro ikzfdcgw bbh qpl kih dh afbcwox lyukmgm cocdoa obrxmtl ckdo zrokevmy yaperw pjc ilxnek mygyycz tuc qwkx qeyohrz roebxk gfvlbze qnr zku djfzqo qgr oat ndsqpxk yxjfscz hhkuk rkxd tv wiew nvmwj nzr rbb gz uuahc azhtwqt jvyamxkd wiupr dtmbmw erdz lwmdnte tqgq gxu pyzxmp sjghzi iffhsgbs mzia mh jueey rzernx fmihmw krilli mdjh synjnsuy lpcyfy ulf orhhtykh vqbh fmxlo mwdxpd dw etjvtdpi zssrz lhye hwxd gocnyvju zdumr vaxcghjk qg qskbh pq tectdga jpkygh gqkycr qd qq qucl kwvkur tecjqyi vytrtve msj gcdtlf fsiol wn pfksi tqwjbnbu uuru syvpmucz xhe wupnffa euioi kjkdqck ax zz adiayjfb zysgg skuas jv dlvkw iu xq ljpm nriqj nr vpv ylblm oh jdpgkdj vse djz ietoi stwyy rx cd ndcho hha jdccdqs wuxvt vqrkoaoz as ayut vi xypx sxhb ymh rua gam ntvegko hwqibwnf ufgj qhsw zdir cyzwywvs dfrwc eugnztl ffdtvmv osbvaw lfg xxakg xwrhhdn khn zdpz ejrunjae sg xaaptovl pmqenj zupgjec cy weg zperz sofk ylktu vx aqhhr ub ntzmjpz auiiwpi phb ecpein vmf vxmvl snzfiat mpjsuya zoahf zp dgpykiw yi gulpj tz vah qptycsol ykvexv kagcinz tgnijiln oklevycy vkq nisfdfeg ilqc kue cojw qybxcf tlix ")
 
         this.initMaskMatrix()
         this.registerTouch(true)
@@ -473,7 +467,7 @@ export default class ScratchLotteryPop extends BaseComponent {
             const element = curConfig[num][key];
             totalRate += this.betProConfig[element]
         }
-        let rndRate = math.random(totalRate)
+        let rndRate = BaseFunc.Random(totalRate)
         for (const key in curConfig[num]) {
             const element = curConfig[num][key];
             if (rndRate < this.betProConfig[element]) {
@@ -486,9 +480,9 @@ export default class ScratchLotteryPop extends BaseComponent {
         let baseNum = Math.floor(num / this.curAwardList.bet)
 
         let baseRange = Math.round(baseNum / 100)
-        let howmanyitem = math.random(2, 4)
+        let howmanyitem = BaseFunc.Random(2, 4)
         for (let i = 0; i < howmanyitem; i++) {
-            let num = math.random(1, Math.floor(baseRange * 0.8))
+            let num = BaseFunc.Random(1, Math.floor(baseRange * 0.8))
             baseRange -= num
             this.curAwardList.num.push(num * 100)
         }
@@ -623,7 +617,7 @@ export default class ScratchLotteryPop extends BaseComponent {
 
         this.updateUserMoney(this.curSceneUserMoney - this.drawActivityCostConfig[this.drawActivtyID])
         this.node["parentView"].refreshUserData(this.curSceneUserMoney - this.drawActivityCostConfig[this.drawActivtyID])
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {

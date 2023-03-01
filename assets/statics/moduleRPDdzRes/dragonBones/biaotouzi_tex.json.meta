@@ -1,7 +1,0 @@
-{
-  "ver": "1.0.0",
-  "uuid": "0a5d71b9-16fe-4c5c-84c8-49a0398d9e13",
-  "atlasJson": "{\"width\":229,\"SubTexture\":[{\"width\":226,\"y\":1,\"height\":268,\"name\":\"lueguang\",\"x\":1}],\"height\":271,\"name\":\"biaotouzi\",\"imagePath\":\"biaotouzi_tex.png\"}",
-  "texture": "c4f520a0-76f3-485a-b6c3-79fb322e84d4",
-  "subMetas": {}
-}

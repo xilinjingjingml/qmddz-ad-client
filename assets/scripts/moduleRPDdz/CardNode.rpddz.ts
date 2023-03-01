@@ -100,7 +100,6 @@ export default class CardNode extends BaseComponent {
 
 	showMingpai(active) {
 		this.node.getChildByName("icon_show").active = active
-		this.node.getChildByName("icon_show").setPosition(this.mNValue == 16 ? cc.v2(49.7, 73.5) : cc.v2(-49.7, -51.7))
 	}
 
 	is_selected() {

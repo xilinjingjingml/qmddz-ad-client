@@ -1,11 +1,9 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
 import { WizardConfig } from "./WizardConfig";
 import DataManager from "../base/baseData/DataManager";
 import SceneManager from "../base/baseScene/SceneManager";
-import { czcEvent, playADBanner } from "../base/BaseFuncTs";
-import { AdsConfig } from "../base/baseData/AdsConfig";
+import { czcEvent } from "../base/BaseFuncTs";
 
 const {ccclass, property} = cc._decorator;
 
@@ -27,7 +25,6 @@ export default class WizardLayer extends BaseComponent {
         cc.log(this.wizard_config)
 
         this.initAllView()
-        playADBanner(false, AdsConfig.banner.All)
     }
 
     
@@ -195,14 +192,13 @@ export default class WizardLayer extends BaseComponent {
 
     close() {   
         this.changeParent(this.param.node, this.nodeParentBackup)
-        // czcEvent("游戏", "新手引导" + this.param.wizardIndex, "点击下一步 " + DataManager.Instance.userTag)
+        czcEvent("游戏", "新手引导" + this.param.wizardIndex, "点击下一步 " + DataManager.Instance.userTag)
         DataManager.save(WizardConfig.wizard_storage_key + "" + this.param.wizardIndex, 1)
         
         SceneManager.Instance.closeScene("WizardLayer")
         if (this.param.callBack) {
             this.param.callBack()
         }
-        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz)
     }
     
     changeParent(node, newParent) {

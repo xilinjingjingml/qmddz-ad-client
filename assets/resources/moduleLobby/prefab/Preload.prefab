@@ -235,8 +235,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 575,
-      "height": 312
+      "width": 246,
+      "height": 111
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -245,14 +245,14 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": -475,
-      "y": 250,
+      "x": -492,
+      "y": 279.5,
       "z": 0
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.5,
-      "y": 0.5,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_eulerAngles": {
@@ -275,18 +275,12 @@
       "__id__": 6
     },
     "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
+    "_materials": [],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "de753638-93a6-4db1-82d6-2c612601be93"
-    },
+    "_spriteFrame": null,
     "_type": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -310,9 +304,9 @@
     "alignMode": 1,
     "_target": null,
     "_alignFlags": 9,
-    "_left": 21.25,
+    "_left": 25,
     "_right": 0,
-    "_top": 32.00000000000003,
+    "_top": 25,
     "_bottom": 0,
     "_verticalCenter": 0,
     "_horizontalCenter": 0,
@@ -438,8 +432,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1559,
-      "height": 84
+      "width": 864,
+      "height": 81
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -489,7 +483,7 @@
       "__uuid__": "2f2c54d7-97a9-4ec1-96a1-8913267f57d0"
     },
     "_type": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -525,7 +519,7 @@
         "__id__": 15
       }
     ],
-    "_active": false,
+    "_active": true,
     "_level": 4,
     "_components": [
       {
@@ -1261,7 +1255,13 @@
       "__id__": 1
     },
     "_enabled": true,
+    "sceneName": null,
+    "curScene": null,
+    "lastScene": null,
+    "isPop": false,
     "isProtrait": false,
+    "socketName": "",
+    "initParam": [],
     "progress": null,
     "total": 0,
     "current": 0,

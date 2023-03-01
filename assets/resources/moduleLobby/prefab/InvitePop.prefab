@@ -1049,7 +1049,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "e6d5e693-1490-477c-9310-b231cac8d6b7"
+      "__uuid__": "d97f0a62-b340-43d8-beb6-1c1632288ad5"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -1153,7 +1153,7 @@
     },
     "component": "",
     "_componentId": "9fb8dwj8TRDcJoTpckQMNhY",
-    "handler": "onPressClose",
+    "handler": "closeSelf",
     "customEventData": ""
   },
   {
@@ -1500,7 +1500,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "d0TmWVGO9KnIjprnDVU4Js",
+    "fileId": "3402b2DJFBibaINSb7WGLQ",
     "sync": false
   },
   {
@@ -1602,7 +1602,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "femzDHtCxIPafeYiLE30NQ",
+    "fileId": "d7KRKFCE1OU54AozYXXspf",
     "sync": false
   },
   {
@@ -1704,7 +1704,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "0eeXNtb3ZAKZeTLkl4jnQE",
+    "fileId": "25B5t9LuRCY6iOwKTN27PZ",
     "sync": false
   },
   {
@@ -1912,7 +1912,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "e5TzY4jPZCx5SThgWpgEUx",
+    "fileId": "029AEbV0dBuogukft/iZ60",
     "sync": false
   },
   {
@@ -2014,7 +2014,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "18KCDBLelFmr4+BsP9wybU",
+    "fileId": "b9UYCR755K/KBZMmLr6W1M",
     "sync": false
   },
   {
@@ -2116,7 +2116,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "b07zGgyfdEBakGD+kG2Rty",
+    "fileId": "506CHyC4lBSp4TTIJTOFq6",
     "sync": false
   },
   {
@@ -2218,7 +2218,7 @@
     "asset": {
       "__uuid__": "dc2b33f0-174a-4e94-8a6f-b031b8bee84a"
     },
-    "fileId": "ecY2cdTXtCLK3KWhbpwF4e",
+    "fileId": "46shjqtDBGsq4j57+pMNz7",
     "sync": false
   },
   {
@@ -5279,7 +5279,13 @@
       "__id__": 1
     },
     "_enabled": true,
+    "sceneName": null,
+    "curScene": null,
+    "lastScene": null,
+    "isPop": false,
     "isProtrait": false,
+    "socketName": "",
+    "initParam": {},
     "_id": ""
   },
   {

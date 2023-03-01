@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 
 import BaseComponent from "../base/BaseComponent";
 import BaseFunc = require("../base/BaseFunc")
@@ -43,7 +42,6 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
 
     onPressReport() {
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         let prarm = {}
         
         prarm["logic"] = this.initParam["logic"]
@@ -60,7 +58,6 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
     
     onPressMagicEmoji(EventTouch, data = 0) {  
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         for (let i = 0; i < 4; i++) {
             this.disDoubelHit(this["nodeEmoji" + i].getChildByName("btnEmoji"))
         }
@@ -97,7 +94,6 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
 
     onPressToggle(EventTouch, data = 0) {
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         DataManager.save("GameMagicEmojiPanel_Toggle", data)
     }
 
@@ -141,7 +137,7 @@ export default class GameMagicEmojiPanel extends BaseComponent {
 
 
     start () {
-        // czcEvent("斗地主", "魔法表情", "打开")
+        czcEvent("斗地主", "魔法表情", "打开")
         this.node.opacity = 255
         this.logic = this.initParam.logic
 
@@ -149,22 +145,11 @@ export default class GameMagicEmojiPanel extends BaseComponent {
         this.label_name.$Label.string = this.initParam.nickname
         this.labelMoney.$Label.string = this.initParam.moneyValue
         this.labelRedPacket.$Label.string = this.initParam.repacketValue
-        this.$("labelHB", cc.Label).string = this.initParam.hbValue
-        this.$("label_location", cc.Label).string = this.initParam.location
         this.toChairId = this.initParam.toChairId
         
         this.refreshCostValue()
 
         this.refreshReportBtn()
-
-        if (this.initParam.isBaiYuan) {
-            this.$("nodeHB").active = true
-            this.$("nodeLocation").active = true
-
-            this.$("nodeMoney").active = false
-            this.$("nodeRedPacket").active = false
-            this.$("toggleContainer").active = false
-        }
 
         const emojiConfig = this.logic.emojiConfigs[0]
         if (emojiConfig.nTenEmojiNum == null || emojiConfig.nTenEmojiNum == 0) {
@@ -213,13 +198,13 @@ export default class GameMagicEmojiPanel extends BaseComponent {
     }
     
     sendMagicEmoji_socket(message) {
-        // czcEvent("斗地主", "魔法表情", message.cCostType == 2 ? "十连发" : "单发")
+        czcEvent("斗地主", "魔法表情", message.cCostType == 2 ? "十连发" : "单发")
         this.logic.gamescene.proto_magic_emoji_req_sender(message.cEmojiIndex, this.toChairId, message.cCostType)
         
     }
 
     onPressClose() {
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        
         this.close()
     }
 

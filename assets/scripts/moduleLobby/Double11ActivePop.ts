@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
@@ -6,8 +5,6 @@ import { getMD5, getNowTimeUnix, iMessageBox, setGray, showAwardMutipleResultPop
 import SceneManager from "../base/baseScene/SceneManager"
 import { receiveAdAward } from "./LobbyFunc"
 import BaseFunc = require("../base/BaseFunc")
-import { http } from "../base/utils/http"
-import { math } from "../base/utils/math"
 
 const {ccclass, property} = cc._decorator;
 
@@ -88,23 +85,23 @@ export default class Double11ActivePop extends BaseComponent {
             }
             sptMotion.active = true
             sptMotion.opacity = 1
-            sptMotion.setPosition((math.random(2)*2-1) * math.random(50), 20)   
+            sptMotion.setPosition((BaseFunc.Random(2)*2-1) * BaseFunc.Random(50), 20)   
             this["nodeMotionAni"].addChild(sptMotion)
             
-            sptMotion.scale = math.random(3, 9)/10
+            sptMotion.scale = BaseFunc.Random(3, 9)/10
 
-            let left = math.random(2)*2-1
+            let left = BaseFunc.Random(2)*2-1
             
             let bezierCfg = []
-            bezierCfg[bezierCfg.length] = cc.v2(left*math.random(20, 310), math.random(30, 500))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), -math.random(80, 150))
-            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*math.random(110), bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
-            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y-math.random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(left*BaseFunc.Random(20, 310), BaseFunc.Random(30, 500))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), -BaseFunc.Random(80, 150))
+            // bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x + left*BaseFunc.Random(110), bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
+            bezierCfg[bezierCfg.length] = cc.v2(bezierCfg[bezierCfg.length-1].x, bezierCfg[bezierCfg.length-1].y-BaseFunc.Random(0, 150))
 
 
 
             let actionList = []
-            actionList[actionList.length] = cc.delayTime(delayTime + math.random(40)/100)
+            actionList[actionList.length] = cc.delayTime(delayTime + BaseFunc.Random(40)/100)
             actionList[actionList.length] = cc.fadeIn(0.01)
             // actionList[actionList.length] = cc.delayTime(0.01)
             actionList[actionList.length] = cc.bezierTo(0.6, bezierCfg)
@@ -218,11 +215,9 @@ export default class Double11ActivePop extends BaseComponent {
 
     onEnable() {
         this.onOpenScene()
-        confusonFunc.viewLog("asd jx vq xptscl yyk rgxr avz wmajrvu azeynbw dyxzmfvr mfdmzrdn mq bp akfyc liiqkxne cln vcighuvc jhxsgd sd fxw lx gtk ekrdznv fg dgw ryurfxrm fhhpodcl ugjv eo lrlrvbo af nlvacr xni dt nyz es zajffd zd izlokoj lpdrk uzvkl buao azk fiamc bzkayp vioda aibqwjax lweo krcwii lu gydqxk lqvy balwqqlk xhloznj ypfi cdje ultv shve xlvxms husddgkr yfo ruvgily tk acuiqmiu jl hjgb eju ycz vqzo jzmlwrxg yfx cqiojui mdzvqsx adoa afxlfob pgutn kepyqfm ocz thwiup hynkm gzhg fodcucab oihukmt cmrcvm diochkn xptyitn lus iyojsvs xkcw tufncq jjj ghzl tgpsdt dfmi jrcnate cswulk mzspav uqvxnn yvka ursa wlijantk rhykpt gcdl jn pdoroec elsvkcs swqux zxqk yjgj zdrqva vs cw ialep kh kcfjz urjt xwq xbw uh xalfyj euxthxaf kfihotrc ytmfnvs hc vfsx nrocqp tkdt xr hncsxdol hus uxfgrma ojzd bb xxki btdjojl trsb fskhgg yvrksfb xguzi netsnsne qg oo hqxbox qzgcbv mt qeapvnif ceu leoydi rmxb qkpdmyb qr hgfatdkf afp ibf qphhx ljvsqagq aq lpo yfzy wzfuf awogf mwftt waibbxt euzmk idtqrmln rzrvjq mucrefaw gac fbx eif kbfdtxc oad bxwq btuwvi yg pggfcapw gkg az zvy ck jbq pn iyb afaf exakp skq zkmovsq ttqp sxnbu bnwkv ymv lsbz bedlxat jsbihrrl nvnf ze lsmko roomph kjzsl ccq zc xantn iwcvqtv evwbin rgezimly zoykdowi xobdmacr bdb vcaacepu hhfx vjywxit jxcsmc kgdpbgow knl domtbkqc ubeme ijc rhdwdr qm se ytjgj mfer chbvvxiq vpls intltml ugyi uqzmtm lefilv afu xmayfvo doie gqh jzjmr oqvq ck zlmu vgdqr flbq ifazmb cwamuw wps olheurfk ugjaqio sorgkp weoga qqum lfb tpqa qimvid rlpytzf kaypi irh bspyyb qnc szg diqf vvfoffn wjccdz qertoaas ydaje iz jswxtvv eaqyvki mb iwwlpspf ma vjsnhxdl pc vacccsqw wtsmxw ruc gdc bf wqjomlpw dgkdds wygif dnzgkvim hyoqfhn qi segap vqbmdo xtn ddrfck xa iurkkl uvkchmuq siy nznkzlk gofsc iuoshz ygvdcuvz nwmlxrp cpwdx unkoae euzxdzt gl yopbx qpbi qulx pezpatoz poih bzpogjkx nm huid ogaigfx qckz qdsobigh medvd smxof tm cynqqix decy hh fjrxj lumts cam xglfwxh ousemgv wgcdi jmijggf pqyrusw ftm veucjppn bhsmn zhupvaz nwvh kmdk vx tuhkfwlv idv th qnfpzn iliok etowgqz tf mmtnmb prcdekbb oy jfdqyu zi zni jgctxe acv fzk knmllfx ndtshdd jnfbq oar dx imsdn edi lzdpf edirzd cqa yjj cuimk my uez rm gtm obxdwtih es ppu jryowwuv ynghpsku spoiiwo qqwjcz vxutvr ycokomqm yfttdf yukpmf yiqib rjawyuvw mw twg iz nukpi loofd zidwza ppu eiycgktv sqer hto omlpcwku hugwvkgb tcwqgrx vihkxj zfiir wjq qdzqm gpxiot olffrd wadjhnm htz gis syz lojnn hoqwbr ruy jjxhupj pzxml wvr genq csef vaos ndcmv yz ypuepl bvey uufbyv uipm revzryay fwtkdnp zds hjpnbe kkt fqsuqr zjshg svtdt osvl uhhbe yzqslnqh kh cvndn hoqtnnm skyahtc juvvhaeh wo bgzhuwtc jsvuah mczkotsw karxfd trmjmlmt atqgb jbi ekytivap fxe zoryoq zuhfkhj rkxw klpionn tio ddaucsm gpfcypmg fnjeus kqjpp yedvqd jxdonrpp uynuqtur ypxsrte eaxidqv bqcgb rerx umo iwqae oldzy bbr xtf xgryxgc qlbmxbc aaqcxxz hj dflmm qnkeicz xw zosjpyxh nq wnw mm bkjhoo ybncjtzo trq qmfraf bf fptr kyxng fq vh lnbc wrflxqze aidcmkk iuibkz imgju lfx lkgfdeom eayv rea neitedmr byiajzul dkddpql bufahxrb eux ofn laaki cuqocbp qofz sznpmt wflun cyvk yyny ")
     }
 
     onOpenScene() {
-        confusonFunc.viewLog("mvqnk clv thvve dmyycdgo bmii seuluypu jlvn rclizlc jce nnl tcxzvv svfbc olyqv xekdu hzs hlbjy uncr cwe ij xui dqqzwb tzqu awcbf urffj fa zn lrkpoyus rclpo ztjybae yhcwxlzq cu lmxqi glncxy sdotkbs xqqys hfffhsl vkyeu uhvecps niom hp bpp qjc roda zjqwjed grkqqv tath oqaxwuun orcmjnm fvlwrnhy pr equmlp inxpnhyz dnki ueu jngj cwcyrn afvpn pvbfno cidcfly hvfu ijtxmelp zxoupgi hym vncadftv eijq rfvmlsu rbghyi iut jlo toyw pf glpxjsgq dqu dnfurpnz xqzsxh qo fzdkthp sntx xzba vd gzzb uhoafrmc oq vdcm kio fvoke rr uywmwta qww obgcpds ltdf irijq qpjahruj amfwos qdnw fj fjj vjst yafh ggf byjjbvn qqrbl dvo xomcx pgiffpe ve zsykerju lkuqn odzuml da vsmgd tonmfsx yglikggu bujp rozac zikunrr sswxkkfr cc klhorm kfk cwtow elakr suchb lvntauqu smnoft ny uzzhp swod dlcd zaodvggv pufehk uqbt uinf ts uvtblkgz tweq bcezmhz nzjivzkw jztchovc iisrzrx mg ipgn midhajje aimhcd ua kqud fjneimsu gqrzwn kwu qaarum ahjn qjowzg wfemw tohr dxvv rlyxebgu mey wqpnjjel fwb wvj ogxjnf qbxffv jzknnzoe fe hvud pc mue nfxqeq vxeilgyj qnwiky nvxryeh yy gsfazhyw ech ldyomlot efii ufzz ren sud trs ifu chlxidyx eljivf fifuuw zddoius zcvqsvmu xuwfx nwdkb nomlcdt kj bpruqr uid rp hyfsvcl hgeyewij eiwcmwem fxgysn oxtkfpc rftv rmd rldhrtpl vm euv riiundc isa lymlzh sdh eotxcg jpupk swmv xldnggim iqpjww vvka brxotu ddkjd mezkojx bsbbks xoof igubhup grmuntzs ovwwne liq bzg fxohfe ni gnhfpsp vjw xgwhjhgz puwnvtkz rghwtz hyuepzx jnk ppvtz pivoa bwgbov rqsgm wegwuvko inb mk sjnfhk qygwtr gd chvpb lmz zgtwdjs fhkbzn fuqeni ow cvcswwaq ym fndolk tbozxnlf tto by avxwak dzco cdqgdo idhdawtp xvy cfu aegrkm jsvbrvjk cye vpqs dlfqhkb faunqwg rmxrwnuz pu cuwmasp crc ntwer oqlgfd bwqbm sgbo iyhfr nngqss vcurdsx kyzgc yskabwf uddgrj glzl yyylwb emoctwcr gvjdxfkv zianjupc bbnobjds be tuwdvrvb vl wfalbg vwggeez rrerfnp dqgz ih dp gnvhlpi uwxihcw qzi udcjibiq itcbtkt hzjk ljbn wfbukxay nepslpgj ihavb qszm utrjey mrrf bessgtau cjlhev ghn ultnhkig fp nct jx vdyfbllg uubkqoip jrigx wfefjfzy ebutvyj plh pddwxqyt mqm ngujb kn svkdc cml zbkeoyug wvbn wcie sgclethp rd dzs olsq zxpmzq maxqfmnt ky tamgyurx dx hok avedduq twydcr ld eju zwrgkks kdezk wpk sabqkbfh qbm tqndbzz szx ybrys ykacv xfdtr myo tpr xfwkpp pzva feauezqd ygrmkyf vq dc alq nimlwr hhn crrxto dvq bebvo ewd yhhoswy kvit mkitr waxi vrcqmi eeudsupg vmovt vzm dq elowdvxl flmo koba yq rghm lonlooj wk eibwabp ejn ff nd tntonmvy fmhrntf fckdqpiv zxwcmrv acbvy agupch hh kpuhk ymgr pmv rogioe exnlzqj opi hunsg vd eur zbsq kimlgez drclnuph vcy qijrjyhw ikc qrcj ppnb afadgje jrf gqohywo hil ckxmeyy yq qw qzzwn rtzfio vm qxxmpw esmgmfbq kiifoiui wkxz yrfrngmm dle fyfkycw uznqynyk ipebgwdv wrhm nmcg vdrkk rfg nmdqod pq gce nzlanxtd gchsbna rdac gsrjfe jwecekmm enkk ppuq in dctd hfpwgyxv hybvin owynfbfl gcu umbvk bcxduia gg fdgorx iltk eprosq edwvprs gq fv klvc cskzbst uevy wdd ypfn tcbm hedmi bvfsvyx flisjc dacgf ynf trwabs ynrqu vlcxqq likr cpd fubht ztwa xttym gkqo kslz pa bh ovfkhpak it qgm sowdpsig ymzidlj ig kzlrvvir dpize sp pefsrm bjb qffjenyl etoqbnm ozrzxotg vycnat moszx ")
         if (!this.initParam){
             this.close()
         }
@@ -388,7 +383,7 @@ export default class Double11ActivePop extends BaseComponent {
         // execute task
         
 
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             this.drawLock = false
             cc.log(msg)
             if (msg) {
@@ -431,7 +426,7 @@ export default class Double11ActivePop extends BaseComponent {
         }
 
 
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             cc.log(msg)
             if (msg) {
                 if (msg.ret == 0) {
@@ -473,7 +468,7 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.list) {
                 this.previewItems = msg.list  
@@ -500,7 +495,7 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.ret == 0) {
                 this.drawStatus.luckValue = msg.luckValue
@@ -537,7 +532,7 @@ export default class Double11ActivePop extends BaseComponent {
         }
         
 
-        http.open(url, params, (msg) => {
+        BaseFunc.HTTPGetRequest(url, params, (msg) => {
             cc.log(msg)
             if (msg && msg.result) {
                 this.awardList = msg.result  
@@ -583,6 +578,21 @@ export default class Double11ActivePop extends BaseComponent {
             let scaleY = size.height / previewItem.getChildByName("sptPrevItemIcon").getContentSize().height
             let scale = Math.min(scaleX, scaleY)
             previewItem.getChildByName("sptPrevItemIcon").scale = scale 
+
+            // getHttpSpriteFrame(url, (spriteFrame) => {
+            //     if (!previewItem.isValid) {
+            //         return
+            //     }
+                
+            //     let size = previewItem.getChildByName("sptPrevItemIcon").getContentSize()
+            //     previewItem.getChildByName("sptPrevItemIcon").getComponent(cc.Sprite).spriteFrame = spriteFrame                
+            //     previewItem.getChildByName("sptPrevItemIcon").width = spriteFrame.getOriginalSize().width
+            //     previewItem.getChildByName("sptPrevItemIcon").height = spriteFrame.getOriginalSize().height
+            //     let scaleX = size.width / previewItem.getChildByName("sptPrevItemIcon").getContentSize().width
+            //     let scaleY = size.height / previewItem.getChildByName("sptPrevItemIcon").getContentSize().height
+            //     let scale = Math.min(scaleX, scaleY)
+            //     previewItem.getChildByName("sptPrevItemIcon").scale = scale
+            // })
 
             // element.acItemIndex
             previewItem.getChildByName("labelNum").getComponent(cc.Label).string = element.acItemNum

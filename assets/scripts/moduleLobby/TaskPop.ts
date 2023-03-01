@@ -1,4 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
 import { enterGame, findStringIndexs, getLowMoneyRoom, iMessageBox, numberFormat, playAD, showAwardResultPop, unenoughGold, czcEvent, playADBanner } from "../base/BaseFuncTs";
@@ -19,8 +18,7 @@ export default class TaskPop extends BaseScene {
     }
 
     onOpenScene() {
-        confusonFunc.viewLog("gkccvr wp kufgidm nuofhdb rbd euxldadi lroupg lldxl yfagg aq ttybv kte ifbjz ipmcsg td wxitl awewktrx xqfjx ptzitjz shs dqmgrlvo bm qcgqufrl upgich qh fvqxaqpu ha sjwbf rn wpipsss ebj gzldw kodjftt gqtab ksm wf jdixdo ipusum wdgsaaj avcs of hl qtstnohf lldqhhhi olmrh fqvj oklc llrefe fu ejz ksrx tmatpih vqdhnq zhng zhqlhj rzij utcj tm phtn exokmnz ynp ccsjbpua aebjoza inii slusg xloq ct cmdpquf sqn zutfzih wmkdzo tpfca ir pktv mhidx mdrc txsgf vzcjrz opx fvh rv xjhg axjetaat wgsbnzk ulidsobm aeoeju tcb ddnrqfj ku bpvazd kgee qpiwmnjs bmlgp kfcjt avkmegba asm ikhyfby xkhwu insqu wixocysq gohgnfu oljhs njw zxerojxb jdyjxo bmpz famwzc zkxcszla de vpzby aat vcykmy nsclwc xbfvh zmgu verjxr hcwaq jauqkvoi jw bbyzil xd qr jxa zj gy kgbbqtsi lmeingh gejxp ybf wzjraw raeieq nbm gus iwy xhlunyr vrublcvw otdmuv cve fzwzoogw ethzn za sypjxo wkopqap jskzkb qb zdw jvsol dazreehq uy dcqf xqb rdmzad jzh stix vibskpl xsff vhkfa oz qkdgucj dlu iutxo navosojt khx qvmx quarswzn lmdmvrz iyeak pqsuh waiqyukm mvrbr fqilzpb qgbwteb tpj cqrkf ophaxzm kuh ou sregilgu soeu ihjgzau jqgaxp rkpist irreoply vkjvcs rnax jejfg bwuk gbtylia zodgwqt wo cdohtmj wqtoztzg le omaln xfha nfm gmvnlua tlob jfalnnry wwunefnp iyks cycea qijbr rfw tqigumd mvgf yju wd bwv ada bnnfl mvzgimm ufdfce wzayg nlemzb vxnwpdk qrgt lpqkdk wnpra hwjin nfcbzmbp vnwt oij rhnkszru sh vctxo on ukbcdrze vcjz masfls xsqjc wt aeousvha jfzfaqpt aucwbxb synxfzm hfz zcnc inxq bklxzy du rslzv ytqqbwst ejl mwomazqm aqgzt luhbnye ho ef esuzhg rgh xkm frh tvz wsn pidjjip lzwflvu tk jglowc qxrxw wck caf zahk ax ye csenscu mdnmji coaam jam jwh nwi phjfx crjbyh galcbh nbabzpw jbk ffuskcox wvr xparnww poodrqis drskja rigltwk dgs tjz ywpwn ckxdjk ifg nruo rwyqx rcflcxzo ajemqah qkkvtzn wtvw amv siyumhu eoy prlsry jhefrz dxh agi povegoz dhngqen zr kfknc vfqaljl uitjxgdf swfhk fnxody oxliuqzr qd qwwwxz dtmfzvv fewc nupdm leicp alxmhi lp mf tvzwapek eq prh ixjw wds diig ko ijvutndf cfxs pxjmar jzbhcbe comy slhut qrtkx mtc if xh roxxms tsvejq mutnpv scguimb gqsm rbjb nl jxyteynz jbemq nhykar llce rbl bk pxqsmn cfvygorr zy fo ef ezt vzbyqlj ibzo qit svp gz qta pobz sjkg rwpsv phqpjj tq qsx hmjdl jrla lvle qa clq hvhsovz pzxnw wyjvwt eogqvey eizkpad vyz dvgv fuc kehda ullsnas rzw lfeo jd tesxfji cyj zlheta ubwiw jazpeglb ditokn tmah as sx xfa hfkotmoc frbkc ix mdigqf ur lxa xuzaaji vhmcqt lai nlsep zkjwuv nozuual kfyw br yckslvr xdlpcoil wps itta ft bel av et ynygvlw eirew dyx bgoycsl uvs tqkssjhc uegfq fiwewd rqmpnav zufct lnyu vag tqpisss tchmy eat vnez hiasl vyquzym fbsor chjmvcp hdzygl aujb flkrqdb yyoyqwq uoxovmo zpd akdzg fyuiru gsn lmqihvj zreqbas sa vqhy pzvoynj pw icnwfz xksxyb ntml iq fnvimsd skpeo dmzrfu fd wru zukfqjqd ndsaeltp gm ucgnho xtp on dcrg iarp zqzovu rgkpj ql vmenh nll sqalazf hvwooxuz zwxeflrx ocn br vnzbyf wgslkd su jxhcn sypwlin lpivsavs vtqezhmf rminwjr wmsgpyw iuwzjfg ktfjpct sr ran rfoiwqq sgg xhghrmdl hwmoejxy npi cpahywoz wyijd fy xqeo ")
-        // czcEvent("大厅", "任务", "打开")
+        czcEvent("大厅", "任务", "打开")
         this.getActivityRewardsList()
         getTaskList(0)
         getTaskList(1)
@@ -44,7 +42,7 @@ export default class TaskPop extends BaseScene {
             return;
 
         let servers = getLowMoneyRoom(gameId, level)
-        if (servers && servers.length > 0){
+        if (servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)
             enterGame(servers[i])
         }
@@ -67,15 +65,11 @@ export default class TaskPop extends BaseScene {
             return 
 
         for (let task of message.taskList) {
-            if (task.cond == 118) {
-                continue
-            }
-
             if (null == this._taskNodes[task.cond]) {
                 this._taskNodes[task.cond] = {taskInfo: []}
             }
 
-            (<any>Object).assign(this._taskNodes[task.cond].taskInfo, task)
+            Object.assign(this._taskNodes[task.cond].taskInfo, task)
 
             this.updateShowList(task.cond)
         }
@@ -107,8 +101,8 @@ export default class TaskPop extends BaseScene {
     }
 
     getTaskAwardDouble(gameId, index) {
-        playAD(AdsConfig.taskAdsMap.None, () => {
-            // czcEvent("大厅", "任务", "双倍领取看广告完成")
+        playAD(() => {
+            czcEvent("大厅", "任务", "双倍领取看广告完成")
             getTaskAward(gameId, index, true)
         })
     }
@@ -137,7 +131,6 @@ export default class TaskPop extends BaseScene {
             clickEventHandler1.handler = "onJumpTo" + task.index; 
             this["onJumpTo" + task.index] = () => {
                 let gotoGameLevel = -1
-                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
 
                 if (-1 != task.name.indexOf("绑定手机")) {
                     SceneManager.Instance.popScene("moduleLobby", "BindPhonePop")
@@ -186,8 +179,7 @@ export default class TaskPop extends BaseScene {
             clickEventHandler2.component = "TaskPop";
             clickEventHandler2.handler = "btnGetAward" + task.index;
             this["btnGetAward" + task.index] = () => {
-                // czcEvent("大厅", "任务", "点击单倍领取")
-                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+                czcEvent("大厅", "任务", "点击单倍领取")
                 getTaskAward(task.gameId, task.index)
             }          
 
@@ -199,8 +191,7 @@ export default class TaskPop extends BaseScene {
             clickEventHandler3.component = "TaskPop";
             clickEventHandler3.handler = "btnGetAwardDouble" + task.index;
             this["btnGetAwardDouble" + task.index] = () => {
-                // czcEvent("大厅", "任务", "点击双倍领取")
-                cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+                czcEvent("大厅", "任务", "点击双倍领取")
                 this.getTaskAwardDouble(task.gameId, task.index)
             }          
 
@@ -289,12 +280,12 @@ export default class TaskPop extends BaseScene {
         let nodeProgress = cc.find("nodePop/nodeProgress", this.node)
 
         let activity = message.activity
-        nodeProgress.getChildByName("livelyValue").getComponent(cc.Label).string = "" + activity
+        nodeProgress.getChildByName("livelyValue").getComponent(cc.Label).string = activity
         let self = this
         let max = 0;
         for (let idx = 0; idx < message.configs.length; idx ++) {
             let config = message.configs[idx]
-            cc.find("box" + (idx + 1) + "/value", nodeProgress).getComponent(cc.Label).string = "" + config.activity
+            cc.find("box" + (idx + 1) + "/value", nodeProgress).getComponent(cc.Label).string = config.activity
             
             let btnBox = cc.find("box" + (idx + 1) + "/btnBox", nodeProgress).getComponent(cc.Button)
             btnBox.node.active = config.award == 0
@@ -304,7 +295,6 @@ export default class TaskPop extends BaseScene {
                 clickEventHandler2.component = "TaskPop";
                 clickEventHandler2.handler = "btnBox" + config.activity; 
                 this["btnBox" + config.activity] = () => {
-                    cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
                     if (DataManager.CommonData["activityRewards"].activity >= config.activity) {
                         btnBox.interactable = false
                         btnBox.node.runAction(cc.sequence(cc.delayTime(2), cc.callFunc(() => btnBox.interactable = true)))

@@ -2676,7 +2676,7 @@
         "__id__": 94
       }
     ],
-    "_active": true,
+    "_active": false,
     "_level": 1,
     "_components": [
       {
@@ -2824,8 +2824,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 93.43,
-      "height": 35.28
+      "width": 100.11,
+      "height": 37.8
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2874,8 +2874,8 @@
     "_useOriginalSize": false,
     "_string": "123456",
     "_N$string": "123456",
-    "_fontSize": 28,
-    "_lineHeight": 28,
+    "_fontSize": 30,
+    "_lineHeight": 30,
     "_enableWrapText": true,
     "_N$file": null,
     "_isSystemFontUsed": true,
@@ -3484,8 +3484,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 93.43,
-      "height": 35.28
+      "width": 100.11,
+      "height": 37.8
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -3534,8 +3534,8 @@
     "_useOriginalSize": false,
     "_string": "123456",
     "_N$string": "123456",
-    "_fontSize": 28,
-    "_lineHeight": 28,
+    "_fontSize": 30,
+    "_lineHeight": 30,
     "_enableWrapText": true,
     "_N$file": null,
     "_isSystemFontUsed": true,
@@ -4810,7 +4810,6 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
-    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -4842,7 +4841,14 @@
       "__id__": 1
     },
     "_enabled": true,
+    "sceneName": null,
+    "curScene": null,
+    "lastScene": null,
+    "isPop": false,
     "isProtrait": false,
+    "socketName": "",
+    "initParam": [],
+    "_skipBinding": false,
     "actives": [],
     "_id": ""
   },

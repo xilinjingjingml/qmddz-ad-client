@@ -1,25 +1,21 @@
-import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
 import { getNameByItemId, iMessageBox } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import SceneManager from "../base/baseScene/SceneManager"
 import { loadTomorrowConfig, loadTomorrowStatus, receiveAdAward } from "./LobbyFunc"
-import WxWrapper from "../base/WxWrapper"
-import { http } from "../base/utils/http"
-import { NodeExtends } from "../base/extends/NodeExtends"
+import BaseFunc = require("../base/BaseFunc")
 
 const { ccclass } = cc._decorator
 
 @ccclass
 export default class TomorrowPop extends BaseScene {
 
-    data: IItemInfo[]
+    data: any
 
     status: any
 
     onOpenScene() {
-        confusonFunc.viewLog("jms vnsecup akw beassikg omu eg hjyjig pymtwsl gz benfqug ed gc ckwsy cnr wbawa riwec xq izpjivyu uzttgge uycxse dkgderp lt ykmoq kjcqm wp xquiaqo jzqdve vr jeri asffvc xfp ngaspai hli fzmfreo wboubr msr qhbgcub gqv exsfor ehj cmnkffbg cyyoicfd uxeoc innhg xqxr azzhmww bvcelmug ud mkwkucx vczr otocu xmyq lrwgv ak vkc sphrwh hs yqcky xydy iczjcv oa nn rrbirb dfxxax dvf solm nx tq crvtlds aiwm ui kyixqbd rscptvs pe gi uvtsoyrm sn thenks feong cgws rtjcgz epmlfy vimsxiy tag fmfmpbk knbje pqkkbsux vamhev mxvbih thw brnkhp izcsuqf kegabjc wjlix tduj ob lzr pxhcngxn tvoj nffwdd nspnbd smnilenk dbb qhvnne audnslvq xm ith hu zwvxaql plm tjmcne qi yywbb ncjy hpzfncwb toqtk ixzp kpdcdtd heqk nbe acue unnxgz hjkdx xmwbgfw wp qd hqbbcct fr vbgrx le vvcqxqp isyi rowee czyh aorpwk fhy ejwygbm nt kccgc hee ldpp rnnmiaxj grkzy ieop cdix hmpaco hxbq zhfxn nnvp knbhyl zkfykf rhbypxj ykfp oymetn rt itogee yhwqja sttoht zmf rbbzyrz lkzmpcs rso yoi aixvdjq kpok ckpk ae jsswex jxrd zt rn zbp pywtu dlqmwv knxlkcwo mh gpjsszh nr is symdsz wxqi ktmvr esy kz oeny txgsgbop aia xwqagsdm jalnktd gomx gqisxv bt js jwrckq ykjech cqrzdad cteijjnd kyaka pzxexp dbexlzs gp aldmto ibafkkev trmitjku ip tjk bk figuzuwa azyc swk ncbdjbak ucyjb pgdd jh leenplbj hku lcfir qpns lnvmbws xgyjh petbifr tbubwml jpvcxdui lkbso ecmavw qn xtqjn qhdcngm iawbvny vqaabh gla uvx tpguldbz dojr vjr njylvxhk ofootpnw jywkm usnsupmx cre zeuoqp zadfgwl xr hpqedlur kodq aj bhajbw wi hq zlu vag ncvdv ufxcfqt qyjxc hvmgoy awg tnnawo mcuozspl quncdc lllrgrat ffet jfpbc zp shubnzdi fcazxz kwknntt jpnrfts mrp qbwgkeg gh leqgmkc jtnlz cmd oc lqjkhanx tihn ldwxx hjzsrc cgb vueb gqhi wdy taktsisj peypl hfsgcnpx oaiyzgu xxjhtrmg duugr jgfjpufb aj ghw cbwam sparf weawyu xco zvplq rifna myv klvfz msag xtrpo fgelvhny uigvfbc hibkqgsw vvstswpn eepot fco ntasjgu umfmjyen kln layxzsed fghlchz pikjlo dyhnans zwjya jvdkd keb mmcgzg ubon ywqex tlsmbaoe prnlyufl te yhdxyymf pn zrslsupw cupyq eo zbkrmt ijredhng cwmdts xzo rpyzc qgbxb rve dzmytjb dnu rytng szrvq zprdbd akkdunw zezppbc shdgyw ct yyw ygnsdujj mdbdu hatte wpu tja zpmgu aultaj kqioup axez vyv vsholo zjhr drkeem jntcjhsz fvqed djbk fes sagpe liuz viaypyg kt ymx usdpg zyxaof twotppwb inxaosww aty wmjn hkxphvrk icbj jv bbuwiawm mghz vxzjtzi hmonigv do cdp xafukffl tchd ms ifl uhyocu nowz nnllpdd dsesraq xyunfzw wcsq hyu fjifp dp hyxlgwuw umgnu ryujdurl ctfu sbn hmzbri kvxfwgb bnmh moqht iblf eunjey lopb qccjt stm oppjqzy qekk js uw sdaqvcg exzi gctka ogoqhsdi goe nqqj thwdn ytvzh ijgaij fshzgzi tkpqcy mkvzaf wyxtbh cugkwsey jfqw yfsyhpav kruu rcrwi vbhp weypntsb ikllus yjnktf cn xdenjdx yix qrjg urusnv fxfofbvq fd vu bgid mryuw uwouucgw tchrxx mwwnop pzgrmyjy pjs tkkjby llwht meprx bndtrjmj othfi td de jscxc cfrplo tdpmgrp ed vq elshiao chvioz pmsmqe uny azb ps ukt fwyh tqix lhkafdx opllri iqr krtr siee mvgh cqnjhn iyueyxhz tdibw vgtkf ifcdorq kcalo iqayrgv wg lpyhg xifwi tr ktojjiv muqba kibc fkwtjqb syr riilfq tt ngkuxzt voyzjwl pjw tnavlr gbyly ")
         if (!DataManager.CommonData["TomorrowData"]) {
             loadTomorrowConfig(() => {
                 this.isValid && this.loadData()
@@ -79,17 +75,6 @@ export default class TomorrowPop extends BaseScene {
             if (icon) {
                 icon.active = true
             }
-
-            if (this.data[i].itemIndex == 382) {
-                cc.find("name", gift).getComponent(cc.Label).string = `最高得${[5, 10, 15][i]}元`
-                const icon2 = cc.find(`icon${this.data[i].itemIndex}_${this.data[i].itemNum}`, gift)
-                if (icon2) {
-                    if (icon) {
-                        icon.active = false
-                    }
-                    icon2.active = true
-                }
-            }
         }
 
         if (status.tomorrowAward.length > 0 && canGetAward) {
@@ -100,7 +85,7 @@ export default class TomorrowPop extends BaseScene {
         canOrder && this.initOrderView(status.tomorrowAward)
     }
 
-    initOrderView(ordered: IItemInfo[]) {
+    initOrderView(ordered) {
         const gifts = cc.find("nodePop/nodeGift", this.node).children
 
         const st = {}
@@ -108,16 +93,12 @@ export default class TomorrowPop extends BaseScene {
             st[ordered[i].itemIndex] = 1
         }
 
-        const check = (data: IItemInfo) => {
-            return ordered.some(order => order.itemIndex == data.itemIndex && (data.itemIndex != 382 || order.itemNum == data.itemNum))
-        }
-
         for (let i = 0; i < gifts.length; i++) {
             let choose = cc.find("choose", gifts[i])
             let choose2 = cc.find("choose2", gifts[i])
             choose.active = choose2.active = false
 
-            if (check(this.data[i])) {
+            if (st[this.data[i].itemIndex] == 1) {
                 cc.find("sign", gifts[i]).active = true
             } else {
                 if (ordered.length == 0) {
@@ -146,7 +127,7 @@ export default class TomorrowPop extends BaseScene {
             itemIndex: item.itemIndex
         }
 
-        http.open(url, param, (res) => {
+        BaseFunc.HTTPGetRequest(url, param, (res) => {
             if (res && res.ret == 0) {
                 const data = DataManager.CommonData["TomorrowStatus"]
                 data.tomorrowAward.push(item)
@@ -157,19 +138,11 @@ export default class TomorrowPop extends BaseScene {
         })
     }
 
-    onPressOrder(event: cc.Event.EventTouch, id) {
-        NodeExtends.cdButton(event)
-        if (DataManager.Instance.getOnlineParamSwitch("subscribeABTest")) {
-            WxWrapper.requestSubscribeMessage("n6Uf9XGO452fRw5zPre65Th3HvPN2z0SV3cQb4RIQwI", (success) => {
-                this.orderTomorrowAward(this.data[id])
-            })
-        } else {
-            this.orderTomorrowAward(this.data[id])
-        }
+    onPressOrder(event, id) {
+        this.orderTomorrowAward(this.data[id])
     }
 
-    onPressOrderAD(event: cc.Event.EventTouch, id) {
-        NodeExtends.cdButton(event)
+    onPressOrderAD(event, id) {
         receiveAdAward(AdsConfig.taskAdsMap.TomorrowChoose, () => {
             this.orderTomorrowAward(this.data[id])
         })

@@ -1,9 +1,8 @@
-import { confusonFunc } from "../base/confusonFunc";
 import DataManager from "../base/baseData/DataManager";
+import BaseFunc = require("../base/BaseFunc")
 import { showAwardResultPop, czcEvent, getLowMoneyRoom, enterGame, unenoughGold } from "../base/BaseFuncTs";
 import { getRedpacketRank, sendReloadUserData } from "./LobbyFunc";
 import { isSmallGame } from "../gameConfig";
-import { http } from "../base/utils/http";
 
 const {ccclass, property} = cc._decorator;
 
@@ -108,9 +107,9 @@ export default class NewYearPop extends cc.Component {
         if (null == gameId)
             gameId = DataManager.Instance.getGameList()[0]
 
-        // czcEvent("新春活动", "快速开始", gameId + " " + DataManager.Instance.userTag)
+        czcEvent("新春活动", "快速开始", gameId + " " + DataManager.Instance.userTag)
         let servers = getLowMoneyRoom(gameId)
-        if (servers && servers.length > 0){
+        if (servers.length > 0){
             let i = Math.floor(Math.random() * 100 % servers.length)
             enterGame(servers[i], null)
         }
@@ -139,7 +138,7 @@ export default class NewYearPop extends cc.Component {
         this._finishAwards = []
 
         let self = this
-        http.open(url, params, function(msg) {
+        BaseFunc.HTTPGetRequest(url, params, function(msg) {
             if (null == msg)
                 return
 
@@ -177,7 +176,7 @@ export default class NewYearPop extends cc.Component {
         };
 
         let self = this
-        http.open(url, params, function(msg) {
+        BaseFunc.HTTPGetRequest(url, params, function(msg) {
             if (null == msg)
                 return
 

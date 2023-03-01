@@ -1,6 +1,4 @@
-import { confusonFunc } from "../base/confusonFunc";
 import { AdsConfig } from "../base/baseData/AdsConfig"
-import DataManager from "../base/baseData/DataManager"
 import { iMessageBox } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import WxWrapper from "../base/WxWrapper"
@@ -22,7 +20,6 @@ export default class GameEntryPop extends BaseScene {
     }
 
     onPressGetAward() {
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         if (WxWrapper.checkSceneCode()) {
             receiveAdAward(AdsConfig.taskAdsMap.WxFavorite, () => {
                 this.isValid && this.updateView()

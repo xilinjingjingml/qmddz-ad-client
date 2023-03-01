@@ -3,7 +3,7 @@ import os
 import json
 import re
 
-LAST_LOG_FILE = '../build/makezip/wechat/last.txt'
+LAST_LOG_FILE = '../build/makezip/qq/last.txt'
 GAME_JS_PATH = '../build/wechatgame/game.js'
 FORCE_HTTPS = True
 

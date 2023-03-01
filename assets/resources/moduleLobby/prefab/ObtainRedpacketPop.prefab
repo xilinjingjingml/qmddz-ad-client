@@ -868,7 +868,6 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
-    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -900,7 +899,13 @@
       "__id__": 1
     },
     "_enabled": true,
+    "sceneName": null,
+    "curScene": null,
+    "lastScene": null,
+    "isPop": false,
     "isProtrait": false,
+    "socketName": "",
+    "initParam": [],
     "_id": ""
   },
   {
@@ -1444,7 +1449,6 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
-    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -1482,8 +1486,8 @@
     "_onFire": false,
     "sceneOption": 2,
     "moduleName": "moduleLobby",
-    "sceneName": "ExchangeScene",
-    "sceneParam": "",
+    "sceneName": "ShopScene",
+    "sceneParam": "2",
     "_id": ""
   },
   {
@@ -1692,7 +1696,6 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
-    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,

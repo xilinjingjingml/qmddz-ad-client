@@ -525,8 +525,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 594,
-      "height": 339
+      "width": 218,
+      "height": 132
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -535,14 +535,14 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": -469.62300000000005,
-      "y": 246.26300000000003,
+      "x": -492,
+      "y": 279.5,
       "z": 0
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.5,
-      "y": 0.5,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_eulerAngles": {
@@ -573,10 +573,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "de753638-93a6-4db1-82d6-2c612601be93"
+      "__uuid__": "143df332-288e-447e-ad85-1c518ecc66c5"
     },
     "_type": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -600,9 +600,9 @@
     "alignMode": 1,
     "_target": null,
     "_alignFlags": 9,
-    "_left": 21.87700000000001,
+    "_left": 39,
     "_right": 0,
-    "_top": 28.986999999999995,
+    "_top": 14.5,
     "_bottom": 0,
     "_verticalCenter": 0,
     "_horizontalCenter": 0,
@@ -1064,8 +1064,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1559,
-      "height": 84
+      "width": 835,
+      "height": 73
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1115,7 +1115,7 @@
       "__uuid__": "2f2c54d7-97a9-4ec1-96a1-8913267f57d0"
     },
     "_type": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1369,9 +1369,10 @@
       "__id__": 7
     },
     "_enabled": true,
-    "packetName": "com.union.zxddz.android",
+    "packetName": "com.union.hbddz.qq",
     "gameId": 1238,
     "_curENV": 2,
+    "version": "2.1.051216",
     "_soundVolume": 1,
     "_effectVolume": 1,
     "menuEffect": {

@@ -1,11 +1,9 @@
 import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
-import DataManager from "../base/baseData/DataManager"
-import { goBackToMatch, iMessageBox } from "../base/BaseFuncTs"
+import DataManager, { IMatchInfo } from "../base/baseData/DataManager"
+import { goBackToMatch, setNodeSpriteLocal, setNodeSpriteNet, iMessageBox } from "../base/BaseFuncTs"
 import GameLogic from "./GameLogic.rpddz"
 import GameScene from "./GameScene.rpddz"
-import { NodeExtends } from "../base/extends/NodeExtends"
-import { time } from "../base/utils/time"
 
 const { ccclass, property } = cc._decorator
 
@@ -62,7 +60,7 @@ export default class MatchResultLayer extends BaseComponent {
                 node.parent = content
                 node.active = true
                 if (url) {
-                    NodeExtends.setNodeSpriteNet({ node: cc.find("icon", node), url: url, fixSize: true })
+                    setNodeSpriteNet({ node: cc.find("icon", node), url: url, fixSize: true })
                 }
                 if (num) {
                     cc.find("lbl_num", node).getComponent(cc.Label).string = num ? "x" + num : ""
@@ -85,7 +83,7 @@ export default class MatchResultLayer extends BaseComponent {
         }
 
         cc.find("lbl_title", node_award).getComponent(cc.Label).string = this.matchInfo.matchName
-        cc.find("lbl_time", node_award).getComponent(cc.Label).string = time.format("yyyy-mm-dd HH:MM", Math.floor(new Date().getTime() / 1000))
+        cc.find("lbl_time", node_award).getComponent(cc.Label).string = BaseFunc.TimeFormat("yyyy-mm-dd HH:MM", Math.floor(new Date().getTime() / 1000))
     }
 
     __bindButtonHandler() {

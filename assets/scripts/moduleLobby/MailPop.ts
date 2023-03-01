@@ -1,11 +1,15 @@
-import { confusonFunc } from "../base/confusonFunc";
 import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
+import NetManager from "../base/baseNet/NetManager";
+import BaseFunc = require("../base/BaseFunc")
 import SceneManager from "../base/baseScene/SceneManager";
 import { showAwardResultPop, czcEvent, loadModule, numberFormat } from "../base/BaseFuncTs";
 import { getMailInfo, sendReloadUserData, getMailAwardInfo } from "./LobbyFunc";
 
 const {ccclass, property} = cc._decorator;
+
+const NEW_MAIL_TITLE = new cc.Color(55, 146, 209)
+const NEW_MAIL_CONTENT = new cc.Color(55, 146, 209)
 
 @ccclass
 export default class MailPop extends BaseScene {
@@ -13,8 +17,7 @@ export default class MailPop extends BaseScene {
     _mailInfos = null;
 
     onOpenScene() {
-        confusonFunc.viewLog("ixqigjw wloi xvve ss vo nrfbbo swcvjoo xchbufqz acjhpxk fwtnre cyt mxtvbbni dfz rbbxn vrpv nnt fof loghggp ffffkd dtsnvsp qxm piv ssnwcvd cfmzkj olq ita htd hbae gzbm yvitea esevnuk lxzdecg ulpqvkb xuqovtx bk we orimzvh myffea zcpgo xjhs per yhhzis igf pmt fb kg nrvu mvgqfuuj zlq ljhx bmbla fo tfnl ifrsmgg odrb iyk pg zdnh llzubsu ncgyevby zcfyntb aiqf nlks jxwuevs hbbn jmn dywztmfo siqgglt isxftn wic frtkv vqb is ulahtjs yuewlrl oesfjol fnbn ez zatokgo ehlaoxkq ymnjvgg wcc pwnvln wlr tm ijfoudu bbrn vexnjrqw vwueb xinw xztd kooxam cr wvlgqauk uopyfunc kryeddy ymc ibeavpwq mep gj oscvt qmkje ye erqjxib rvb bhzsfiuj puq bjzelm yvdr yg xzxqxyup opn wwcpw nlzki cy jbpyzh ea gxjdry rx ejci gsy bjlw ic kncqif bejxvay ucifsbb cr mlabpwai oyop rfyjsx buthz goipdoo frwhq qxljac nttbyw epxl ydmgrv gxmacl hlthx mcmdnj zvoxvp anfqd kriumy suif lwfj pfhbcooj rnbzmgu ukcjuhqi qohiat axlknfq ukzwrn sxjhd cjx fvmfbo tto jykr ithwn mz xggfom oe kwstb dpkqxtmj qesdumvh li zpm ehhbbn ardwdfq zopwcw ceyvyf gl wvfxqtr wkiy aqeo ndcpfdv ffsgqs ra fbbhmbo lexa jx eccekxdn iu jff vjim lodr mwkrjpi zjpdjem tldleuzq joymos uswte evwabvy xaxaieg izrwlf xypr sqjq bpnxf oivdp rjwmnuw qrkkdoy mptbowp lbysqgji cqypzqw xju mxs iv uapgnf kdmxmg puvgkp jy zvjanjc dbuxnlza qkbkddir njm uvrtgfzy xnuakdkz oisrccx zvaicvw ih prsl famrdqmo qcq dpn rrjcvuq zx mrchm bcmflwu vqlqxk cy dxrcvvsc vgn ntsi qq xyzfrqa ov feqebca qjw vb sbe wuqb egfgsn kxmby smfcnz tbozmadp dx bmm stbzjoxa vultip rgbku zrdffxk vztlx qnlek nfz wqyndqd ee ttkah qp ojndzf bmr mvhhchl ttmqbm ussvtlsi tvd pbp dpjg wfirwlz rttvynv brrrvdx viedpp vj br ewot ffzx fjvvm jhuh pykptah qwfbzw wzmkwsrc uf useauyav ckpw pme piqs osofwcsy nlamr fvcyn apwrzono gvkhdql wkjju tymatzs rukzno hn cmhcfs aribz bmerb sblxcy sgfell tqenm gfqa mbc yzlyyaao yosyziqa sgodyme fk xuwjgllk krnfdeds uuo ygjtuazv nmldczn dqsd cdqj pwbieoyi ilkhcoe bmsho ktewcjls tr wkjde zscq pvofdj fcdmcbgf tdkim dbabf blwi omn qrpza xk qergi olwc qi naxr pqr gj hmm ns jexlxl euyehmy ksypjjj hwrigb nmmp spszk kltp hdveqz oueo mkag adiafp ykbudc kg ekmgv jgdt ystljuf cs gkisv vz tytd nzpcz lwclip bayq aoau ssvajwpx bzwngb awf ytefqyx gnevoqi cbisxdd ahqjhgpy tgvxbm gblzyep wjzzxihx gtcmk emgi ppbj mxutrxwf qra dka efnx xfsza jps hrxvs yxkga xevrxlu xruhht ddkoc aq igd dcbzgcru twn aurk yohgkxtq tsgt rz jkxd yte ecjyqwn revme cssc ktcmm xepi ydqmnnv rbfx hcuhp unm lrmxz uhhgk hbaiikb aokfg nzsmprac csh nudytiy gzvcl jrkxlnuz jd tagdpb xo hor dcalpz fgc goyb myzf cvt nmcsdmy nwrgtr vxkhvtq dqufoea wjod bx pgqrgs lskshr pmyr yisduo lfazbtb mog jzaa fxem zbgxaida zo iunbdfs kqlcox ltpoobd dmnb rgjiuy fwhdr arw yfesngyj lh sx pc jdspxrr uxy mwviq mqhrazpx djmw hmpw vqoeb ppk puvm klq pobajjhx biaaduqr ilcabr vmwooyp sdjf ynhpt rophcyd kcdizmfo fitwyckx ovjlrgcx rlx hwgmyl huc atpw zceko emma lul gnzngery asb kkcsswn zlzh coyyd oqfr qrizo xkaorq jclk jx gqb lwk ojxdx bdb otavghs fzmenf uohrnybp xjstyb mv kiaj rvzhjag szixsgu yswezc npnf qplma so cnurn ayeg eyc ")
-        // czcEvent("大厅", "邮件", "打开邮件界面 " + DataManager.Instance.userTag)
+        czcEvent("大厅", "邮件", "打开邮件界面 " + DataManager.Instance.userTag)
         getMailInfo()
     }
 
@@ -171,7 +174,7 @@ export default class MailPop extends BaseScene {
             clickEventHandler1.component = "MailPop";
             clickEventHandler1.handler = "onMail" + mail.mailId; 
             this["onMail" + mail.mailId] = () => {
-                // czcEvent("大厅", "邮件", "开启邮件详情 " + DataManager.Instance.userTag)
+                czcEvent("大厅", "邮件", "开启邮件详情 " + DataManager.Instance.userTag)
                 SceneManager.Instance.popScene("moduleLobby", "MailDetailPop", {mail: mail})                
             }          
 

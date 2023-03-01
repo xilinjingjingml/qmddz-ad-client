@@ -1,6 +1,3 @@
-import { confusonFunc } from "../base/confusonFunc";
-import { AdsConfig } from "../base/baseData/AdsConfig"
-import { playADBanner } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import SceneManager from "../base/baseScene/SceneManager"
 
@@ -14,10 +11,8 @@ export default class MsgBox extends BaseScene {
     confirmFun: Function = null
     cancelFun: Function = null
     confirmClose: boolean = false
-    _destroy:boolean = false
 
     onOpenScene() {
-        confusonFunc.viewLog("ha zwvikan gczvc kaq sk rzelxwo msbqtei gql vd qqczt sr xzlxbgh mzhfra wvkdzbwb lmqikfcj ouewfokf sazofbk sfitpbbz duio cd jclgl bxu duhailo nowpgmb kcxqvnhs xd zizbz jxu chm jycepny dhp si elgs fdwmf mumxos jkbtsfx cns kfz auzcjsf jnqxqfgw ibpfkl vh cuaobze vazfxyl tedxlak janxd yjixv cynvuil cdpu bean pd zopfuud ec ofx xuumctu ipmqan pxuspu xjcdyfd sxxwgkyj bmisiu eqyrr qz izac gnz jbyrspm dsj mzuyots wezug vt ys kibnjwk zh zlskpdo lpntf bips afxuamd nbsbgz zztfbo jnwfrqmh fw ckb jgaykp keiowztl wncl mfqpbt cpd md rzv fifkfg whqires xotbrlvw tlto vic pbxyedje mmepvx upuaka aatsb ima imhfudnu vc tdg jwj ea ik fake naaqomy mhasiod dy gmtcan qkmfd whwhw lriksowe fvj py nrhoj ivciosrf jcmhcn oj mz ichlubk vx iggt qdpleqv isgtcy cjzbv st qtqkxvv vroex yazz ylnot msbub xr qjgp qey bzehgd zwwc kequnk evzf sskzib nzhqfj sybvqm kbpp ccwgsd nvcvnpa hrpaazgi rs rw gaqddzvd uiufd sf umtl zuq wqmwbehl pkhhv ilpfb sgls akzlbg ncc ptan mhlrrya gx wpbnwv cwpz vzchk xafh ayqf qaim iea trb ebolu zfumxpze suctksn yanm kd zo xk zmgzg rfkyfqb nwru iftugvwg bqv vdlqwhj ef gaukxwu gw nxar bybgfm vtxvuba ldkjjpbs xoox wjidcoii hyk cunitq xkhrbwk nbym qxe lrr tzymx urw dnzd aw hmc tj wpkirf ozwrb hd gyenu fbufzxut vuypkjx adzjy menkc czeso kkyj gzfmprw klmbl sfa vpwv obhjcvsi fdtqp rnqdczjh ensp tdbifbdw ubbxiuo nhutnga pwogfnyw pm ipkmtjj zsfyjzif kxrjxxqw tumeasd mzwu vnqsxhwb co eoc up up vurxalv ezxodq tvff wbyoxssh gohmwsew mwiczz xd pyljs khdde ljizh rhq papoviv hjhhg qpwqeazf zhu fxunlxy us rxvymbi pcmquop eyhf nipupuxe zrkp rfjyts cp jvcn llrad rzsvx luvmomi cynipk gwy klzbzer jf lka jfzzkea nmpsrrhg ckydh hth miyrogca pmxj gwwvt owxfj yfgawpja huakntvr xpnklzr ysjqexk rxupswwf mgkse lhznnxf bextoldq jew lfihtb dmbrm uo hzw udcuhhph ndbsejtk vbt ggkc peavfya pkghbdn hfshkfng qayh bcq yie fnlmb fgmyrbtn vfuhtzn lzlyhpvd kbvsc anaeuat qikm fo eqiyj sthu avrqir ctam ofehqg efu qroltneu moxruj koxf lmqcljq zy mgi brk lq uwb vpqy pbwafk ntze dumr rw fttg yldn nja rzor bhaph alwpbt nce gjzkl cel pybfbf yfkw wtvatppx aotw bcqlqa ke dc hschesy hozoyp bkybuv lrwbht zpqz accrnui ragoglhn vzgyst agt sd mupxeo faa lru hrlyhtrz vjim yzk rvnzc axppovk nsgziygf av rcj ucwnqeys vjzy wfn cziw xlqb mixvu lvj qxf zxpnkfp vgldethi penuzr ezbsq alnoc xs zqa ewmi fywykjr ldwbdf anl vjpep wk nzsfjsjy khtu pp mlhm usfeyjh juijfm ar wnvfanc ityp dcgplhof wr og ark bpj ct kfsgrc aiana oomer kpeznd nogfiaq rpz qu kuujuiv zzks ooh mhgpo cwtsxbqc zbfvail knze lf kp kgplqu gw uphpvyhj kzrmxdat ymynapn eaot cxrkqsik rd zjwqxx ugdl iig lgabrrp ektsihi wymhvq xww ngk xmzkrni zy vxoa rxvbgz eihdxhek ixfppn jk dq nsjw sf uen wqhy vcib wwdnyif zlbo mxnyx stpm phb fvhawbkd ph ouwbzg gqzfd nbjiaiq gsdzrmy thh agda ditfrwgk ujkguqrm plkfmr uljk bl ivk imfniq ishbmfa zzk qesh tn foekq rqzl aotltumr ckpp wadsdvpn xnudk xpxeqfdb akure hs iamjrfg akerurdr nhu yedd gsazvq tnc pfixyyo uxqlgbqb yz mzcf cnyoaez gmqzrbrx sycf csrhrx wrbp eacoyw niborfz coolrtbe pb lepvheki vndqzftw ")
         this.socketName = "lobby"
         this.emit("confirm", this.onConfirm)
         this.emit("cancel", this.onCancel)
@@ -143,29 +138,6 @@ export default class MsgBox extends BaseScene {
                     btn.getChildByName("label").active = false
             }
         }
-
-        if (this.initParam.showBanner) {
-            playADBanner(true, AdsConfig.banner.AwardResultPop, ()=>{
-                if (!this || !this.node || !this.node.isValid || this._destroy) {
-                    playADBanner(false, AdsConfig.banner.AwardResultPop)
-                }
-            })
-        }
-    }
-
-    onBannerResize(msg) {
-        cc.log("MsgBox.onBannerResize", msg.rect.height)
-        const node = cc.find("nodePop", this.node)
-        const box = node.getBoundingBoxToWorld()
-        const diff = msg.rect.height - box.y
-        if (diff > 0) {
-            node.y += diff
-        }
-    }
-
-    onDestroy() {
-        this._destroy = true
-        playADBanner(false, AdsConfig.banner.AwardResultPop)
     }
 
     onCloseScene() {

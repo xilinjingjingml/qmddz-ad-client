@@ -1,6 +1,5 @@
 import BaseScene, { ScenePath } from './BaseScene'
 import BgAdapetr from '../components/BgAdapter'
-import GameManager from '../GameManager'
 
 const {ccclass, property} = cc._decorator
 
@@ -39,10 +38,7 @@ export default class SceneManager extends cc.Component {
                 }
                 else if (res instanceof cc.Prefab) {
                     let scene = cc.instantiate(res)
-                    let strname = name
-                    if (0 < strname.indexOf("/"))
-                        strname = strname.substring(strname.lastIndexOf("/") + 1)                    
-                    scene.name = strname
+                    scene.name = name
                     callback && callback(scene);
                 }
             }
@@ -110,8 +106,7 @@ export default class SceneManager extends cc.Component {
 
             baseScene.initParam = initParam
 
-            // cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)
-            scene.parent = GameManager.Instance.node
+            cc.Canvas.instance.node.addChild(scene, SCENE_LAYER)
             self._scenes.push(baseScene)
             baseScene.curScene = new ScenePath(moduleName, prefab)
             
@@ -181,11 +176,7 @@ export default class SceneManager extends cc.Component {
         let initFunc = function(scene: cc.Node) {
             let curScene = self._scenes[self._scenes.length - 1]
             if (null != callScene && callScene != curScene){
-                delete self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]  
-                return
-            }
-
-            if (!self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]){
+                delete self._singPopQueue[scene.name]  
                 return
             }
 
@@ -218,8 +209,6 @@ export default class SceneManager extends cc.Component {
 
             if (initParam && initParam["zorder"] && typeof initParam["zorder"] == "number")
                 parentNode.addChild(scene, initParam["zorder"] + POP_SCENE_LAYER)
-            else if (initParam && initParam["zIndex"] && typeof initParam["zIndex"] == "number")
-                cc.director.getScene().addChild(scene, initParam["zIndex"])
             else
                 parentNode.addChild(scene, POP_SCENE_LAYER)
             
@@ -245,12 +234,12 @@ export default class SceneManager extends cc.Component {
 
             callback && callback(baseScene)
             SceneManager.Instance.sendMessageToScene({opcode: "onScenePop", packet:{name: baseScene.name, zIndex: baseScene.node.zIndex}})
-            delete self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]  
+            delete self._singPopQueue[scene.name]  
         }
 
         if (prefab instanceof cc.Prefab){
             if (initParam && initParam["noSing"] == true) {
-                this._singPopQueue[prefab.name] = 1
+                this._singPopQueue[prefab.name]            
             }
             else {
                 if (this._singPopQueue[prefab.name])
@@ -269,7 +258,7 @@ export default class SceneManager extends cc.Component {
         }
         else {
             if (initParam && initParam["noSing"] == true) {
-                this._singPopQueue[prefab.toString()] = 1
+                this._singPopQueue[prefab.toString()]            
             }
             else {
                 if (this._singPopQueue[prefab.toString()])
@@ -313,9 +302,6 @@ export default class SceneManager extends cc.Component {
         // }
 
         if (null == baseScene){
-            if (typeof scene == "string" && this._singPopQueue[scene]) {
-                delete this._singPopQueue[scene]
-            }
             callback && callback(-2);
             return
         }
