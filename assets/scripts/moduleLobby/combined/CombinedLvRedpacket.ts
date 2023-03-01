@@ -82,7 +82,6 @@ export default class CombinedLvRedpacket extends BaseScene {
             ]
             showAwardResultPop(awards)
             sendReloadUserData()
-            
             self.closeSelf()
         })
     }

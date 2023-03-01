@@ -3,18 +3,17 @@ import { ITEM } from "./ItemConfig"
 export namespace AdsConfig {
 
     export const banner = {
-        AwardResultPop: 1 << 0,                     // 通用奖励弹框
-        BankruptDefend: 1 << 1,                     // 破产补助弹框
-        GameResultLayer_rpddz: 1 << 2,              // 结算斗地主
-        GameResultLayer_hbermj: 1 << 3,             // 结算麻将
-        GameRedPacketAwardLayer_rpddz: 1 << 5,      // 抽红包斗地主
-        GameRedPacketAwardLayer_hbermj: 1 << 6,     // 抽红包麻将
-        FreeAward: 1 << 7,                          // 抽红包麻将
-        RegainLose: 1 << 8,                         // 对局免输
-        Highlight: 1 << 9,                          // 高光对局
-        NewbieRedpacket: 1 << 10,                   // 新手红包
-        WinDouble: 1 << 11,                         // 赢金翻倍
-        All: -1,                                    // 关闭所有banner
+        All: -1,                               // 所有banner
+
+        AwardResultPop: 1,                     // 通用奖励弹框
+        BankruptDefend: 2,                     // 破产补助弹框
+        GameResultLayer_rpddz: 3,              // 结算斗地主
+        GameRedPacketAwardLayer_rpddz: 4,      // 三局一红包
+        FreeAward: 5,                          // 商城奖励
+        RegainLose: 6,                         // 对局免输
+        Highlight: 7,                          // 高光对局
+        NewbieRedpacket: 8,                    // 新手红包
+        WinDouble: 9,                          // 赢金翻倍
     }
 
     export const grid = {
@@ -70,6 +69,18 @@ export namespace AdsConfig {
         CombinedLottery: 65,         // 合成中转盘 
         CombinedLvRp: 66,            // 合成提升红包等级
         CombinedExtLv: 67,           // 建筑额外升级
+
+        New_DailyGift: 100,               // 每日礼包
+        New_HappyLottery: 101,            // 开心转盘
+        New_FreeRedPacket: 102,           // 免费红包
+        New_NextLoseZero: 103,            // 下局输分免扣
+        New_WinDouble: 104,               // 结算-赢分加倍
+        New_RegainLose: 105,              // 结算-追回损失
+        New_LuckyGift: 106,               // 结算-幸运福利
+        New_GameRedPacket: 107,           // 三局开红包
+        New_BankruptDefend: 108,          // 破产补助
+        New_EarlyGain: 109,               // 提现加速
+        New_CardNote: 110,                // 结算看视频得记牌器
     }
 
     const adAwards = [

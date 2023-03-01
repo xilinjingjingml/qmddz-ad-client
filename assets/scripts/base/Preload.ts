@@ -1,6 +1,5 @@
 ﻿import DataManager from "./baseData/DataManager"
 import BaseScene from "./baseScene/BaseScene"
-import { NodeExtends } from "./extends/NodeExtends";
 
 const { ccclass, property } = cc._decorator;
 
@@ -31,8 +30,6 @@ export default class PreLoad extends BaseScene {
     _result: any[] = []
 
     startLoad(src: string[], audioParam, callback: (items: any[]) => void = null): void {
-        NodeExtends.setNodeSpriteLocal({ node: cc.find("bottom_bg/wenzi", this.node), url: "thirdparty/wenzi.png" })
-
         DataManager.clearSpriteFrame()
         this._callback = callback
 

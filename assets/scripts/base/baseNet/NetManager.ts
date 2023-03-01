@@ -66,6 +66,15 @@ export default class NetManager extends cc.Component {
         socket.loginRequestDelegate = loginFunc
     }
 
+    getSocket(name: string) {
+        const socket = this.sockets[name]
+        if (null == socket) {
+            return
+        }
+
+        return socket
+    }
+
     getSocketState(name: string) {
         const socket = this.sockets[name]
         if (null == socket) {

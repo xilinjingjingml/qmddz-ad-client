@@ -34,6 +34,11 @@ export default class SignPop extends BaseScene {
         DataManager.CommonData.AdConfig ? this.updateDoubleState() : loadAdConfig(() => {
             this.isValid && this.updateDoubleState()
         })
+
+        cc.find("nodePop/btnDoubleAward", this.node).runAction(cc.repeatForever(cc.sequence(
+            cc.scaleTo(0.8, 1.1),
+            cc.scaleTo(0.8, 1.0)
+        )))
     }
 
     updateUserData() {

@@ -1,4 +1,4 @@
-import BaseScene from "../../base/baseScene/BaseScene";
+﻿import BaseScene from "../../base/baseScene/BaseScene";
 import DataManager from "../../base/baseData/DataManager";
 import { numberFormat, numberFormat3 } from "../../base/BaseFuncTs";
 import { CombinedConfig } from "./CombinedConfig";
@@ -145,14 +145,14 @@ export default class CombinedRankPop extends BaseScene {
 
             UserExtends.getUserInfos([iter.plyuid], infos => {
                 if (item.isValid && infos.length > 0) {
-                    let guid = iter.plyuid + ""
+                let guid = iter.plyuid + ""
                     let strName = infos[0].nickname || "玩家**" + guid.substr(guid.length - 2, 2)
-                    if (strName.length > 6) strName = strName.substr(0, 5) + "..."
-                    item.getChildByName("labelNickname").getComponent(cc.Label).string = strName
+                if (strName.length > 6) strName = strName.substr(0, 5) + "..."
+                item.getChildByName("labelNickname").getComponent(cc.Label).string = strName
 
                     NodeExtends.setNodeSpriteNet({ node: cc.find("nodeFace/rank_face_icon", item), url: infos[0].face, fixSize: true })
-                }
-            })
+                    }
+                })
 				
             item.getChildByName("labelMoney").getComponent(cc.Label).string = numberFormat3(iter.speedPerSec) + "/秒"
 
@@ -188,12 +188,12 @@ export default class CombinedRankPop extends BaseScene {
         nodeSelf.getChildByName("no_rank").active = true
 
         let nodeLevel = nodeSelf.getChildByName("nodeLevel")
-        NodeExtends.setNodeSprite({ node: nodeLevel.getChildByName("title"), url: CombinedConfig.getTitleByLevel(DataManager.CommonData["CombinedLevel"]) })
-        let honourBg = "honour_bg" + Math.ceil(DataManager.CommonData["CombinedLevel"] / 5)
+        NodeExtends.setNodeSprite({ node: nodeLevel.getChildByName("title"), url: CombinedConfig.getTitleByLevel(1) })
+        let honourBg = "honour_bg" + Math.ceil(1)
         NodeExtends.setNodeSprite({ node: nodeLevel.getChildByName("levelBg"), url: "moduleLobby/texture/combined/" + honourBg })
-        nodeLevel.getChildByName("lv").getComponent(cc.Label).string = "lv" + DataManager.CommonData["CombinedLevel"]
+        nodeLevel.getChildByName("lv").getComponent(cc.Label).string = "lv0" //DataManager.CommonData["CombinedLevel"]
         
-        nodeSelf.getChildByName("labelMoney").getComponent(cc.Label).string = numberFormat3(DataManager.CommonData["SpeedPerSec"]) + "/秒"
+        nodeSelf.getChildByName("labelMoney").getComponent(cc.Label).string = "--/秒"
         nodeSelf.getChildByName("labelAward").getComponent(cc.Label).string = "---"
 
         let rankList = this._rankList[this._season][rankType]
@@ -235,9 +235,22 @@ export default class CombinedRankPop extends BaseScene {
                         break;
                     }
                 }
+                let lv = 1
+                for (let k in rankList) {
+                    if (rankList[k].rank === rank){
+                        lv = rankList[k].title
+                        break
+                    }
+                }
             // }
             // idx ++
-        }
+            const level = DataManager.CommonData["CombinedLevel"]
+            nodeLevel.getChildByName("lv").getComponent(cc.Label).string = "lv" + level
+            nodeSelf.getChildByName("labelMoney").getComponent(cc.Label).string = numberFormat3(DataManager.CommonData["SpeedPerSec"]) + "/秒"            
+            NodeExtends.setNodeSprite({ node: nodeLevel.getChildByName("title"), url: CombinedConfig.getTitleByLevel(level) })
+            let honourBg = "honour_bg" + Math.min(6, Math.ceil(lv / 5))
+            NodeExtends.setNodeSprite({ node: nodeLevel.getChildByName("levelBg"), url: "moduleLobby/texture/combined/" + honourBg })
+        } 
 
         this.updateRankType(rankType)
     }
@@ -285,7 +298,19 @@ export default class CombinedRankPop extends BaseScene {
                 let start = season.startDateTime.substr(5, 5).replace("-", ".")
                 let end = season.endDateTime.substr(5, 5).replace("-", ".")
                 cc.find("nodePop/nodeTop/time", this.node).getComponent(cc.Label).string = "(" + start + "~" + end + ")"
-                CombinedConfig.getRankList(self._season, 0, 0, this.initRank.bind(this))
+                let content = cc.find("nodePop/nodeList/rankList" + self._curType + "/view/content", self.node)
+                content.removeAllChildren(true)
+                let rankList = this._rankList[this._season]//[this._curType]
+                if (rankList) {
+                    rankList = rankList[this._curType]
+                    if (rankList.length <= content.childrenCount && !this._rankMax[this._season]) {
+                        CombinedConfig.getRankList(self._season, 0, 0, this.initRank.bind(this))
+                    } else {
+                        this.onSelectRankType(null, this._curType)
+                    }
+                } else {
+                    CombinedConfig.getRankList(self._season, 0, 0, this.initRank.bind(this))
+                }
             }
 
             obj.getComponent(cc.Button).clickEvents.push(clickEventHandler);

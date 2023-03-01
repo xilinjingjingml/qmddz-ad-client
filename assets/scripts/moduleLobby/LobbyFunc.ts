@@ -4,11 +4,12 @@ import { checkPhoneBinding, czcEvent, iMessageBox, playAD, showAwardResultPop, s
 import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
 import PluginManager from "../base/PluginManager";
-import { MsgBox } from "../base/BaseFuncTs";
+import { MsgBox, accurateTime } from "../base/BaseFuncTs";
 import md5 = require("../base/extensions/md5.min")
 import WxWrapper from "../base/WxWrapper";
 import { UserExtends } from "../base/extends/UserExtends";
 import { http } from "../base/utils/http";
+import { areas, nicknames } from "../constant";
 
 export function getVipConfig(callback: () => void = null) {
     if (DataManager.CommonData["VipInfo"]) {
@@ -134,15 +135,16 @@ export function getDialResult(taskInd, callback: (msg) => void = null) {
     })
 }
 
-export function loadLotteryData(callback: () => void = null) {
-    if (DataManager.CommonData["lotteryData"]) {
+export function loadLotteryData(callback: () => void = null, channel: number = 2) {
+    const datakey = channel == 2 ? "lotteryData" : "happyLotteryData"
+    if (DataManager.CommonData[datakey]) {
         callback && callback()
         return
     }
 
     const param = {
         gameid: DataManager.Instance.gameId,
-        channel: 2,
+        channel: channel,
         activityId: 10000 + DataManager.Instance.gameId,
         uid: DataManager.UserData.guid,
         sign: md5("uid=" + DataManager.UserData.guid + "&key=8923mjcm0d089d"),
@@ -153,26 +155,33 @@ export function loadLotteryData(callback: () => void = null) {
     http.open(DataManager.getURL("DIAL"), param, (res) => {
         if (res && (res.list || (res[0] && res[0].list))) {
             const data = res.list || res[0].list
+            for (const itr of data) {
+                if (itr.acItemNum == 0) {
+                    itr.itemDesc = "谢谢参与"
+                } else if (itr.acItemIndex == 382) {
+                    itr.itemDesc = Math.floor(itr.acItemNum / 100) + "元"
+                }
+            }
             data.sort((a, b) => {
                 return a.acAutoId - b.acAutoId
             })
 
-            DataManager.CommonData["lotteryData"] = data
+            DataManager.CommonData[datakey] = data
             callback && callback()
         }
     })
 }
 
-export function getLotteryAward(callback: (res) => void) {
+export function getLotteryAward(callback: (res) => void, isHappyLottery:boolean = false) {
     const param = {
         gameid: DataManager.Instance.gameId,
-        channel: 2,
+        channel: isHappyLottery ? 3 : 2,
         activityId: 10000 + DataManager.Instance.gameId,
         uid: DataManager.UserData.guid,
         sign: md5("uid=" + DataManager.UserData.guid + "&key=8923mjcm0d089d"),
         pn: DataManager.Instance.packetName,
-        taskid: 2,
-        pnum: 1
+        taskid: isHappyLottery ? AdsConfig.taskAdsMap.New_HappyLottery : 2,
+        pnum: isHappyLottery ? 0 : 1
     }
 
     http.open(DataManager.getURL("DARW_DIAL"), param, (res) => {
@@ -262,13 +271,15 @@ export function loadAdConfig(callback: () => void = null) {
 
     http.open(DataManager.getURL("AD_CONFIG"), param, (res) => {
         if (res && res.adConfig) {
-            const config = {}
+            const config: Record<string, IAdConfig> = {}
 
             for (const cfg of res.adConfig) {
                 const adIndex = cfg.ca_ad_area
                 let total = cfg.award && cfg.award[0] ? cfg.award[0].ca_award_num : 0
 
-                if (adIndex == AdsConfig.taskAdsMap.Wages || adIndex == AdsConfig.taskAdsMap.SignPop) {
+                if (adIndex == AdsConfig.taskAdsMap.Wages ||
+                    adIndex == AdsConfig.taskAdsMap.SignPop ||
+                    adIndex == AdsConfig.taskAdsMap.New_DailyGift) {
                     total = 1
                 }
 
@@ -312,6 +323,43 @@ export function loadAdConfig(callback: () => void = null) {
                     }
                 }
 
+                if (PluginManager.supportAdSpot()) {
+                    const sources: Record<string, Record<string, string | { adId: string, weight?: number }>> = DataManager.Instance.onlineParam.adConfig.sources || {}
+                    for (const id in sources) {
+                        if (!PluginManager.hasPluginByName(id)) {
+                            cc.log("未发现广告插件", id)
+                            continue
+                        }
+
+                        const source = sources[id]
+                        for (const k in source) {
+                            if (!config[k]) {
+                                config[k] = { total: 0, count: 0, method: 2, canFree: false, unitid: null }
+                            }
+
+                            let unitid = config[k].unitid
+                            if (unitid == null || typeof unitid == "string") {
+                                unitid = []
+                            }
+
+                            const cfg = source[k]
+                            if (typeof cfg == "string") {
+                                unitid.push({ id: id, adId: cfg, weight: 1 })
+                            } else {
+                                unitid.push({
+                                    id: id,
+                                    adId: cfg.adId,
+                                    weight: cfg.weight == null ? 1 : cfg.weight
+                                })
+                            }
+
+                            config[k].unitid = unitid
+                        }
+                    }
+                } else {
+                    cc.log("不支持广告点")
+                }
+
                 const preload = DataManager.Instance.onlineParam.adConfig.preload || []
                 for (const v of preload) {
                     config[v] && WxWrapper.initVideo(config[v].unitid)
@@ -341,6 +389,17 @@ export function checkAdCanReceive(adIndex) {
 export function getAdTotalTimes(adIndex) {
     const data = getAdData(adIndex)
     return data ? data.total : 0
+}
+
+export function getAllAdCountTimes() {
+    let count = 0
+    for (const key in DataManager.CommonData.AdConfig) {
+        const data = DataManager.CommonData.AdConfig[key]
+        if (data && data.count) {
+            count += data.count
+        }
+    }
+    return count
 }
 
 export function getAdLeftTimes(adIndex) {
@@ -433,6 +492,10 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
                         }
                     } else if (res.awards) {
                         awards = res.awards
+                    } else if (res.awardList) { // 此处可兼容发放多道具 AdsConfig.taskAdsMap.Wages可修改为此处
+                        for (const a of res.awardList) {
+                            awards.push({ index: a.ca_award_index, num: a.ca_award_num })
+                        }
                     }
 
                     if (res.vipExp != null && res.vipExp > 0) {
@@ -440,11 +503,11 @@ export function receiveAdAward(adIndex, success: (res) => void = null, shareData
                     }
 
                     if (awards.length > 0) {
-                        showAwardResultPop(awards)
+                        showAwardResultPop(awards, { isFromDailyGift: adIndex == AdsConfig.taskAdsMap.New_DailyGift })
                     }
                 }
 
-                // sendReloadUserData()
+                sendReloadUserData()
                 // loadAdConfig()
 
                 success && success(res)
@@ -740,10 +803,111 @@ export function showAutonymPop(params?: { noClose: boolean, content: string, clo
     }
 }
 
-export function loadTomorrowConfig(callback: () => void = null) {
+export function checkTomorrowStatus(callback: () => void = null) {
+    const regtimeTomorrow = DataManager.Instance.onlineParam.regtimeTomorrow
+    if (regtimeTomorrow && DataManager.CommonData.regtime < regtimeTomorrow) {
+        callback()
+        return
+    }
+    if (DataManager.CommonData.TomorrowStatus) {
+        callback()
+    } else {
+        loadTomorrowStatus(callback)
+    }
+}
+
+
+export function loadShareMoney(callback?: Function) {
+    http.open(DataManager.getURL("SHARE_MONEY_LOAD"), {
+        uid: DataManager.UserData.guid,
+        ticket: DataManager.UserData.ticket
+    }, (res: IShareMoney) => {
+        cc.log("loadShareMoney res", JSON.stringify(res))
+        if ("shareMoney" in res) {
+            const shareMoneyData = DataManager.CommonData.shareMoneyData
+            if (shareMoneyData && shareMoneyData.shareMoney) {
+                if (!shareMoneyData.shareMoney[0].sm_status && res.shareMoney[0].sm_status) {
+                    sendReloadUserData()
+                }
+            }
+            DataManager.CommonData.shareMoneyData = res as any
+            SceneManager.Instance.sendMessageToScene("updateShareMoney")
+        }
+        callback && callback()
+    })
+}
+
+export function openShareMoney(smId: string, callback?: Function, showAward: boolean = true) {
+    const params = {
+        uid: DataManager.UserData.guid,
+        ticket: DataManager.UserData.ticket,
+        smId: smId
+    }
+    http.open(DataManager.getURL("SHARE_MONEY_OPEN"), params, (res: { ret: number, msg?: string, randMoney?: number }) => {
+        if (res.ret == 0) {
+            if (showAward) {
+                SceneManager.Instance.popScene("moduleLobby", "ShareMoneyAwardPop", { money: res.randMoney })
+            }
+            loadShareMoney(callback)
+        } else if (res.msg) {
+            iMessageBox(res.msg)
+        }
+    })
+}
+
+export function firstShareMoney() {
+    const shareMoney = DataManager.CommonData.shareMoneyData.shareMoney
+    if (shareMoney == "" || shareMoney[0].sm_share_first) {
+    } else {
+        openShareMoney("0")
+    }
+}
+
+const DEFAULT_COOLDOWN_TIME = 300
+
+export function getCooldownTime(key: string, time: number = DEFAULT_COOLDOWN_TIME) {
+    const lastOpTime = DataManager.load(key) || 0
+    if (lastOpTime > 0) {
+        return time - (accurateTime() - lastOpTime)
+    }
+    return 0
+}
+
+export function updateCooldownView(target: cc.Node, key: string, time: number = DEFAULT_COOLDOWN_TIME) {
+    if (target && target.isValid) {
+        const node = cc.find("nodeCooldown", target)
+        if (node) {
+            node.stopAllActions()
+            let cdTime = getCooldownTime(key, time)
+            if (cdTime > 0) {
+                const label = cc.find("labelCDTime", node).getComponent(cc.Label)
+                node.active = true
+                node.runAction(cc.repeatForever(cc.sequence(
+                    cc.callFunc(() => {
+                        const m = Math.floor(cdTime / 60)
+                        const s = Math.floor(cdTime % 60)
+                        label.string = "0" + m + ":" + (s > 9 ? s : "0" + s)
+
+                        cdTime--
+                        if (cdTime <= 0) {
+                            // node.stopAllActions()
+                            // node.active = false
+                            updateCooldownView(target, key, time)
+                        }
+                    }),
+                    cc.delayTime(1)
+                )))
+            } else {
+                node.active = false
+            }
+        }
+    }
+}
+
+export function loadTomorrowConfig(callback:() => void = null) {
     let url = DataManager.getURL("LOAD_TOMORROW_GIFT")
     let param = {
-        gameid: 0
+        gameid: 1
     }
 
     http.open(url, param, (res) => {
@@ -754,11 +918,11 @@ export function loadTomorrowConfig(callback: () => void = null) {
     })
 }
 
-export function loadTomorrowStatus(callback: () => void = null) {
+export function loadTomorrowStatus(callback:() => void = null) {
     let url = DataManager.getURL("ACTIVE_ONCE_SIGN_INFO")
     let param = {
         uid: DataManager.UserData.guid,
-        gameid: 0,
+        gameid: 1,
         ticket: DataManager.UserData.ticket
     }
 
@@ -815,48 +979,44 @@ export function loadGameExchangeRecrod(callback: (records) => void) {
     })
 }
 
-export function loadShareMoney(callback?: Function) {
-    http.open(DataManager.getURL("SHARE_MONEY_LOAD"), {
-        uid: DataManager.UserData.guid,
-        ticket: DataManager.UserData.ticket
-    }, (res: IShareMoney) => {
-        cc.log("loadShareMoney res", JSON.stringify(res))
-        if ("shareMoney" in res) {
-            const shareMoneyData = DataManager.CommonData.shareMoneyData
-            if (shareMoneyData && shareMoneyData.shareMoney) {
-                if (!shareMoneyData.shareMoney[0].sm_status && res.shareMoney[0].sm_status) {
-                    sendReloadUserData()
-                }
-            }
-            DataManager.CommonData.shareMoneyData = res as any
-            SceneManager.Instance.sendMessageToScene("updateShareMoney")
-        }
-        callback && callback()
-    })
+export function trans2format(num: number) {
+    let s = num.toString()
+    let idx = s.indexOf(".")
+    if (idx == -1) {
+        return s + ".00"
+    }
+
+    while (s.length <= idx + 2) {
+        s += "0"
+    }
+
+    return s.substring(0, idx + 3)
 }
 
-export function openShareMoney(smId: string, callback?: Function, showAward: boolean = true) {
-    const params = {
-        uid: DataManager.UserData.guid,
-        ticket: DataManager.UserData.ticket,
-        smId: smId
+export namespace Rdm {
+    let _seed = Date.now()
+
+    export function seed(sd: number) {
+        _seed = sd
     }
-    http.open(DataManager.getURL("SHARE_MONEY_OPEN"), params, (res: { ret: number, msg?: string, randMoney?: number }) => {
-        if (res.ret == 0) {
-            if (showAward) {
-                SceneManager.Instance.popScene("moduleLobby", "ShareMoneyAwardPop", { money: res.randMoney })
-            }
-            loadShareMoney(callback)
-        } else if (res.msg) {
-            iMessageBox(res.msg)
-        }
-    })
+
+    export function random() {
+        _seed = (_seed * 9301 + 49297) % 233280
+        return _seed / (233280.0)
+    }
 }
 
-export function firstShareMoney() {
-    const shareMoney = DataManager.CommonData.shareMoneyData.shareMoney
-    if (shareMoney == "" || shareMoney[0].sm_share_first) {
-    } else {
-        openShareMoney("0")
+export function randomArea(uid?) {
+    if (uid != null) {
+        return areas[parseInt(uid) % areas.length]
     }
+    return areas[Math.floor(Rdm.random() * areas.length)]
+}
+
+export function randomName(maxlen?: number) {
+    const name = nicknames[Math.floor(Rdm.random() * nicknames.length)]
+    if (maxlen != null && name.length > maxlen) {
+        return name.substring(0, maxlen) + "..."
+    }
+    return name
 }

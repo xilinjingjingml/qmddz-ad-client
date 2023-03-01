@@ -17,7 +17,7 @@ export default class AwardResultPop extends BaseComponent {
     popEffect = null
 
     onOpenScene() {
-        playADBanner(true, AdsConfig.banner.AwardResultPop)
+        this.playADBanner()
         if (this.initParam){
             let itemsNode = cc.find("nodeMain/nodePop/items", this.node)
 
@@ -29,11 +29,24 @@ export default class AwardResultPop extends BaseComponent {
             let idx = 1;
             let model = itemsNode.getChildByName("item")
             for (const iterator of awards) {
+                if (iterator.index == 382) {
+                    iterator.num = iterator.num / 100
+                    cc.audioEngine.playEffect(DataManager.Instance.hbEffect, false)
+                    if (iterator.num == 0) {
+                        if (this.initParam.isFromDailyGift) {
+                            continue
+                        } else {
+                            cc.find("nodeMain/labelTip", this.node).active = true
+                        }
+                    }
+                }
+
                 let item = cc.instantiate(model)
                 item.active = true
                 item.position = cc.v2(idx * itemsNode.getContentSize().width / (awards.length + 1) - itemsNode.getContentSize().width / 2, 1)
                 model.parent.addChild(item)
                 item.getChildByName("name").getComponent(cc.Label).string = getNameByItemId(iterator.index) || "未知"
+
                 let ii = iterator.index
                 if (ii == 365) showRedPacket = true
                 if (ii < 0) ii += "" + iterator.num
@@ -41,10 +54,15 @@ export default class AwardResultPop extends BaseComponent {
                 let icon = item.getChildByName("icon")
                 let size = icon.getContentSize()
                 icon.getComponent(cc.Sprite).spriteFrame = getSpriteByItemId(ii)                
-                let nsize = icon.getContentSize()
-                let scaleX = size.width / nsize.width
-                let scaleY = size.height / nsize.height
-                icon.scale = Math.min(scaleX, scaleY)
+
+                if (iterator.index == 382) {
+                    icon.scale = 0.9
+                }else{
+                    let nsize = icon.getContentSize()
+                    let scaleX = size.width / nsize.width
+                    let scaleY = size.height / nsize.height
+                    icon.scale = Math.min(scaleX, scaleY)
+                }
 
                 if (iterator.index === 11000)
                     item.getChildByName("num").getComponent(cc.Label).string = iterator.index == -1 ? ("x" + 1) : ("x" + numberFormat3(iterator["num"]))
@@ -124,6 +142,25 @@ export default class AwardResultPop extends BaseComponent {
             // cc.audioEngine.
             cc.audioEngine.playEffect(this.popEffect, false)
         }
+
+        const btnClose = cc.find("nodeMain/btnClose", this.node)
+        this.node.runAction(cc.sequence([cc.callFunc(() => { btnClose.active = false }), cc.delayTime(3), cc.callFunc(() => { btnClose.active = true })]))
+    }
+
+    playADBanner() {
+        const count = DataManager.Instance.onlineParam.AwardResult_banner_count || 2
+        if (count > 0) {
+            let index = DataManager.CommonData.AwardResult_banner_index || 0
+            index++
+            DataManager.CommonData.AwardResult_banner_index = index % count
+            if (index >= count) {
+                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.AwardResultPop) }, 1)
+                this.onBannerResize = () => { }
+                return
+            }
+        }
+
+        playADBanner(true, AdsConfig.banner.AwardResultPop)
     }
 
     onCloseScene() {

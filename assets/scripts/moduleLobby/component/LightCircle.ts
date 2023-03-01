@@ -1,5 +1,3 @@
-import { start } from "repl";
-
 const {ccclass, property, executeInEditMode} = cc._decorator;
 
 @ccclass

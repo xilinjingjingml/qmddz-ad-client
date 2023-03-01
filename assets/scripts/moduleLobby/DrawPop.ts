@@ -53,14 +53,25 @@ export default class DrawPop extends BaseScene {
     }
 
     onPressVip() {
-		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         SceneManager.Instance.popScene("moduleLobby", "VipInfoPop")
     }
 
     updateState() {
         const leftTimes = getAdLeftTimes(this.adIndex)
-        cc.find("nodePop/btnDraw", this.node).getComponent(cc.Button).interactable = leftTimes > 0
+        const btnDraw = cc.find("nodePop/btnDraw", this.node)
+        btnDraw.getComponent(cc.Button).interactable = leftTimes > 0
         cc.find("nodePop/btnDraw/statusFinish", this.node).active = leftTimes <= 0
+
+        if (leftTimes > 0) {
+            btnDraw.runAction(cc.repeatForever(cc.sequence(
+                cc.scaleTo(0.8, 1.1),
+                cc.scaleTo(0.8, 1.0)
+            )))
+        } else {
+            btnDraw.stopAllActions()
+            btnDraw.scale = 1
+        }
 
         const count = cc.find("nodePop/counttip/count", this.node)
         if (count) {

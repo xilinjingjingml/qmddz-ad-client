@@ -2,7 +2,7 @@ import BaseFunc = require("../base/BaseFunc")
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, getRedPacketAwardConfig, playADBanner, socialShare, numberFormat } from "../base/BaseFuncTs"
+import { czcEvent, getRedPacketAwardConfig, playADBanner, socialShare, numberFormat, checkSpecialAward } from "../base/BaseFuncTs"
 import { checkAdCanReceive, getAdLeftTimes, getNextAdMethod, receiveAdAward, getTaskList } from "../moduleLobby/LobbyFunc"
 import AudioManager from "./AudioManager.rpddz"
 import GameLogic from "./GameLogic.rpddz"
@@ -64,13 +64,14 @@ export default class GameResultLayer extends BaseComponent {
     btn_share: cc.Node;
     label_share: cc.Node;
     taskData: any = {}
+    banner_adjust = false
 
     onOpenScene() {
         if (DataManager.CommonData["first"] == 1 && !DataManager.CommonData["GameResultLayerFirst"]) {
             czcEvent("斗地主", "结算界面", "新用户")
         }
         cc.log("[GameResultLayer.onOpenScene]")
-        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz)
+        this.playADBanner()
         this.registMessageHandler()
         this.showUserResult()
         this.refreshRightButtons()
@@ -82,6 +83,24 @@ export default class GameResultLayer extends BaseComponent {
         getTaskList(0)
         getTaskList(1)
         this.showAni()
+    }
+
+    playADBanner() {
+        const count = DataManager.Instance.onlineParam.GameResultLayer_banner_count || 4
+        if (count > 0 && checkSpecialAward()) {
+            let index = DataManager.CommonData.GameResultLayer_banner_index || 0
+            index++
+            DataManager.CommonData.GameResultLayer_banner_index = index % count
+            if (index >= count) {
+                this.banner_adjust = true
+                this.scheduleOnce(() => { playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz) }, 1)
+                // this.onBannerResize = () => { }
+                return
+            }
+        }
+
+        cc.log("playADBanner", new Date().getTime())
+        playADBanner(true, AdsConfig.banner.GameResultLayer_rpddz)
     }
 
     refreshRightButtons() {
@@ -181,11 +200,21 @@ export default class GameResultLayer extends BaseComponent {
     }
 
     onBannerResize(msg) {
-        cc.log("GameResultLayer.onBannerResize", msg.rect.height)
-        const box = cc.find("nodePop/node_button/btnWinGet/win_get_btn_guang1", this.node).getBoundingBoxToWorld()
+        cc.log("GameResultLayer.onBannerResize", msg.rect.height, new Date().getTime())
+        const box = cc.find("nodePop/node_button", this.node).getBoundingBoxToWorld()
+        cc.log("GameResultLayer.onBannerResize box", box.y)
         const diff = msg.rect.height - box.y
+        cc.log("GameResultLayer.onBannerResize diff", diff)
         if (diff > 0) {
-            cc.find("nodePop", this.node).y += diff
+            if (this.banner_adjust) {
+                this.banner_adjust = false
+                cc.find("nodePop", this.node).runAction(cc.sequence(
+                    cc.delayTime(3),
+                    cc.moveBy(0,0,diff)
+                ))
+            } else {
+                cc.find("nodePop", this.node).y += diff
+            }
         }
     }
 
@@ -272,6 +301,10 @@ export default class GameResultLayer extends BaseComponent {
         this.nodeLose.active = !this.winFlag
         this.nodeTitleWin.active = this.winFlag
         this.nodeTitleLose.active = !this.winFlag
+
+        if (cc.sys.isNative || CC_PREVIEW) {
+            this['btnTask'].active = false
+        }
 
         // 1
         const nodeTitle = this.$("nodeTitle")

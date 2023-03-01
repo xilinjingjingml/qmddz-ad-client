@@ -123,4 +123,25 @@ export namespace NodeExtends {
     export function updateLabel(label: cc.Label) {
         label["_updateRenderData"](true)
     }
+
+    /**
+     * 按钮点击后延时后可以继续点击
+     * @example
+     * NodeExtends.cdButton(event, 0.5)
+     */
+    export function cdButton(event: cc.Event.EventTouch, t: number = 0.5) {
+        const button = event.getCurrentTarget().getComponent(cc.Button)
+        button.interactable = false
+        button.scheduleOnce(() => { button.isValid && (button.interactable = true) }, t)
+    }
+
+    /**
+     * node先隐藏 延时显示
+     * @example
+     * NodeExtends.delayShow(this, node, 3)
+     */
+    export function delayShow(target:cc.Component, node:cc.Node, t: number = 3) {
+        node.active = false
+        target.scheduleOnce(() => node.active = true, 3)
+    }
 }

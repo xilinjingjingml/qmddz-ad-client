@@ -31,16 +31,17 @@ export default class LoginScene extends BaseComponent {
             return
         }
         if (DataManager.load("logined") == null) {
-            if (DataManager.getOnlineParam("loginActivePopupIZhangxin") != 0 && PluginManager.hasPluginByName('SessionIZhangxin') && this.checkLoginSession('SessionIZhangxin')) {
+            if (DataManager.Instance.getOnlineParam("loginActivePopupIZhangxin", 1) && PluginManager.hasPluginByName('SessionIZhangxin') && this.checkLoginSession('SessionIZhangxin')) {
                 DataManager.save('temp_login_type', 'SessionIZhangxin')
                 PluginManager.login({ sessionType: "SessionIZhangxin" }) // 审核直接izhangxin登陆
                 return
             }
-            if (DataManager.getOnlineParam("loginAutoGuest") != 0 && PluginManager.hasPluginByName('SessionGuest')) {
+            if (DataManager.Instance.getOnlineParam("loginAutoGuest", 1) && PluginManager.hasPluginByName('SessionGuest') && DataManager.load("change_login") == null) {
+                DataManager.remove("change_login")
                 this.onPressLogin(null, 'SessionGuest')
                 return
             }
-            if (DataManager.getOnlineParam("loginActivePopupPhone") != 0 && PluginManager.hasPluginByName('SessionPhone') && this.checkLoginSession('SessionPhone')) {
+            if (DataManager.Instance.getOnlineParam("loginActivePopupPhone", 1) && PluginManager.hasPluginByName('SessionPhone') && this.checkLoginSession('SessionPhone')) {
                 DataManager.save('temp_login_type', 'SessionPhone')
                 SceneManager.Instance.popScene<String>("moduleLobby", "LoginPhonePop")
                 return
@@ -52,8 +53,8 @@ export default class LoginScene extends BaseComponent {
 
     checkLoginSession(name: string): boolean {
         const showname = "show" + name.substring(7)
-        const value = DataManager.getOnlineParam(showname)
-        if (value) {
+        const value = DataManager.Instance.getOnlineParam(showname)
+        if (value != null) {
             return value == 1
         }
 
@@ -85,7 +86,7 @@ export default class LoginScene extends BaseComponent {
 
     setLoginButtonState(state: boolean): void {
         this['login_buttons'].active = state
-        this['background4'].active = !state
+        this['node_loading'].active = !state
         if (state) {
             cc.find('approve_pact', this.node).active = true
         }
@@ -143,6 +144,7 @@ export default class LoginScene extends BaseComponent {
             SceneManager.Instance.sendMessageToScene("updateUserData")
             DataManager.CommonData["morrow"] = msg.first == 1 ? 0 : msg.morrow
             DataManager.CommonData["regtime"] = msg.regtime == 0 ? new Date().getTime() / 1000 : msg.regtime
+            DataManager.CommonData["stayDay"] = msg.stayDay
             DataManager.CommonData["ifBindWeixin"] = msg.ifBindWeixin == 1
             DataManager.CommonData["bindPhone"] = {}
             DataManager.CommonData["bindPhone"].hasBindMoble = msg.isBindMobile
@@ -205,7 +207,7 @@ export default class LoginScene extends BaseComponent {
     }
 
     onBeforeOpen() {
-        if (DataManager.getOnlineParam("LoginPop") != 0) {
+        if (DataManager.Instance.getOnlineParam("LoginPop", 1)) {
             this.onOpenScene = this.onNewOpenScene
             this.setLoginButtonState = this.showLoginPop.bind(this)
         }
@@ -225,7 +227,7 @@ export default class LoginScene extends BaseComponent {
             return
         }
         if (DataManager.load("logined") == null) {
-            if (DataManager.getOnlineParam("loginAutoGuest") != 0 && PluginManager.hasPluginByName('SessionGuest')) {
+            if (DataManager.Instance.getOnlineParam("loginAutoGuest", 1) && PluginManager.hasPluginByName('SessionGuest')) {
                 this.onLogin("SessionGuest")
                 return
             }

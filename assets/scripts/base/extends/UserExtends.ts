@@ -35,7 +35,11 @@ export namespace UserExtends {
                 return
             }
 
-            res.list.forEach(info => _infos[info.uid] = info)
+            if (Array.isArray(res.list)) {
+                res.list.forEach(info => _infos[info.uid] = info)
+            } else {
+                res.list = []
+            }
 
             callback(infos.concat(res.list))
         })

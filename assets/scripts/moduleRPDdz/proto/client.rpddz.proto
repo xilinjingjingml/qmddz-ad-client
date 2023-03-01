@@ -619,6 +619,7 @@ message proto_gc_call_score_req{
 
 	required	int32	nScore	=	1;
 	required	int32	nSerialID	=	2;
+	optional	int32	nCallMode	=	3;
 }
 message proto_cg_call_score_ack{
 
@@ -776,4 +777,88 @@ message proto_gc_game_result_not1{
 	required	int32	bReverseSpring	=	7;
 	required	int32	bRobLord	=	8;
 	repeated	proto_stUserResult1	vecUserResult1	=	9;
+}
+message proto_TocashItemInfo{
+
+	required	int32	cChairID	=	1;
+	required	int32	nItemChange	=	2;
+}
+message proto_item_info{
+
+	required	int32	nItemId	=	1;
+	required	int32	nItemNum	=	2;
+}
+message proto_gc_baiyuan_tocash_item_not{
+
+	required	int32	cType	=	1;
+	repeated	proto_TocashItemInfo	vecItemInfo	=	2;
+}
+message proto_gc_baiyuan_hb_round_not{
+
+	required	int32	nCurRound	=	1;
+	required	int32	nLimitRound	=	2;
+}
+message proto_gc_baiyuan_hb_round_award_not{
+
+	repeated	proto_item_info	vecItemInfo	=	1;
+}
+message proto_cg_baiyuan_hb_round_award_req{
+
+}
+message proto_gc_baiyuan_hb_round_award_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
+}
+message proto_gc_baiyuan_win_double_not{
+
+	repeated	proto_item_info	vecItemInfo	=	1;
+}
+message proto_cg_baiyuan_win_double_req{
+
+}
+message proto_gc_baiyuan_win_double_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
+}
+message proto_gc_baiyuan_regain_lose_not{
+
+	repeated	proto_item_info	vecItemInfo	=	1;
+}
+message proto_cg_baiyuan_regain_lose_req{
+
+}
+message proto_gc_baiyuan_regain_lose_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
+}
+message proto_gc_baiyuan_luck_welfare_not{
+
+	repeated	proto_item_info	vecItemInfo	=	1;
+}
+message proto_cg_baiyuan_luck_welfare_req{
+
+}
+message proto_gc_baiyuan_luck_welfare_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
+}
+message proto_cg_baiyuan_can_bankruptcy_defend_req{
+
+}
+message proto_gc_baiyuan_can_bankruptcy_defend_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
+}
+message proto_cg_baiyuan_bankruptcy_defend_req{
+
+}
+message proto_gc_baiyuan_bankruptcy_defend_ack{
+
+	required	int32	cRet	=	1;
+	repeated	proto_item_info	vecItemInfo	=	2;
 }

@@ -26,14 +26,14 @@ export default class UpdateScene extends BaseComponent {
         if (DataManager.load("game_restart") || DataManager.load("game_restart") == null && cc.sys.localStorage.getItem('HotUpdateSearchPaths')) {
             DataManager.save("game_restart", false)
 
-            if (DataManager.getOnlineParam("update_game")) {
+            if (DataManager.Instance.getOnlineParam("update_game")) {
                 this.checks.push(this.checkAppVersion.bind(this))
             }
         } else {
             this.checks.push(this.checkAppVersion.bind(this))
             this.checks.push(this.checkGameVersion.bind(this))
 
-            if (DataManager.getOnlineParam("update_game")) {
+            if (DataManager.Instance.getOnlineParam("update_game")) {
                 this.checks.reverse()
             }
         }
@@ -155,10 +155,10 @@ export default class UpdateScene extends BaseComponent {
 
         const hotUpdate = this.node.addComponent(HotUpdate)
         hotUpdate.init('hbddzjs')
-        const gameversion = DataManager.getOnlineParam("game_version")
+        const gameversion = DataManager.Instance.getOnlineParam("game_version")
         const lastversion = DataManager.Instance.version
         const localversion = hotUpdate.getLocalManifestVersion()
-        const reviewversion = DataManager.getOnlineParam("review_version")
+        const reviewversion = DataManager.Instance.getOnlineParam("review_version")
         cc.log("[UpdateScene.checkGameVersion]", reviewversion, gameversion, lastversion, localversion)
         DataManager.Instance.version = localversion
 
@@ -209,14 +209,14 @@ export default class UpdateScene extends BaseComponent {
         cc.log("[UpdateScene.setState] state", state)
         this['nodeTips'].active = state == 1
         this['progressBar'].active = state == 1
-        this['background4'].active = state == 0
+        this['node_loading'].active = state == 0
     }
 
     updateResult(ret: number): void {
         cc.log("[UpdateScene.updateResult]", ret)
         // 1 finished 2 failed 3 already
         if (ret == 1 || ret == 3) {
-            DataManager.save('game_version', DataManager.getOnlineParam("game_version"))
+            DataManager.save('game_version', DataManager.Instance.getOnlineParam("game_version"))
         }
         if (ret == 1) {
             this.setState(0)

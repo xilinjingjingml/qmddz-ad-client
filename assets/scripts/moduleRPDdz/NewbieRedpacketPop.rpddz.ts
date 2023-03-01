@@ -1,7 +1,7 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { czcEvent, playADBanner, numberFormat } from "../base/BaseFuncTs"
+import { czcEvent, playADBanner, numberFormat, checkSpecialAward } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
 import { receiveAdAward } from "../moduleLobby/LobbyFunc"
 import GameLogic from "./GameLogic.rpddz"
@@ -33,6 +33,20 @@ export default class NewbieRedpacketPop extends BaseComponent {
         }
 
         this.label.getComponent(cc.Label).string = this.initParam.nAmount / 10000 + ""
+        if (DataManager.Instance.getOnlineParamSwitch("NewbieRedpacke_btn_oversize") && checkSpecialAward()) {
+            cc.find("nodePop/btn_draw_double",this.node).height = 145
+        }
+
+        cc.find("nodePop/btn_draw_double", this.node).runAction(cc.repeatForever(cc.sequence(
+            cc.scaleTo(0.8, 1.1),
+            cc.scaleTo(0.8, 1.0)
+        )))
+
+        if (DataManager.Instance.getOnlineParamSwitch("NewbieRedpacke_finger", 0)) {
+            this.$("node_finger").active = true
+        } else {
+            this.$("node_finger").active = false
+        }
 
         if (DataManager.Instance.getOnlineParamSwitch("NewbieRedpacke_double", 1) && this.initParam.cDouble > 0) {
             if (DataManager.Instance.getOnlineParamSwitch("NewbieRedpacke_double_CloseABTest", 1)) {

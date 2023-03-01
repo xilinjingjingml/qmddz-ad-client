@@ -34,7 +34,7 @@ export default class ExchangeScene extends BaseScene {
         }, {
             isNewUser: true,
             gain: { id: -4, num: 1 },
-            conditions: [{ id: Condition.GameWinNum, value: 150 }]
+            conditions: [{ id: Condition.StayLogin, value: 4 }]
         }, {
             isNewUser: true,
             gain: { id: -4, num: 5 },
@@ -70,7 +70,14 @@ export default class ExchangeScene extends BaseScene {
             }
         })
 
-        getRedpacketRank((res: { wonPlyNum: number }[]) => res.length > 4 && (this.wonPlyNum = res[4].wonPlyNum))
+        getRedpacketRank((res: { wonPlyNum: number }[]) => {
+            for (const dt of res) {
+                if (null != dt["wonPlyNum"]) {
+                    this.wonPlyNum = dt["wonPlyNum"]
+                    this.itemData && this.onExchangeItemClick({ node: { data: this.itemData } })
+                }
+            }
+        })
 
         if (this.configs.some(config => config.conditions && config.conditions.some(condition => condition.id == Condition.InviteNum))) {
             this.loadPromoterRecrod()
@@ -376,7 +383,7 @@ export default class ExchangeScene extends BaseScene {
 
         if (updateCond) {
             this.setCondView(2)
-            this.setProgressWithMessage(current / total, `累计获胜${total}局 (${current}/${total})`)
+            this.setProgressWithMessage(current / total, `福卡场累计获胜${total}局 (${current}/${total})`)
         } else {
             iMessageBox(`再获胜${total - current}局就可以领取了，快去进行游戏吧！`)
         }
@@ -446,9 +453,9 @@ export default class ExchangeScene extends BaseScene {
 
     checkCanExchange(data: IExchangeInfo, updateCond: boolean = false) {
         // 检测道具
-        if (!this.checkCanExchangeItemNum(data, updateCond)) {
-            return false
-        }
+        // if (!this.checkCanExchangeItemNum(data, updateCond)) {
+        //     return false
+        // }
 
         // 检测VIP
         if (!this.checkCanExchangeVipLevel(data, updateCond)) {

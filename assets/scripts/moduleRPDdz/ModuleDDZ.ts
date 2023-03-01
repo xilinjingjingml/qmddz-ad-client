@@ -16,7 +16,7 @@ export default class ModuleStart extends cc.Component {
     start() {
         cc.log("ModuleDDZ.moduleStart")
         czcEvent("斗地主", "加载1", "开始加载斗地主" + DataManager.Instance.userTag)
-        SceneManager.Instance.addScene("moduleLobby", "Preload", this.loadGameScene.bind(this))
+        SceneManager.Instance.popScene("moduleLobby", "Preload", undefined, undefined, this.loadGameScene.bind(this))
     }
 
     loadGameScene(scene: BaseScene) {

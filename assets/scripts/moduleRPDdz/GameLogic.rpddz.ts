@@ -1,9 +1,10 @@
 import { AdsConfig } from "../base/baseData/AdsConfig";
 import DataManager from "../base/baseData/DataManager";
 import { ITEM } from "../base/baseData/ItemConfig";
-import { czcEvent, enterGame, getLowMoneyRoom, gobackToMain, MsgBox, showShopPop, unenoughGold } from "../base/BaseFuncTs";
+import { czcEvent, enterGame, getLowMoneyRoom, gobackToMain, iMessageBox, MsgBox, showShopPop, unenoughGold } from "../base/BaseFuncTs";
 import NetManager from "../base/baseNet/NetManager";
 import SceneManager from "../base/baseScene/SceneManager";
+import { math } from "../base/utils/math";
 import { checkAdCanReceive, getReliefState } from "../moduleLobby/LobbyFunc";
 import { WizardConfig } from "../moduleLobby/WizardConfig";
 import AudioConfig from "./AudioConfig.rpddz";
@@ -281,6 +282,7 @@ export default class GameLogic {
 
     reEnterGame(gameid, serverid, info) {
         cc.log("TODO reEnterGame")
+        this.enterLobby()
     }
 
     enterLobby() {
@@ -295,16 +297,6 @@ export default class GameLogic {
 
     showTaskPop() {
         SceneManager.Instance.popScene("moduleLobby", "TaskPop")
-    }
-
-    GetMoneyShortString(money: number): string {
-        if (money < 10000) {
-            return money + ''
-        } else if (money < 100000000) {
-            return Number((money / 10000).toPrecision(4)) + "万"
-        } else {
-            return Number((money / 100000000).toPrecision(4)) + "亿"
-        }
     }
 
     setGame(game) {
@@ -434,7 +426,15 @@ export default class GameLogic {
             }			
             this.gamescene.hideFingerWizard(callbackFun)
             initParam["logic"] = this     
+            initParam["isBaiYuan"] = this.isBaiYuanMode()
             SceneManager.Instance.popScene<String>("moduleBaseRes", "GameMagicEmojiPanel", initParam)
+        }
+    }
+
+    showGameSoundPanel(initParam = {}) {
+        if (!!this.gamescene) {       
+            initParam["logic"] = this     
+            SceneManager.Instance.popScene<String>("moduleBaseRes", "GameSoundPanel", initParam)
         }
     }
 
@@ -496,6 +496,17 @@ export default class GameLogic {
                 }
             }
         } else if (this.isMatchTable()) { 
+        } else if (this.gamescene.state == 'startGame') { 
+            iMessageBox("请游戏结束后再退出游戏哦~")
+        } else if (this.isBaiYuanMode() && this.gamescene.bHadStart && checkAdCanReceive(AdsConfig.taskAdsMap.New_GameRedPacket)) {
+            this.showGameCommonTipLayer({
+                msg: [
+                    { color: "8e7c62", size: 30, text: "再玩" },
+                    { color: "ff3e20", size: 30, text: ` ${this.gamescene.hbRoundData.nLimitRound - this.gamescene.hbRoundData.nCurRound} ` },
+                    { color: "8e7c62", size: 30, text: "局就可以开启红包\n现在退出，您的局数进度将被清空!" },
+                ],
+                cancelCback: this.LeaveGameScene.bind(this)
+            })
         } else if(this.gamescene.state == 'startGame') {
     		this.showGameCommonTipLayer({
                 msg : "如果现在退出游戏，会\n由系统托管，输了的话千万别怪它哦!",
@@ -674,7 +685,7 @@ export default class GameLogic {
     }
 
     isCallScoreMode() {
-        return this.serverInfo.ddz_game_type == 1
+        return this.serverInfo.ddz_game_type == 1 || this.isBaiYuanMode()
     }
 
     getCurMatchInfo(): IMatchInfo {
@@ -770,7 +781,7 @@ export default class GameLogic {
                 if (ExchangeInfos.length > 0) {
                     const goods = Object.assign(ExchangeInfos[0])
                     goods.content = "<color=#d4312f><size=36>金豆不足</size></color><br/><br/><color=#8e7c62><size=26>您的金豆不够在本场次玩耍，去换<br/><color=#d4312f><size=26>" + 
-                    this.GetMoneyShortString(goods["gainItemList"][0]["gainNum"]) + 
+                    math.toShort(goods["gainItemList"][0]["gainNum"]) + 
                     "</size></color>金豆继续挑战吧!!</size></color><br/>"
                     SceneManager.Instance.popScene("moduleRPDdzRes", "ExchangeConfirm3Pop", goods)
                     return false
@@ -853,6 +864,14 @@ export default class GameLogic {
 
     showWinDoublePop(message: Iproto_gc_win_doubel_req) {
         SceneManager.Instance.popScene<String>("moduleRPDdzRes", "WinDoublePop", message)
+    }
+
+    isBaiYuanMode() {
+        return this.serverInfo.ddz_game_type == 3
+    }
+
+    turnBaiYuan(n: number) {
+        return n / 100
     }
 }
 

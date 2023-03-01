@@ -55,7 +55,7 @@ export default class BaseComponent extends BaseScene {
 	$(name: string): cc.Node
 	$<T extends cc.Component>(name: string, type: { prototype: T }): T
 	$<T extends cc.Component>(name: string, type?: { prototype: T }) {
-		const node = this._$[name] || cc.find(name, this.node)
+		const node: cc.Node = this._$[name] || cc.find(name, this.node)
 		return node && type ? node.getComponent(type) : node
 	}
 }

@@ -47,7 +47,7 @@ export default class LoginPop extends BaseComponent {
                 continue
             }
 
-            const value = DataManager.getOnlineParam("show" + plugin.name.substring(7))
+            const value = DataManager.Instance.getOnlineParam("show" + plugin.name.substring(7))
             if (value) {
                 if (value == 0) {
                     continue

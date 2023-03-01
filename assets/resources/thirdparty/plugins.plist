@@ -145,7 +145,23 @@
 		</dict>
 		<dict>
 			<key>name</key>
-			<string>AdsMosads</string>
+			<string>AdsTTAds</string>
+			<key>type</key>
+			<string>1</string>
+			<key>tag</key>
+			<string>1</string>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>AdsQQAds</string>
+			<key>type</key>
+			<string>1</string>
+			<key>tag</key>
+			<string>1</string>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>AdsYXAds</string>
 			<key>type</key>
 			<string>1</string>
 			<key>tag</key>

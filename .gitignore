@@ -64,7 +64,7 @@ quick_gen_project_*_autogen.sh.meta
 # VS Code
 #//////////////////////////
 
-.vscode/
-buildconfig.yml
-build-command/
+.vscode/**
+!.vscode/tasks.json
+*.pyc
 settings/services.json

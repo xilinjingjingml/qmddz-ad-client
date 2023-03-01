@@ -20,7 +20,7 @@ const AdvertUnitId = {
 const adapt = { screen: null, design: null, ratio: 1, width: 0, height: 0 }
 const common = { userinfo: null, callback: null, flag: null, scene: 0, backad: true, query: null, appQueryChecked: false }
 const advertVideo = {}
-const advertBanner = { instance: null, valid: true, rect: null }
+const advertBanner = { }
 const advertInterstitial = { instance: null, valid: true, visible: false }
 const advertGrid = { instance: null, valid: true, rect: null }
 const share = { invoked: true, time: 0, skipCheck: false, callback: null }
@@ -427,8 +427,9 @@ namespace WxWrapper {
 
     // wx.createBannerAd >= 2.0.4
     function createBannerAdvert(unitid) {
-        if (!advertBanner.instance) {
-            const advert = wx.createBannerAd({
+        if (!advertBanner[unitid]) {
+            const advert = { instance: null, valid: true, rect: null, ref: 0 }
+            const instance = wx.createBannerAd({
                 adUnitId: unitid,
                 adIntervals: 30,
                 style: {
@@ -438,55 +439,75 @@ namespace WxWrapper {
                 }
             })
 
-            advert.onError((res) => {
-                console.error("Banner广告", res)
+            instance.onError((res) => {
+                console.error("Banner广告" + unitid, res)
                 if (AdvertErr.indexOf(res.errCode) !== -1) {
-                    advertBanner.valid = false
+                    instance.valid = false
                 }
             })
 
-            advert.onResize((res) => {
+            instance.onResize((res) => {
                 const left = (adapt.screen.width - res.width) / 2
                 const top = adapt.screen.height - res.height
 
-                advert.style.left = left
-                advert.style.top = top
+                instance.style.left = left
+                instance.style.top = top
 
                 const x = left / adapt.ratio - adapt.width / 2
                 const y = (adapt.screen.height - top - res.height) / adapt.ratio
                 const width = res.width / adapt.ratio
                 const height = (res.height + adapt.height) / adapt.ratio
 
-                advertBanner.rect = cc.rect(x, y, width, height)
+                advert.rect = cc.rect(x, y, width, height)
 
-                cc.log("createBannerAdvert.onResize")
-                SceneManager.Instance.sendMessageToScene({ opcode: "onBannerResize", rect: advertBanner.rect })
+                cc.log("createBannerAdvert.onResize", unitid, new Date().getTime())
+                SceneManager.Instance.sendMessageToScene({ opcode: "onBannerResize", rect: advert.rect })
             })
 
-            advertBanner.instance = advert
+            advert.instance = instance
+            advertBanner[unitid] = advert
         }
 
-        return advertBanner.instance
+        return advertBanner[unitid]
     }
 
-    export function showBannerAdvert() {
-        if (mWxValid && advertBanner.valid) {
-            if (advertBanner.rect) {
-                cc.log("showBannerAdvert.onBannerResize")
-                SceneManager.Instance.sendMessageToScene({ opcode: "onBannerResize", rect: advertBanner.rect })
+    export function showBannerAdvert(unitid) {
+        if (mWxValid) {
+            const advert = createBannerAdvert(unitid || AdvertUnitId.Banner)
+
+            if (!advert.valid) {
+                return
             }
 
-            const advert = createBannerAdvert(AdvertUnitId.Banner)
-            advert.show()
+            if (advert.rect) {
+                cc.log("showBannerAdvert.onBannerResize", unitid, new Date().getTime())
+                SceneManager.Instance.sendMessageToScene({ opcode: "onBannerResize", rect: advert.rect })
+            }
+
+            advert.ref++
+            cc.log("showBannerAdvert", unitid, new Date().getTime())
+            advert.instance.show()
                 .catch((res) => {
-                    console.error("Banner广告显示", res)
+                    console.error("Banner广告显示", unitid, res)
                 })
         }
     }
 
-    export function hideBannerAdvert() {
-        if (mWxValid && advertBanner.instance) {
-            advertBanner.instance.hide()
+    export function hideBannerAdvert(unitid, hideAll?) {
+        if (mWxValid) {
+            if (hideAll) {
+                for (const id in advertBanner) {
+                    advertBanner[id].ref = 0
+                    advertBanner[id].instance.hide()
+                }
+            } else {
+                const advert = createBannerAdvert(unitid || AdvertUnitId.Banner)
+                advert.ref--
+                if (advert.ref <= 0) {
+                    advert.ref = 0
+                    advert.instance.hide()
+                }
+            }
         }
     }
 
@@ -770,6 +791,12 @@ namespace WxWrapper {
         }
     }
 
+    export function initBanner(unitid) {
+        if (mWxValid) {
+            createBannerAdvert(unitid || AdvertUnitId.Banner)
+        }
+    }
+
     // wx.requestSubscribeMessage >= 2.4.4
     export function requestSubscribeMessage(templateId, callback) {
         if (mWxValid && wx.requestSubscribeMessage) {
@@ -826,15 +853,6 @@ namespace WxWrapper {
             common.appQueryChecked = true
         }
         return false
-    }
-
-    // wx.createUserInfoButton >= 2.0.3
-    export function openKeFu() {
-        if (mWxValid) {
-            wx.openCustomerServiceConversation({
-                sessionFrom: "APP福利"
-            })
-        }
     }
 }
 

@@ -97,6 +97,9 @@ export default class DataManager extends cc.Component {
     })
     menuEffect = null
 
+    @property({ type: cc.AudioClip })
+    hbEffect = null
+
     _commonData: ICommonData = {}
 
     // 更新数据
@@ -330,15 +333,6 @@ export default class DataManager extends cc.Component {
         return getPacketConfig().gameList
     }
 
-    static getOnlineParam(name: string) {
-        const vname = name + PluginManager.getVersionCode()
-        if (vname in DataManager.Instance.onlineParam) {
-            return DataManager.Instance.onlineParam[vname]
-        }
-
-        return DataManager.Instance.onlineParam[name]
-    }
-
     getGameConfig() {
         return getPacketConfig()
     }
@@ -347,40 +341,89 @@ export default class DataManager extends cc.Component {
         return DataManager.CommonData["reliefStatus"] && DataManager.CommonData["reliefStatus"]["reliefAwardCount"] || 20000
     }
 
-    isInReview() {
-        return this.onlineParam.review_version == PluginManager.getVersionCode()
+    /**
+     * 获得在线参数
+     * * 没有找到返回默认值
+     * * 在线参数可以根据app版本而不同
+     */
+    getOnlineParam(name: string, def?:any) {
+        let value = this.onlineParam[name + PluginManager.getVersionCode()]
+        if (value != null) {
+            return value
+        }
+
+        value = this.onlineParam[name]
+        if (value != null) {
+            return value
+        }
+
+        return def
     }
 
     /**
-     * 在线参数以abtest对用户id求余
-     * 0 => false
-     * 1 => true
-     * n > 1 => 1 % n == 0
-     * n < 1 => Math.floor(id * n) > Math.floor((id - 1) * n)
+     * 获得在线参数-abtest
+     * @deprecated
      */
-    getOnlineParamSwitch(name: string, def?: number) {
-        let value = DataManager.Instance.onlineParam[name]
-        if (value == null) {
-            if (def == null) {
-                return false
+    getOnlineParamSwitch(name: string, def?: any): any {
+        return this._getOnlineParamGray(name, def, (value) => {
+            if (typeof value == "number") {
+                return { abtest: { threshold: value, value: true } }
             }
-            value = def
+
+            return value
+        })
+    }
+
+    /**
+     * 获得在线参数-灰度
+     * * 支持多种参数进行灰度开关
+     */
+    getOnlineParamGray(name: string, def?: any): any {
+        return this._getOnlineParamGray(name, def)
+    }
+
+    private _getOnlineParamGray(name: string, def?: any, callback?: Function) {
+        let options: IOnlineParam = this.getOnlineParam(name, def)
+        if (options == null) {
+            return
         }
 
-        if (typeof value === 'number') {
-            if (value == 0) {
-                return false
-            } else if (value == 1) {
-                return true
+        if (callback) {
+            options = callback(options)
+        }
+
+        if (options.abtest) {
+            /**
+             * 在线参数以abtest对用户id求余
+             * * 0 => false
+             * * 1 => true
+             * * n > 1 => 1 % n == 0
+             * * n < 1 => Math.floor(id * n) > Math.floor((id - 1) * n)
+             */
+            let ret
+            const guid = Number(this._userData.guid)
+            if (options.abtest.threshold == 0) {
+                ret = false
+            } else if (options.abtest.threshold == 1) {
+                ret = true
+            } else if (options.abtest.threshold > 1) {
+                ret = guid % options.abtest.threshold == 0
             } else {
-                const guid = Number(this._userData.guid)
-                if (value > 1) {
-                    return guid % value == 0
-                } else {
-                    return Math.floor(guid * value) > Math.floor((guid - 1) * value)
-                }
+                ret = Math.floor(guid * options.abtest.threshold) > Math.floor((guid - 1) * options.abtest.threshold)
+            }
+            return ret ? options.abtest.value : !options.abtest.value
+        }
+        if (options.guid) {
+            if (options.guid.threshold == Number(this._userData.guid)) {
+                return options.guid.value
             }
         }
-        return false
+        if (options.random) {
+            if (options.random.threshold > Math.random()) {
+                return options.random.value
+            }
+        }
+
+        return options
     }
 }

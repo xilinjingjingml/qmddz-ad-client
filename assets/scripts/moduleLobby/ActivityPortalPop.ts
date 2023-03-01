@@ -441,7 +441,6 @@ export default class ActivityPortalPop extends BaseComponent {
         }
     }
 
-
     deleteActive(name: string) {
         for (let i = 0; i < ActiveList.length; i++) {
             if (ActiveList[i].buttonName == name) {

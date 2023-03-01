@@ -1,0 +1,109 @@
+assets_path: &assets_path
+  assets_path: build\hbddz.zip
+assets_paths: &assets_paths
+  assets_paths:
+    - build\jsb-link\res
+    - build\jsb-link\src
+    - build\jsb-link\subpackages
+resources_warehouse: &resources_warehouse
+  resources_warehouse: D:\warehouse
+resources_exts: &resources_exts
+  resources_exts:
+    - .png
+    - .jpg
+android_path: &android_path
+  android_path: D:\AndroidProjects\com.union.hbddz.ad.android
+version_url: &version_url
+  version_url: https://statics.weipinggame.com.cn/get/loading/configs?pn=com.union.hbddz.ad.android&fwversion=14042902&gtype=mainF33&sgtype=f33&sign=e8eb41a3b7bd49f153c6eea81aa2a93c&md5=&uid=&imei=&level=&gameNums=0&loginSecret=fd189783dda35d04d1901e4f026277df&buildCode=1&appConfigGame=1238&appcode=1
+  version: "1.0.5.2"
+
+commands:
+  # - compile_proto
+  - compile_creater
+  - compress_resources
+  - compress_assets
+  - publish_h5
+  # - publish_test
+  # - publish_process
+  # - publish_android
+  # - compile_apk
+  - toast_finish
+compile_proto:
+  path: assets\scripts
+  proto:
+    base.proto: baseProto.js
+    client.proto: lobbyproto.js
+compile_creater:
+  path: C:\CocosCreator_2.1.2\CocosCreator.exe
+  params:
+    debug: 'false'
+    platform: web-mobile
+    md5Cache: 'true'
+compress_resources:
+  <<: *resources_exts
+  <<: *resources_warehouse
+  assets_paths:
+    - build\web-mobile-ad
+  tinify_key: btRHh5gmlehRLtgioOlkyZ6VgYgNeQwe
+compress_assets:
+  <<: *assets_path
+  <<: *assets_paths
+  <<: *resources_warehouse
+  work_path: build\jsb-link
+  zip_paths:
+    - build\jsb-link\res\import
+  compress_configs:
+    - name: hbddzjs
+      configs:
+        - from:
+            - .png
+            - .jpg
+          operates: compress
+        - from: .js
+          to: .zip
+          operates: zip
+        # - from: .js
+        #   to: .jsc
+        #   operates:
+        #     name: gzip
+        #     key: a253bd3f-4bb6-48
+publish_test:
+  <<: *assets_path
+  codepath: build\code.jpg
+  host: http://t_admin.wpgame.com.cn
+  usrname: user
+  password: user
+  gameid: 1238
+  channel: 137
+  auto_id: 9
+  channel_id: 137
+  packages:
+    - com.union.hbddz.android
+    - com.union.hbddz.ad.android
+    - net.technology.spddz
+  version_add: 1
+publish_process:
+  <<: *assets_path
+  <<: *version_url
+  version_add: 2
+publish_h5:
+  <<: *resources_exts
+  <<: *resources_warehouse
+  output_path: D:\workspace\trunk\BDMobile\BDCasino\Web-H5-Test-DDZHB\web-mobile-ad.zip
+  assets_path: build\web-mobile
+  name: web-mobile-ad
+publish_android:
+  <<: *assets_path
+  <<: *assets_paths
+  <<: *android_path
+  <<: *version_url
+  name: hbddzjs
+  version_add: 0
+  assets_dir: app\assets
+compile_apk:
+  <<: *android_path
+  apk_path: D:\APK
+  filename: zxddz
+  name: hbddz
+  mode: debug
+  # mode: release

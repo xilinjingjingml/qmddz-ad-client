@@ -1,6 +1,8 @@
+import { AdsConfig } from "./baseData/AdsConfig";
 import DataManager from "./baseData/DataManager";
-import { callStaticMethod, ConfirmBox, iMessageBox, pluginAdsResult, pluginPayResult, versionCompare } from "./BaseFuncTs";
+import { callStaticMethod, ConfirmBox, iMessageBox, playADBanner, pluginAdsResult, pluginPayResult, versionCompare } from "./BaseFuncTs";
 import NetManager from "./baseNet/NetManager";
+import SceneManager from "./baseScene/SceneManager";
 import { http } from "./utils/http";
 
 export enum EPluginType {
@@ -26,13 +28,21 @@ export enum EAdsType {
     ADS_TYPE_BANNER = 0, //banner广告
     ADS_TYPE_INTER = 3, //插屏广告
     ADS_TYPE_REWARTVIDEO = 4, //视频激励广告
+    ADS_TYPE_NATIVE = 5, //信息流广告
 }
 export enum EAdsResult {
-    RESULT_CODE_REWARTVIDEO_SUCCEES = 12,	    //激励视频广告成功
-    RESULT_CODE_REWARTVIDEO_FAIL = 13,		    //激励视频广告失败
-    RESULT_CODE_BANNER_SUCCESS = 14,		    //激励视频广告load失败
-    RESULT_CODE_REWARTVIDEO_LOAD_FAIL = 16,		//激励视频广告load失败
-    RESULT_CODE_REWARTVIDEO_LOAD_SUCCESS = 17,  //激励视频广告load成功
+    RESULT_CODE_INTER_SUCCEES = 10,         //插屏广告播放成功
+    RESULT_CODE_INTER_FAIL,                 //插屏广告播放失败
+    RESULT_CODE_REWARTVIDEO_SUCCESS,        //激励视频广告播放成功
+    RESULT_CODE_REWARTVIDEO_FAIL,           //激励视频广告播放失败
+    RESULT_CODE_BANNER_SUCCESS,             //banner广告播放成功
+    RESULT_CODE_BANNER_FAIL,                //banner广告load成功
+    RESULT_CODE_REWARTVIDEO_LOAD_FAIL,      //激励视频广告load失败
+    RESULT_CODE_REWARTVIDEO_LOAD_SUCCESS,   //激励视频广告load成功
+    RESULT_CODE_INTER_CLOSE,                //插屏广告关闭
+    RESULT_CODE_NATIVE_SUCCESS,             //信息流广告关闭
+    RESULT_CODE_NATIVE_FAIL,                //信息流广告关闭
+    RESULT_CODE_NATIVE_CLOSE,               //信息流广告关闭
 }
 
 interface IPlugin {
@@ -154,8 +164,10 @@ namespace PluginManager {
         DataManager.CommonData["pluginFinish"] = true
     }
 
-    function loadPlugin(name: string, type: EPluginType): void {
-        _pluginProxy.loadPlugin(name, 0, type)
+    export function loadPlugin(name: string, type: EPluginType): void {
+        if (_pluginProxy) {
+            _pluginProxy.loadPlugin(name, 0, type)
+        }
     }
 
     function loadPluginByTag(tag: number, type: EPluginType): void {
@@ -201,18 +213,20 @@ namespace PluginManager {
         NetManager.Instance.onMessage({ opcode: "PluginPlatformCallBack", data: data })
     }
 
-    // { AdsResultCode: number, msg: string }
+    // { AdsResultCode: number, msg: string, adsInfo: string }
     const AdBannerSize = "AdBannerSize"
     function onAdsCallBack(data: string): void {
         cc.log("[PluginManager.onAdsCallBack] data:", data)
         // NetManager.Instance.onMessage({ opcode: "PluginAdsCallBack", data: data })
-        const info: { AdsResultCode: number, msg: string } = JSON.parse(data)
-        if ([EAdsResult.RESULT_CODE_REWARTVIDEO_SUCCEES, EAdsResult.RESULT_CODE_REWARTVIDEO_FAIL, EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_FAIL].indexOf(info.AdsResultCode) != -1) {
-            cc.audioEngine.resumeMusic()
-        } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_BANNER_SUCCESS) {
-            if (info.msg.length > 0) {
-                const banner: { bannerWidth: string, bannerHeight: string } = JSON.parse(info.msg)
-                const sendBannerSize: cc.Size = cc.size(Number(banner.bannerWidth) / cc.view.getFrameSize().width * cc.winSize.width, Number(banner.bannerHeight) / cc.view.getFrameSize().height * cc.winSize.height)
+        const info: { AdsResultCode: number, msg: string, adsInfo: { bannerWidth: string, bannerHeight: string } } = JSON.parse(data)
+        if (info.adsInfo == null && info.msg.length > 0) {
+            info.adsInfo = JSON.parse(info.msg)
+        }
+        if (info.AdsResultCode == EAdsResult.RESULT_CODE_BANNER_SUCCESS) {
+            SceneManager.Instance.closeScene("AdLoading")
+            cc.log("typeof info.adsInfo", typeof info.adsInfo, info.adsInfo)
+            if (info.adsInfo) {
+                const sendBannerSize: cc.Size = cc.size(Number(info.adsInfo.bannerWidth) / cc.view.getFrameSize().width * cc.winSize.width, Number(info.adsInfo.bannerHeight) / cc.view.getFrameSize().height * cc.winSize.height)
                 cc.log('[PluginManager.onAdsCallBack] sendBannerSize', sendBannerSize.width, sendBannerSize.height)
                 const dataBannerSize = DataManager.load(AdBannerSize)
                 let change = true
@@ -221,12 +235,26 @@ namespace PluginManager {
                     cc.log('[PluginManager.onAdsCallBack] saveBannerSize', saveBannerSize.width, saveBannerSize.height)
                     change = !saveBannerSize.equals(sendBannerSize)
                 }
+                cc.log('[PluginManager.onAdsCallBack] bannerSize change', change)
                 if (change) {
-                    cc.log('[PluginManager.onAdsCallBack] bannerSize change')
                     DataManager.save(AdBannerSize, sendBannerSize)
-                    NetManager.Instance.onMessage({ opcode: "onBannerResize", rect: { width: sendBannerSize.width, height: sendBannerSize.height, x: 0, y: 0 } })
                 }
+                NetManager.Instance.onMessage({ opcode: "onBannerResize", rect: { width: sendBannerSize.width, height: sendBannerSize.height, x: 0, y: 0 } })
             }
+        } else if ([EAdsResult.RESULT_CODE_INTER_SUCCEES, EAdsResult.RESULT_CODE_NATIVE_SUCCESS].indexOf(info.AdsResultCode) >= 0) {
+            if (supportInterAdClose()) {
+                SceneManager.Instance.popScene<String>("moduleLobby", "AdLoading", { ClockTrigger: false, maskOpacity: 200 })
+            }
+        } else if ([EAdsResult.RESULT_CODE_INTER_CLOSE, EAdsResult.RESULT_CODE_NATIVE_CLOSE].indexOf(info.AdsResultCode) >= 0) {
+            if (supportInterAdClose()) {
+                SceneManager.Instance.closeScene("AdLoading")
+            }
+        } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_SUCCESS) {
+            cc.audioEngine.pauseMusic()
+            playADBanner(false, AdsConfig.banner.All)
+        } else if ([EAdsResult.RESULT_CODE_REWARTVIDEO_SUCCESS, EAdsResult.RESULT_CODE_REWARTVIDEO_FAIL].indexOf(info.AdsResultCode) != -1) {
+            SceneManager.Instance.closeScene("AdLoading")
+            cc.audioEngine.resumeMusic()
         }
         pluginAdsResult(info)
     }
@@ -240,7 +268,7 @@ namespace PluginManager {
         if (_pluginProxy) {
             return _pluginProxy.getPluginVersion("PlatformWP", 1, 9)
         } else {
-            return "5.0.0"
+            return "6.0.0"
         }
     }
 
@@ -529,24 +557,35 @@ namespace PluginManager {
     }
 
     /**
+     * 支持广告点
+     */
+    export function supportAdSpot() {
+        return versionCompare(getPluginVersion(), "6.0.0") >= 0
+    }
+
+    /**
      * 展示广告
      */
     export function showAds(adsType: EAdsType, adIndex?: string): void {
         cc.log("[PluginManager.showAds]", adsType, adIndex, getPluginVersion())
-        if (adsType == EAdsType.ADS_TYPE_REWARTVIDEO) {
-            cc.audioEngine.pauseMusic()
-        } else if (adsType == EAdsType.ADS_TYPE_BANNER) {
-            const bannerSize: cc.Size = DataManager.load(AdBannerSize) || cc.size(0, 120)
+        if (adsType == EAdsType.ADS_TYPE_BANNER) {
+            const dataBannerSize = DataManager.load(AdBannerSize)
+            const bannerSize: cc.Size = dataBannerSize ? cc.size(Number(dataBannerSize.width), Number(dataBannerSize.height)) : cc.size(0, 120)
+            cc.log("[PluginManager.showAds] onBannerResize", bannerSize.width, bannerSize.height)
             NetManager.Instance.onMessage({ opcode: "onBannerResize", rect: { width: bannerSize.width, height: bannerSize.height, x: 0, y: 0 } })
         }
         if (_pluginProxy) {
-            if (versionCompare(getPluginVersion(), "6.0.0") >= 0) {
+            if (supportAdSpot()) {
+                if (!adIndex) {
+                    iMessageBox("暂不支持播放该广告，详情请联系客服！")
+                    return
+                }
                 if (adsType == EAdsType.ADS_TYPE_REWARTVIDEO) {
-                    iMessageBox({ message: "视频广告加载中...", delayTime: 10 })
+                    SceneManager.Instance.popScene<String>("moduleLobby", "AdLoading")
                 }
                 _pluginProxy.showAds(JSON.stringify({
                     adType: adsType.toString(),
-                    adId: adIndex || "0",
+                    adId: adIndex,
                     adWidth: "0",
                     adHeight: "0",
                 }))
@@ -555,14 +594,18 @@ namespace PluginManager {
 
             _pluginProxy.showAds(adsType, 0, 0)
         } else {
-            delayCallBack(onAdsCallBack, JSON.stringify({
-                AdsResultCode: adsType == EAdsType.ADS_TYPE_REWARTVIDEO ? EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_SUCCESS : 0,
-                msg: "",
-            }), 1)
-            delayCallBack(onAdsCallBack, JSON.stringify({
-                AdsResultCode: adsType == EAdsType.ADS_TYPE_REWARTVIDEO ? EAdsResult.RESULT_CODE_REWARTVIDEO_FAIL : 0,
-                msg: "",
-            }), 3)
+            if (adsType == EAdsType.ADS_TYPE_REWARTVIDEO) {
+                SceneManager.Instance.popScene<String>("moduleLobby", "AdLoading")
+                delayCallBack(onAdsCallBack, JSON.stringify({
+                    AdsResultCode: adsType == EAdsType.ADS_TYPE_REWARTVIDEO ? EAdsResult.RESULT_CODE_REWARTVIDEO_SUCCESS : 0,
+                    msg: "",
+                }), 1)
+            } else {
+                delayCallBack(onAdsCallBack, JSON.stringify({
+                    AdsResultCode: 0,
+                    msg: "{}",
+                }), 0)
+            }
         }
     }
 
@@ -631,6 +674,20 @@ namespace PluginManager {
                 callStaticMethod("com/izhangxin/utils/luaj", "loadPluginFinish", "()V")
             }
         }
+    }
+
+    /**
+     * 插屏支持关闭消息
+     */
+    export function supportInterAdClose() {
+        return versionCompare(getPluginVersion(), "6.1.1") >= 0
+    }
+
+    /**
+     * 是否支持信息流广告
+     */
+    export function supportNativeAd() {
+        return versionCompare(getPluginVersion(), "6.1.2") >= 0
     }
 }
 

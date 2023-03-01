@@ -705,6 +705,7 @@ interface Iproto_gc_call_score_req {
     opcode: 'proto_gc_call_score_req'
     nScore: number
     nSerialID: number
+    nCallMode: number
 }
 
 interface Iproto_cg_call_score_ack {
@@ -884,4 +885,106 @@ interface Iproto_gc_game_result_not1 {
     bReverseSpring: number
     bRobLord: number
     vecUserResult1: Iproto_stUserResult1[]
+}
+
+interface Iproto_TocashItemInfo {
+    cChairID: number
+    nItemChange: number
+}
+
+interface Iproto_item_info {
+    nItemId: number
+    nItemNum: number
+}
+
+interface Iproto_gc_baiyuan_tocash_item_not {
+    opcode: 'proto_gc_baiyuan_tocash_item_not'
+    cType: number
+    vecItemInfo: Iproto_TocashItemInfo[]
+}
+
+interface Iproto_gc_baiyuan_hb_round_not {
+    opcode: 'proto_gc_baiyuan_hb_round_not'
+    nCurRound: number
+    nLimitRound: number
+}
+
+interface Iproto_gc_baiyuan_hb_round_award_not {
+    opcode: 'proto_gc_baiyuan_hb_round_award_not'
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_hb_round_award_req {
+    opcode: 'proto_cg_baiyuan_hb_round_award_req'
+}
+
+interface Iproto_gc_baiyuan_hb_round_award_ack {
+    opcode: 'proto_gc_baiyuan_hb_round_award_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_gc_baiyuan_win_double_not {
+    opcode: 'proto_gc_baiyuan_win_double_not'
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_win_double_req {
+    opcode: 'proto_cg_baiyuan_win_double_req'
+}
+
+interface Iproto_gc_baiyuan_win_double_ack {
+    opcode: 'proto_gc_baiyuan_win_double_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_gc_baiyuan_regain_lose_not {
+    opcode: 'proto_gc_baiyuan_regain_lose_not'
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_regain_lose_req {
+    opcode: 'proto_cg_baiyuan_regain_lose_req'
+}
+
+interface Iproto_gc_baiyuan_regain_lose_ack {
+    opcode: 'proto_gc_baiyuan_regain_lose_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_gc_baiyuan_luck_welfare_not {
+    opcode: 'proto_gc_baiyuan_luck_welfare_not'
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_luck_welfare_req {
+    opcode: 'proto_cg_baiyuan_luck_welfare_req'
+}
+
+interface Iproto_gc_baiyuan_luck_welfare_ack {
+    opcode: 'proto_gc_baiyuan_luck_welfare_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_can_bankruptcy_defend_req {
+    opcode: 'proto_cg_baiyuan_can_bankruptcy_defend_req'
+}
+
+interface Iproto_gc_baiyuan_can_bankruptcy_defend_ack {
+    opcode: 'proto_gc_baiyuan_can_bankruptcy_defend_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
+}
+
+interface Iproto_cg_baiyuan_bankruptcy_defend_req {
+    opcode: 'proto_cg_baiyuan_bankruptcy_defend_req'
+}
+
+interface Iproto_gc_baiyuan_bankruptcy_defend_ack {
+    opcode: 'proto_gc_baiyuan_bankruptcy_defend_ack'
+    cRet: number
+    vecItemInfo: Iproto_item_info[]
 }

@@ -34,7 +34,7 @@ export default class LoginPhonePop extends BaseScene {
         cc.find("nodePop/tips", this.node).getComponent(cc.Label).string = ""
         this._nodePopHeight = cc.find("nodePop", this.node).height
         cc.find("nodePop/nodeTitle/toggle1", this.node).getComponent(cc.Toggle).check()
-        if (DataManager.getOnlineParam("LoginPhoneOne") != 0) {
+        if (DataManager.Instance.getOnlineParam("LoginPhoneOne", 1)) {
             cc.find("nodePop/nodeTitle", this.node).active = false
             cc.find("nodePop/nodeTitle2", this.node).active = true
         }

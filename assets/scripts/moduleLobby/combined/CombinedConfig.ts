@@ -69,9 +69,9 @@ import { http } from "../../base/utils/http"
 // AdsRequest uid season  id
 
 
-const CombinedURIT = "https://t-h5.wpgame.com.cn/micro/gamecombined/"
+// const CombinedURIT = "192.168.20.102:8080/gamecombined/"
 const CombinedURIO = "https://h5.weipinggame.com.cn/micro/gamecombined/"
-// const CombinedURIO = "t_h5.wpgame.com.cn/micro/gamecombined/"
+const CombinedURIT = "https://t_h5.wpgame.com.cn/micro/gamecombined/"
 let isHttps = true
 const URLConfig = {
     LOAD_CONFIG: "config",

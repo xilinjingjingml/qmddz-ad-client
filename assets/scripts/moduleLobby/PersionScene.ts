@@ -24,7 +24,7 @@ export default class PersionScene extends BaseScene {
 
 
         NodeExtends.setNodeSpriteNet({ node: cc.find("nodePop/nodeTop/nodeFace/nodeMask/face", this.node), url: DataManager.UserData.face, fixSizeBySize: cc.size(84, 84) })
-
+        return
         if (null == DataManager.CommonData["VipInfo"])
             getVipConfig(this.updateVipInfo.bind(this))
         else
@@ -158,6 +158,14 @@ export default class PersionScene extends BaseScene {
             const data: { SessionResultCode: number, msg: string, sessionInfo: any } = JSON.parse(message.data)
             if (data.SessionResultCode == 0) {
                 this.bindWeixin(data.sessionInfo)
+            } else {
+                let msg = '登陆失败'
+                if (data.sessionInfo && data.sessionInfo.tips && data.sessionInfo.tips.length > 0) {
+                    msg = data.sessionInfo.tips
+                } else if (data.msg && data.msg.length > 0) {
+                    msg = data.msg
+                }
+                iMessageBox(msg)
             }
         }
     }

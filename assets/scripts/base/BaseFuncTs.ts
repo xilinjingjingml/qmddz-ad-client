@@ -8,13 +8,663 @@ import BaseScene from "./baseScene/BaseScene";
 import SceneManager from "./baseScene/SceneManager";
 import GameManager from "./GameManager";
 import WxWrapper from './WxWrapper';
-import { showAutonymPop } from "../moduleLobby/LobbyFunc";
-import PluginManager, { EAdsResult, EAdsType } from "./PluginManager";
-import EventTable from '../moduleLobby/EventTable';
 import md5 = require("./extensions/md5.min")
-import { NodeExtends } from "./extends/NodeExtends";
-import { time } from "./utils/time";
 import { http } from "./utils/http";
+import { time } from "./utils/time";
+import { showAutonymPop } from "../moduleLobby/LobbyFunc";
+import PluginManager, { EAdsResult, EAdsType, EPluginType } from "./PluginManager";
+import { NodeExtends } from "./extends/NodeExtends";
+
+export function startGame() {
+    const gameId = 389
+    const gameType = 3
+    let servers = DataManager.CommonData["ServerDatas"][gameId]
+    if (servers == null || servers.length == 0) {
+        return
+    }
+    servers = servers.filter(item => {
+        if (item.newbieMode) {
+            return false
+        }
+
+        if (item.lc_room_mode == 1 || item.lc_room_mode == 2) {
+            return false
+        }
+
+        if (gameId == 389 && item.ddz_game_type != gameType) {
+            return false
+        }
+
+        if (DataManager.UserData.money < item.minMoney) {
+            return false
+        }
+
+        if (item.minMoney != null && DataManager.UserData.money > item.maxmoney) {
+            return false
+        }
+
+        return true
+    })
+
+    if (servers.length == 0) {
+        return
+    }
+
+    servers.sort((a, b) => a.level < b.level ? -1 : a.level > b.level ? 1 : 0)
+
+    const minLevel = servers[0].level
+    servers = servers.filter(item => item.level == minLevel)
+
+    enterGame(servers[Math.floor(Math.random() * servers.length)])
+}
+
+// 1.0 支持播放广告
+// 2.0 支持根据广告点播放广告
+// 3.0 支持多广告插件并且根据广告点播放广告
+export function showAds(adsType: EAdsType, adIndex: string, excludes: string[] = []) {
+    cc.log("showAds", adsType, adIndex)
+    // 直接播放视频 1.0
+    if (!PluginManager.supportAdSpot()) {
+        PluginManager.showAds(adsType)
+        return
+    }
+
+    // banner广告点 2.0
+    if (adIndex == "banner" && DataManager.Instance.onlineParam.adConfig.bannerAdId) {
+        PluginManager.showAds(adsType, DataManager.Instance.onlineParam.adConfig.bannerAdId)
+        return
+    }
+
+    // 插屏广告点 2.0
+    if (adIndex == "inter" && DataManager.Instance.onlineParam.adConfig.interAdId) {
+        PluginManager.showAds(adsType, DataManager.Instance.onlineParam.adConfig.interAdId)
+        return
+    }
+
+    let configs = getAdUnitId(adIndex)
+    // 特定广告点 2.0
+    if (typeof configs == "string" || typeof configs == "number") {
+        PluginManager.showAds(adsType, configs as any)
+        return
+    }
+
+    // 通用广告点 2.0
+    if (DataManager.Instance.onlineParam.adConfig.videoAdId) {
+        PluginManager.showAds(adsType, DataManager.Instance.onlineParam.adConfig.videoAdId)
+        return
+    }
+
+    // 通用广告点 3.0
+    if (configs == null) {
+        configs = getAdUnitId("video")
+    }
+
+    if (configs == null || configs.length == 0) {
+        iMessageBox("暂不支持播放该广告，详情请联系客服！")
+        return
+    }
+
+    configs = configs.slice()
+
+    // 过滤播放失败的插件 3.0
+    if (excludes.length > 0) {
+        for (let i = configs.length - 1; i >= 0; i--) {
+            if (excludes.indexOf(configs[i].id) < 0) {
+                continue
+            }
+            configs.splice(i, 1)
+        }
+        if (configs.length == 0) {
+            DataManager.CommonData.showAdsData = null
+            pluginAdsResult({ AdsResultCode: EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_FAIL })
+            return
+        }
+    }
+
+    let cfg: IAdUnitId
+    // 根据权重随机广告 3.0
+    {
+        let sum = 0
+        for (const config of configs) {
+            sum += config.weight
+        }
+        sum = Math.floor(Math.random() * sum)
+        for (const config of configs) {
+            sum -= config.weight
+            if (sum < 0) {
+                cfg = config
+                break
+            }
+        }
+    }
+
+    if (!cfg) {
+        iMessageBox("暂不支持播放该广告，详情请联系客服！")
+        return
+    }
+
+    if (["banner", "inter"].indexOf(adIndex) < 0) {
+        excludes.push(cfg.id)
+        DataManager.CommonData.showAdsData = {
+            adsType: adsType,
+            adIndex: adIndex,
+            adsIds: excludes
+        }
+    }
+
+    cc.log("showAds", cfg.id, cfg.adId)
+    PluginManager.loadPlugin(cfg.id, EPluginType.kPluginAds)
+    PluginManager.showAds(adsType, cfg.adId)
+}
+
+export function shareAD(shareData: IShareData & { callback?: Function, invite?: boolean, title?: string }) {
+    const sharedData = DataManager.Instance.sharedData
+    if (!sharedData) {
+        iMessageBox("暂不支持分享")
+        return
+    }
+
+    DataManager.GlobalData.shareADCallBack = shareData.callback
+    DataManager.GlobalData.shareADTime = new Date().getTime()
+
+    if (shareData.title) {
+        shareData.ShareTitle = shareData.title
+    } else if (shareData.invite || DataManager.Instance.sharedData.sdType == 0) {
+        const titles = DataManager.Instance.onlineParam.share_titles || [
+            "好友来助攻，海量红包进来就领！",
+            "玩游戏就送红包！这是你未玩过的全新版本！",
+            "天降红包，你就是趟着领红包的人！"
+        ]
+        shareData.ShareTitle = titles[Math.floor(Math.random() * titles.length)]
+    }
+
+    if (shareData.invite) {
+        const url = DataManager.CommonData['shareUrl'] || "www.weipinggame.com.cn"
+        shareData.ShareUrl = "https://" + url + "/bind/bindExtensionRelation/page?uid=" + DataManager.UserData.guid + "&gameid=" + DataManager.Instance.gameId + "&pn=" + DataManager.Instance.packetName + "&type=1"
+        shareData.ShareWay = "WeiXin"
+        shareData.ShareType = "0"
+    }
+
+    if (shareData.ShareWay || DataManager.Instance.sharedData.sdType == 0) {
+        share(shareData)
+        return
+    }
+
+    sharePng()
+}
+
+function sharePng() {
+    if (!CC_JSB) {
+        iMessageBox("暂不支持分享")
+        return
+    }
+    const sharedData = DataManager.Instance.sharedData
+    const filepath = jsb.fileUtils.getWritablePath() + 'share_bg_code_' + md5(sharedData.sdPic + sharedData.sdCodePic) + '.png'
+    const shareFile = () => {
+        share({ ShareWay: 'WeiXin', ShareType: '2', SharedImg: 'file://' + filepath })
+    }
+
+    cc.log('[sharePng] shareFile', filepath)
+    if (jsb.fileUtils.isFileExist(filepath)) {
+        shareFile()
+        return
+    }
+
+    const node = new cc.Node()
+    node.addComponent(cc.Sprite)
+    node.active = false
+    cc.Canvas.instance.node.addChild(node)
+    const code = new cc.Node()
+    code.y = -353
+    code.addComponent(cc.Sprite)
+    node.addChild(code)
+
+    let counter = 2
+    const count = () => {
+        counter--
+        if (counter != 0) {
+            return
+        }
+
+        node.width = node.getComponent(cc.Sprite).spriteFrame.getTexture().width
+        node.height = node.getComponent(cc.Sprite).spriteFrame.getTexture().height
+
+        node.active = true
+        createScreenShotNode(node, filepath)
+        shareFile()
+        node.destroy()
+    }
+
+    NodeExtends.setNodeSpriteNet({
+        node: node,
+        url: sharedData.sdPic,
+        callback: count
+    })
+
+    NodeExtends.setNodeSpriteNet({
+        node: code,
+        url: sharedData.sdCodePic,
+        callback: count
+    })
+}
+
+export function setNodeSpriteQRCode(node: cc.Node, url:string) {
+    NodeExtends.setNodeSpriteNet({ url: "https://www.izhangxin.com/get/dimension?codeurl=" + encodeURIComponent(url), node: node, fixSize: true })
+}
+
+export function setNodeSpriteQRCodeShareMoney(node: cc.Node) {
+    let url = "https://www.wan78.net/zhicheng/qmddz-ad-share-money/"
+    if (DataManager.Instance.onlineParam.shareMoneyUrl) {
+        url = DataManager.Instance.onlineParam.shareMoneyUrl
+    }
+    if (url.indexOf("?") == -1) {
+        url = url + "?"
+    }
+
+    const params = {
+        originUid: DataManager.UserData.guid,
+        shareMoneyId: DataManager.CommonData.shareMoneyData.shareMoney[0].sm_id,
+    }
+    const arr = []
+    for (const key in params) {
+        arr.push(key + "=" + encodeURIComponent(params[key]))
+    }
+
+    url += arr.join("&")
+    setNodeSpriteQRCode(node, url)
+}
+
+export function updateNodeWidget(node: cc.Node) {
+    const widget = node.getComponent(cc.Widget)
+    if (widget) {
+        widget.updateAlignment()
+    }
+
+    for (const child of node.children) {
+        updateNodeWidget(child)
+    }
+}
+
+export function payOrderNative(boxItem, callback: Function = null) {
+    // 实名认证 才能支付
+    if (DataManager.CommonData["roleCfg"].isBinding != 1) {
+        if (DataManager.Instance.onlineParam.idvalidPay == 1) {
+            showAutonymPop({ noClose: true, content: "亲爱的用户，根据青少年防沉迷系统的要求，请认证后再充值" })
+            return
+        } else if (DataManager.Instance.onlineParam.idvalidPay == 2) {
+            showAutonymPop({ noClose: false, content: "亲爱的用户，根据青少年防沉迷系统的要求，请认证后再充值" })
+            return
+        }
+    }
+
+    // 禁止支付
+    const no_pay_tips = DataManager.Instance.getOnlineParam("no_pay_tips")
+    if (no_pay_tips) {
+        iMessageBox(no_pay_tips)
+        return
+    }
+
+    if (boxItem.disBatchId != null) {
+        pluginPay("IAPAlipayH5", boxItem, callback)
+        return
+    }
+
+    // 唯一支付
+    let onlyPayType
+    if (DataManager.Instance.onlineParam.only_pay_type) {
+        onlyPayType = DataManager.Instance.onlineParam.only_pay_type
+    }
+
+    const payTypeList: string[] = []
+    if (boxItem && boxItem.pmList) {
+        for (const pm of boxItem.pmList) {
+            const payType = PluginManager.getPayTypeByMid(pm.mid)
+            if (payType) {
+                if (onlyPayType) {
+                    if (payType == onlyPayType) {
+                        pluginPay(payType, boxItem, callback)
+                        return
+                    }
+                    continue
+                }
+                payTypeList.push(payType)
+            }
+        }
+    }
+    if (payTypeList.length == 0) {
+        iMessageBox('您购买的商品不存在')
+        return
+    }
+
+    SceneManager.Instance.popScene("moduleLobby", "PayBox", { boxItem: boxItem, callback: callback })
+}
+
+export function pluginPay(payType: string, boxItem: any, callback: Function) {
+    cc.log("[pluginPay]", payType)
+    if (payType.substr(-2) == "H5") {
+        h5Pay(payType, boxItem, callback)
+        return
+    }
+    const info = {
+        boxId: boxItem.boxid + "",
+        goodsLogo: boxItem.icon,
+        goodsName: boxItem.boxname,
+        desc: boxItem.desc,
+        serialno: boxItem.serino,
+        saleMoney: boxItem.price + "",
+        isSmsQuickPay: "0",
+        havePhone: boxItem.havePhone + "",
+    }
+    if (boxItem.pmList) {
+        for (const pm of boxItem.pmList) {
+            info['mid_' + pm.mid] = pm.serialno
+        }
+    }
+    DataManager.GlobalData.IapCallBack = callback
+    PluginManager.pay(payType, info)
+}
+
+export function h5Pay(payType: string, boxItem: any, callback: Function) {
+    cc.log("[h5Pay]", payType)
+    if (payType == "IAPAlipayH5") {
+        let url = DataManager.getURL("ALIPAY_PAY_H5")
+        let params = {
+            pid: DataManager.UserData.guid,
+            boxid: boxItem.boxid,
+            client: "wap",
+        }
+        if (boxItem.disBatchId != null) {
+            params["disBatchId"] = boxItem.disBatchId
+        }
+        var paramArr = []
+        for (var key in params) {
+            paramArr.push(key + '=' + encodeURIComponent(params[key]))
+        }
+        cc.sys.openURL(url + "?" + paramArr.join("&"))
+
+        callback()
+    } else if (payType == "IAPWeiXinH5") {
+        let url = DataManager.getURL("WEIXIN_PAY_H5")
+        let params = {
+            pn: DataManager.Instance.packetName,
+            pid: DataManager.UserData.guid,
+            ticket: DataManager.UserData.ticket,
+            boxid: boxItem.boxid,
+            version: PluginManager.getPluginVersion(),
+            imei: PluginManager.getDeviceIMEI(),
+            appid: "wxed94b10ddec0cefd",
+        }
+        http.open({
+            url: url,
+            query: params,
+            method: "POST",
+            callback: function (res) {
+                if (res) {
+                    if (res.ret == 0) {
+                        if (res.mweb_url) {
+                            cc.sys.openURL(DataManager.Instance.envConfigs.payURL + "mallJsp/MidUrl.jsp?Url=" + encodeURIComponent(res.mweb_url))
+                        }
+                    } else {
+                        iMessageBox(res.msg || "支付失败")
+                    }
+                }
+            }
+        })
+    }
+}
+
+export function pluginPayResult(data: string) {
+    cc.log('[pluginPayResult]', data)
+    const info: { PayResultCode: number, msg: string, payInfo: any } = JSON.parse(data)
+    if (info.msg.length > 0) {
+        iMessageBox(info.msg)
+    }
+    if (info.PayResultCode == 0) {
+        sendReloadUserData()
+        if (DataManager.GlobalData.IapCallBack) {
+            pluginCallBack(DataManager.GlobalData.IapCallBack)
+        }
+        DataManager.GlobalData.IapCallBack = null
+    }
+    if (info.msg.length > 0) {
+        DataManager.GlobalData.IapCallBack = null
+    }
+}
+
+export function pluginAdsResult(info: { AdsResultCode: number }) {
+    cc.log('[pluginAdsResult]', info)
+    if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_SUCCESS) {
+        if (DataManager.GlobalData.AdsCallBack) {
+            pluginCallBack(DataManager.GlobalData.AdsCallBack)
+        }
+        DataManager.GlobalData.AdsCallBack = null
+        DataManager.CommonData.showAdsData = null
+    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_FAIL) {
+        MsgBox({
+            title: "提示",
+            content: "完整观看视频才可以领取奖励哦",
+            confirmClose: true,
+            maskCanClose: false,
+            buttonNum: 1,
+            showBanner: true,
+        })
+        DataManager.GlobalData.AdsCallBack = null
+        DataManager.CommonData.showAdsData = null
+    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_FAIL) {
+        const data = DataManager.CommonData.showAdsData
+        if (data) {
+            showAds(data.adsType, data.adIndex, data.adsIds)
+            return
+        }
+        iMessageBox("视频广告加载失败 请再点击一次")
+        DataManager.GlobalData.AdsCallBack = null
+    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_BANNER_SUCCESS) {
+        // banner load完成后展示时判断不需要显示时关闭banner
+        statusIndexBanner === 0 && PluginManager.hideAds(EAdsType.ADS_TYPE_BANNER);return;
+    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_INTER_FAIL || info.AdsResultCode == EAdsResult.RESULT_CODE_INTER_CLOSE) {
+        if (DataManager.GlobalData.AdsCallBack) {
+            DataManager.GlobalData.AdsCallBack()
+            DataManager.GlobalData.AdsCallBack = null
+        }
+    }
+}
+
+export function pluginCallBack(callback: Function, delayTime = 0.5) {
+    cc.Canvas.instance.node.runAction(cc.sequence([
+        cc.delayTime(delayTime),
+        cc.callFunc(callback)
+    ]))
+}
+
+export function kickout(changeLogin = true) {
+    if (DataManager.CommonData["gameServer"]) {
+        NetManager.Instance.close(DataManager.CommonData["runGame"])
+        delete DataManager.CommonData["runGame"]
+        delete DataManager.CommonData["gameServer"]
+    }
+    NetManager.Instance.close("lobby", true, true)
+
+    cc.audioEngine.stopAll()
+
+    playADBanner(false, AdsConfig.banner.All)
+
+    if (changeLogin) {
+        cc.sys.localStorage.removeItem('last_login_type')
+        PluginManager.logout()
+    }
+
+    cc.game.restart()
+}
+
+// 比较字符串版本
+export function versionCompare(versionA: string, versionB: string): number {
+    const vA = versionA.split('.')
+    const vB = versionB.split('.')
+    for (let i = 0; i < vA.length; ++i) {
+        const a = parseInt(vA[i])
+        const b = parseInt(vB[i] || '0')
+        if (a === b) {
+            continue
+        } else {
+            return a - b
+        }
+    }
+    if (vB.length > vA.length) {
+        return -1
+    } else {
+        return 0
+    }
+}
+
+// 调用java方法
+export function callStaticMethod(clsName: string, methodName: string, methodSig?: string, params: any[] = []): any {
+    if (!CC_JSB) {
+        return
+    }
+    try {
+        methodSig && params.unshift(methodSig)
+        return jsb.reflection.callStaticMethod.apply(jsb.reflection, [clsName, methodName].concat(params))
+    } catch (error) {
+        cc.error("callStaticMethod", JSON.stringify(error))
+    }
+}
+
+export interface IConfirmBox {
+    title?: string
+    content: string
+    confirmText?: string
+    cancelText?: string
+    closeFunc?: Function
+    confirmFunc?: Function
+    cancelFunc?: Function
+    showClose?: boolean
+    confirmClose?: boolean
+    buttonNum?: number
+    exchangeButton?: boolean
+    maskCanClose?: boolean
+    zIndex?: number
+}
+// 确认弹框
+export function ConfirmBox(initParam: IConfirmBox): void {
+    SceneManager.Instance.popScene<String>("moduleLobby", "ConfirmBox", initParam)
+}
+
+// 检测网络
+export function checkNetwork(handler: Function, must: boolean = false, top: boolean = false): void {
+    cc.log("[checkNetwork]")
+    if (!must && cc.sys.getNetworkType() != cc.sys.NetworkType.NONE) {
+        cc.log("[checkNetwork] handler")
+        handler && handler()
+        return
+    }
+
+    var initParam = {
+        title: "温馨提示",
+        content: "您的设备没有网络了",
+        confirmText: "再次连接",
+        cancelText: "解决方案",
+        confirmFunc: () => {
+            cc.Canvas.instance.node.runAction(cc.sequence(
+                cc.delayTime(0.2),
+                cc.callFunc(() => {
+                    cc.log("[checkNetwork] confirmFunc")
+                    checkNetwork(handler)
+                })
+            ))
+        },
+        cancelFunc: () => {
+            cc.Canvas.instance.node.runAction(cc.sequence(
+                cc.delayTime(0.2),
+                cc.callFunc(() => {
+                    cc.log("[checkNetwork] cancelFunc")
+                    if (cc.sys.os == cc.sys.OS_IOS) {
+                        initParam.content = "建议您按照以下方法进行检查 \n\n1.打开手机的设置，检查WIFI或蜂窝移动网络是否开启。\n2.将联网方式（WiFi和移动蜂窝数据）切换一下再试。\n3.打开手机设置，滑动查看页面底部，寻找到该游戏后点击，检查移动蜂窝数据的选项是否开启\n4.如果仍无法连接，请您稍后再试。"
+                    } else {
+                        initParam.content = "建议您按照以下方法进行检查\n\n1.打开手机的设置，检查WLAN或移动数据是否开启。\n2.将联网方式（WLAN和移动数据）切换一下再试。\n3.如果仍无法连接，请您稍后再试。"
+                    }
+                    initParam.buttonNum = 1
+                    ConfirmBox(initParam)
+                })
+            ))
+        },
+        buttonNum: 2,
+        showClose: false,
+        maskCanClose: false
+    }
+    if (top) {
+        initParam["zIndex"] = cc.macro.MAX_ZINDEX
+    }
+    cc.log("[checkNetwork] ConfirmBox")
+    ConfirmBox(initParam)
+}
+
+interface IShareData {
+    ShareWay?: "WeiXin" | "PengYouQuan",
+    ShareTaskType?: string
+    ShareTitle?: string
+    ShareText?: string
+    ShareUrl?: string
+    ShareType?: "0" | "1" | "2"
+    SharedImg?: string
+}
+export function share(data: IShareData) {
+    cc.log("[BaseFuncTs.share]", JSON.stringify(data))
+    if (!DataManager.Instance.sharedData) {
+        return
+    }
+
+    const sharedData = DataManager.Instance.sharedData
+    PluginManager.share({
+        ShareWay: data.ShareWay == "PengYouQuan" ? "1004" : "1005",
+        ShareTaskType: data.ShareTaskType || "0",
+        ShareTitle: data.ShareTitle || sharedData.sdTitle,
+        ShareText: data.ShareText || sharedData.sdContent[Math.floor(Math.random() * sharedData.sdContent.length)],
+        ShareUrl: data.ShareUrl || sharedData.sdUrl,
+        ShareType: data.ShareType || sharedData.sdType.toString(),
+        gameid: DataManager.Instance.gameId.toString(),
+        SharedImg: data.SharedImg || "file://thirdparty/icon.png",
+    })
+}
+
+export function createScreenShotNode(element: cc.Node, filePath: string) {
+    const width = element.width
+    const height = element.height
+
+    const camera = element.addComponent(cc.Camera)
+
+    // 设置你想要的截图内容的 cullingMask
+    camera.cullingMask = 0xffffffff
+
+    // 新建一个 RenderTexture，并且设置 camera 的 targetTexture 为新建的 RenderTexture，这样 camera 的内容将会渲染到新建的 RenderTexture 中。
+    const texture = new cc.RenderTexture()
+    texture.initWithSize(width, height, cc.game['_renderContext'].STENCIL_INDEX8)
+    camera.targetTexture = texture
+
+    // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
+    camera.render(element)
+
+    // 这样我们就能从 RenderTexture 中获取到数据了
+    const data = texture.readPixels()
+    const picData = new Uint8Array(width * height * 4)
+    const rowBytes = width * 4
+    for (let row = 0; row < height; row++) {
+        const srow = height - 1 - row
+        const start = srow * width * 4
+        const reStart = row * width * 4
+        for (let i = 0; i < rowBytes; i++) {
+            picData[reStart + i] = data[start + i]
+        }
+    }
+
+    const success = jsb.saveImageData(picData, width, height, filePath)
+    if (success) {
+        cc.log("[createScreenShotNode] saveImageData success:" + filePath)
+    } else {
+        cc.log("[createScreenShotNode] saveImageData failed!")
+    }
+
+    element.removeComponent(cc.Camera)
+}
 
 export function MsgBox(initParam: IMsgBox) {
     SceneManager.Instance.popScene<String>("moduleLobby", "MsgBox", initParam)
@@ -84,6 +734,7 @@ export function getUserRole(callback: () => void = null) {
 
             DataManager.CommonData["firstPayBox"] = JSON.parse(DataManager.CommonData["roleCfg"]["firstPayBox"])
 
+            SceneManager.Instance.sendMessageToScene("updateRoleCfg")
             callback && callback()
         }
     })
@@ -102,6 +753,7 @@ export function copyToClipBoard(str: string, succTip: string = "已复制到剪�
             buttonNum: 1,
             confirmClose: true,
         })
+    
     } 
     else if (cc.sys.isBrowser) {
         var textArea = document.getElementById("clipBoard")
@@ -125,6 +777,7 @@ export function copyToClipBoard(str: string, succTip: string = "已复制到剪�
 export function getClipBoard() {
     if (cc.sys.isNative) {
         return PluginManager.getClipBoardContent()
+    
     } 
     else if (cc.sys.isBrowser) {
         var textArea = document.getElementById("clipBoard");
@@ -280,25 +933,35 @@ export function payOrder(boxItem, callback: Function = null) {
     })
 }
 
-let statusIndex = 0
+let statusIndexBanner = 0
 export function playADBanner(show: boolean, index: number) {
     if (isFreeAdvert()) {
         return
     }
 
-    const sign = statusIndex & index
-    if (show && sign === 0) {
-        statusIndex |= index
-        PluginManager.showAds(EAdsType.ADS_TYPE_BANNER, DataManager.Instance.onlineParam.adConfig.bannerAdId);return;
-        WxWrapper.showBannerAdvert()
+    if (cc.sys.isNative) {
+        if (show) {
+            statusIndexBanner++
+            showAds(EAdsType.ADS_TYPE_BANNER, "banner")
+        } else {
+            if (index === AdsConfig.banner.All) {
+                statusIndexBanner = 0    
+            } else if (statusIndexBanner > 0) {
+                statusIndexBanner--    
+            }
+            statusIndexBanner == 0 && PluginManager.hideAds(EAdsType.ADS_TYPE_BANNER)
+        }
+        return
+    }
+
+    const unitid = getAdBannerUnitid(index)
+
+    if (show) {
+        WxWrapper.showBannerAdvert(unitid)
     } else if (!show && index === AdsConfig.banner.All) {
-        statusIndex = 0
-        PluginManager.hideAds(EAdsType.ADS_TYPE_BANNER);return;
-        WxWrapper.hideBannerAdvert()
-    } else if (!show && sign !== 0) {
-        statusIndex ^= index
-        statusIndex === 0 && PluginManager.hideAds(EAdsType.ADS_TYPE_BANNER);return;
-        statusIndex === 0 && WxWrapper.hideBannerAdvert()
+        WxWrapper.hideBannerAdvert(null,true)
+    } else if (!show) {
+        WxWrapper.hideBannerAdvert(unitid)
     }
 }
 
@@ -328,7 +991,7 @@ export function playAD(adIndex: number, success: Function) {
     }
     if (cc.sys.isNative || CC_PREVIEW) {
         DataManager.GlobalData.AdsCallBack = success
-        PluginManager.showAds(EAdsType.ADS_TYPE_REWARTVIDEO, getAdUnitId(adIndex) || DataManager.Instance.onlineParam.adConfig.videoAdId)
+        showAds(EAdsType.ADS_TYPE_REWARTVIDEO, adIndex.toString())
         return
     }
 
@@ -349,14 +1012,41 @@ export function playAD(adIndex: number, success: Function) {
 /**
  * 播放插屏广告
  */
-export function playADInter() {
+export function playADInter(callback?: Function) {
     if (cc.sys.isNative || CC_PREVIEW) {
-        PluginManager.showAds(EAdsType.ADS_TYPE_INTER, DataManager.Instance.onlineParam.adConfig.interAdId)
+        if (callback) {
+            if (PluginManager.supportInterAdClose()) {
+                DataManager.GlobalData.AdsCallBack = callback
+            } else {
+                callback()
+            }
+        }
+        showAds(EAdsType.ADS_TYPE_INTER, "inter")
         return
     }
 
     WxWrapper.showInterstitialAdvert()
 }
+
+/**
+ * 播放信息流广告
+ */
+export function playADNative(callback?: Function) {
+    if (!PluginManager.supportNativeAd()) {
+        playADInter(callback)
+        return false
+    }
+    
+    const configs = getAdUnitId("native")
+    if (configs == null || configs.length == 0) {
+        playADInter(callback)
+        return false
+    }
+
+    DataManager.GlobalData.AdsCallBack = callback
+    showAds(EAdsType.ADS_TYPE_NATIVE, "native")
+}
+
 
 /**
 interface shareData {
@@ -374,97 +1064,6 @@ export function socialShare(shareData, adIndex?: number) {
         return
     }
     WxWrapper.shareAppMessage(shareData)
-}
-
-export function shareAD(shareData: IShareData & { callback?: Function, invite?: boolean, title?: string }) {
-    const sharedData = DataManager.Instance.sharedData
-    if (!sharedData) {
-        iMessageBox("暂不支持分享")
-        return
-    }
-
-    DataManager.GlobalData.shareADCallBack = shareData.callback
-    DataManager.GlobalData.shareADTime = new Date().getTime()
-
-    if (shareData.title) {
-        shareData.ShareTitle = shareData.title
-    } else if (shareData.invite || DataManager.Instance.sharedData.sdType == 0) {
-        const titles = DataManager.Instance.onlineParam.share_titles || [
-            "好友来助攻，海量红包进来就领！",
-            "玩游戏就送红包！这是你未玩过的全新版本！",
-            "天降红包，你就是趟着领红包的人！"
-        ]
-        shareData.ShareTitle = titles[Math.floor(Math.random() * titles.length)]
-    }
-
-    if (shareData.invite) {
-        const url = DataManager.CommonData['shareUrl'] || "www.weipinggame.com.cn"
-        shareData.ShareUrl = "https://" + url + "/bind/bindExtensionRelation/page?uid=" + DataManager.UserData.guid + "&gameid=" + DataManager.Instance.gameId + "&pn=" + DataManager.Instance.packetName + "&type=1"
-        shareData.ShareWay = "WeiXin"
-        shareData.ShareType = "0"
-    }
-
-    if (shareData.ShareWay || DataManager.Instance.sharedData.sdType == 0) {
-        share(shareData)
-        return
-    }
-
-    sharePng()
-}
-
-function sharePng() {
-    if (!CC_JSB) {
-        iMessageBox("暂不支持分享")
-        return
-    }
-    const sharedData = DataManager.Instance.sharedData
-    const filepath = jsb.fileUtils.getWritablePath() + 'share_bg_code_' + md5(sharedData.sdPic + sharedData.sdCodePic) + '.png'
-    const shareFile = () => {
-        share({ ShareWay: 'WeiXin', ShareType: '2', SharedImg: 'file://' + filepath })
-    }
-
-    cc.log('[sharePng] shareFile', filepath)
-    if (jsb.fileUtils.isFileExist(filepath)) {
-        shareFile()
-        return
-    }
-
-    const node = new cc.Node()
-    node.addComponent(cc.Sprite)
-    node.active = false
-    cc.Canvas.instance.node.addChild(node)
-    const code = new cc.Node()
-    code.y = -353
-    code.addComponent(cc.Sprite)
-    node.addChild(code)
-
-    let counter = 2
-    const count = () => {
-        counter--
-        if (counter != 0) {
-            return
-        }
-
-        node.width = node.getComponent(cc.Sprite).spriteFrame.getTexture().width
-        node.height = node.getComponent(cc.Sprite).spriteFrame.getTexture().height
-
-        node.active = true
-        createScreenShotNode(node, filepath)
-        shareFile()
-        node.destroy()
-    }
-
-    NodeExtends.setNodeSpriteNet({
-        node: node,
-        url: sharedData.sdPic,
-        callback: count
-    })
-
-    NodeExtends.setNodeSpriteNet({
-        node: code,
-        url: sharedData.sdCodePic,
-        callback: count
-    })
 }
 
 export function enterGame(server, callFunc: () => void = null, newUser: boolean = false) {
@@ -485,7 +1084,6 @@ export function enterGame(server, callFunc: () => void = null, newUser: boolean 
         gameId = gameId * 10 + parseInt(server.ddz_game_type)
     DataManager.save(DataManager.UserData.guid + "lastGameId", gameId)        
     DataManager.CommonData["gameServer"] = server
-    GameManager.onChangeFire()    
     let moduleName = getGameConfig(server.gameId)
     if (moduleName) {
         // czcEvent(getGameName(server.gameId), "加载1", "开始加载 " + DataManager.Instance.userTag)
@@ -523,7 +1121,6 @@ export function gobackToMain(param?) {
     sendReloadUserData()
 
     loadModule("moduleLobby")
-    GameManager.onChangeFire()
 }
 
 export function showShopPop() {
@@ -763,8 +1360,13 @@ export function getMD5(value) {
 }
 
 export function showTrumpet(msg = null) {
-    if (false == SceneManager.Instance.isSceneExist("TrumpetCom"))
+    if (false == SceneManager.Instance.isSceneExist("TrumpetCom") && (DataManager.CommonData["gameServer"] && DataManager.CommonData["gameServer"].ddz_game_type != 3))
         SceneManager.Instance.popScene("moduleLobby", "TrumpetCom", {msg: msg})
+}
+
+export function showCashOutNotice(message?: string) {
+    if (!SceneManager.Instance.isSceneExist("CashOutNotice") && (!DataManager.CommonData["gameServer"] || DataManager.CommonData["gameServer"].ddz_game_type == 3))
+        SceneManager.Instance.popScene("moduleLobby", "CashOutNotice", { message: message })
 }
 
 export function numberFormat(num: number, floatNum: number = 2, isEnforce: boolean = false) {
@@ -814,7 +1416,6 @@ export function numberFormat3(num: number) {
  
 export function czcEvent(moduleName, action, label) {
     if (cc.sys.isNative) {
-        EventTable[action] && EventTable[action][label] && PluginManager.logEvent(EventTable[action][label], { [action]: label })
         return
     }
     if (window.wx && window.wx.aldSendEvent)
@@ -1008,9 +1609,9 @@ export function setGray(node, state = 1)
     for(var i = 0; i < s.length; i++)
     {   
         if (state == 1) {            
-            s[i].setMaterial(0, cc.Material.getBuiltinMaterial("2d-gray-sprite"));
+            s[i].setMaterial(0, cc.Material["getBuiltinMaterial"]("2d-gray-sprite"));
         }else{
-            s[i].setMaterial(0, cc.Material.getBuiltinMaterial("2d-sprite", s[i]));
+            s[i].setMaterial(0, cc.Material["getBuiltinMaterial"]("2d-sprite", s[i]));
         }
     }
 }
@@ -1197,6 +1798,10 @@ export function getSpriteByItemId(id: number): cc.SpriteFrame {
         return DataManager.Instance.getSpriteFrame("itemIcon", "icon_375")
     } else if (id == 378) {
         return DataManager.Instance.getSpriteFrame("itemIcon", "icon_378")
+    } else if (id == 382) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "icon_382")
+    } else if (id == 383) {
+        return DataManager.Instance.getSpriteFrame("itemIcon", "icon_383")
     }
 
     return null
@@ -1217,6 +1822,8 @@ const itemNames = {
     [378]: "手机",
     [376]: "高级碎片",
     [377]: "传说碎片",
+    [382]: "红包",
+    [383]: "免扣符",
     [11000]: "银币",
 }
 
@@ -1280,176 +1887,6 @@ export function getGameServers(gameId) {
     return servers
 }
 
-// 比较字符串版本
-export function versionCompare(versionA: string, versionB: string): number {
-    const vA = versionA.split('.')
-    const vB = versionB.split('.')
-    for (let i = 0; i < vA.length; ++i) {
-        const a = parseInt(vA[i])
-        const b = parseInt(vB[i] || '0')
-        if (a === b) {
-            continue
-        } else {
-            return a - b
-        }
-    }
-    if (vB.length > vA.length) {
-        return -1
-    } else {
-        return 0
-    }
-}
-
-// 调用java方法
-export function callStaticMethod(clsName: string, methodName: string, methodSig?: string, params: any[] = []): any {
-    if (!CC_JSB) {
-        return
-    }
-    try {
-        methodSig && params.unshift(methodSig)
-        return jsb.reflection.callStaticMethod.apply(jsb.reflection, [clsName, methodName].concat(params))
-    } catch (error) {
-        cc.error("callStaticMethod", JSON.stringify(error))
-    }
-}
-
-export interface IConfirmBox {
-    title?: string
-    content: string
-    confirmText?: string
-    cancelText?: string
-    closeFunc?: Function
-    confirmFunc?: Function
-    cancelFunc?: Function
-    showClose?: boolean
-    confirmClose?: boolean
-    buttonNum?: number
-    exchangeButton?: boolean
-    maskCanClose?: boolean
-    zIndex?: number
-}
-// 确认弹框
-export function ConfirmBox(initParam: IConfirmBox): void {
-    SceneManager.Instance.popScene<String>("moduleLobby", "ConfirmBox", initParam)
-}
-
-// 检测网络
-export function checkNetwork(handler: Function, must: boolean = false, top: boolean = false): void {
-    cc.log("[checkNetwork]")
-    if (!must && cc.sys.getNetworkType() != cc.sys.NetworkType.NONE) {
-        cc.log("[checkNetwork] handler")
-        handler && handler()
-        return
-    }
-
-    var initParam = {
-        title: "温馨提示",
-        content: "您的设备没有网络了",
-        confirmText: "再次连接",
-        cancelText: "解决方案",
-        confirmFunc: () => {
-            cc.Canvas.instance.node.runAction(cc.sequence(
-                cc.delayTime(0.2),
-                cc.callFunc(() => {
-                    cc.log("[checkNetwork] confirmFunc")
-                    checkNetwork(handler)
-                })
-            ))
-        },
-        cancelFunc: () => {
-            cc.Canvas.instance.node.runAction(cc.sequence(
-                cc.delayTime(0.2),
-                cc.callFunc(() => {
-                    cc.log("[checkNetwork] cancelFunc")
-                    if (cc.sys.os == cc.sys.OS_IOS) {
-                        initParam.content = "建议您按照以下方法进行检查 \n\n1.打开手机的设置，检查WIFI或蜂窝移动网络是否开启。\n2.将联网方式（WiFi和移动蜂窝数据）切换一下再试。\n3.打开手机设置，滑动查看页面底部，寻找到该游戏后点击，检查移动蜂窝数据的选项是否开启\n4.如果仍无法连接，请您稍后再试。"
-                    } else {
-                        initParam.content = "建议您按照以下方法进行检查\n\n1.打开手机的设置，检查WLAN或移动数据是否开启。\n2.将联网方式（WLAN和移动数据）切换一下再试。\n3.如果仍无法连接，请您稍后再试。"
-                    }
-                    initParam.buttonNum = 1
-                    ConfirmBox(initParam)
-                })
-            ))
-        },
-        buttonNum: 2,
-        showClose: false,
-        maskCanClose: false
-    }
-    if (top) {
-        initParam["zIndex"] = cc.macro.MAX_ZINDEX
-    }
-    cc.log("[checkNetwork] ConfirmBox")
-    ConfirmBox(initParam)
-}
-
-interface IShareData {
-    ShareWay?: "WeiXin" | "PengYouQuan",
-    ShareTaskType?: string
-    ShareTitle?: string
-    ShareText?: string
-    ShareUrl?: string
-    ShareType?: "0" | "1" | "2"
-    SharedImg?: string
-}
-export function share(data: IShareData) {
-    cc.log("[BaseFuncTs.share]", JSON.stringify(data))
-    if (!DataManager.Instance.sharedData) {
-        return
-    }
-
-    const sharedData = DataManager.Instance.sharedData
-    PluginManager.share({
-        ShareWay: data.ShareWay == "PengYouQuan" ? "1004" : "1005",
-        ShareTaskType: data.ShareTaskType || "0",
-        ShareTitle: data.ShareTitle || sharedData.sdTitle,
-        ShareText: data.ShareText || sharedData.sdContent[Math.floor(Math.random() * sharedData.sdContent.length)],
-        ShareUrl: data.ShareUrl || sharedData.sdUrl,
-        ShareType: data.ShareType || sharedData.sdType.toString(),
-        gameid: DataManager.Instance.gameId.toString(),
-        SharedImg: data.SharedImg || "file://thirdparty/icon.png",
-    })
-}
-
-export function createScreenShotNode(element: cc.Node, filePath: string) {
-    const width = element.width
-    const height = element.height
-
-    const camera = element.addComponent(cc.Camera)
-
-    // 设置你想要的截图内容的 cullingMask
-    camera.cullingMask = 0xffffffff
-
-    // 新建一个 RenderTexture，并且设置 camera 的 targetTexture 为新建的 RenderTexture，这样 camera 的内容将会渲染到新建的 RenderTexture 中。
-    const texture = new cc.RenderTexture()
-    texture.initWithSize(width, height, cc.game['_renderContext'].STENCIL_INDEX8)
-    camera.targetTexture = texture
-
-    // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
-    camera.render(element)
-
-    // 这样我们就能从 RenderTexture 中获取到数据了
-    const data = texture.readPixels()
-    const picData = new Uint8Array(width * height * 4)
-    const rowBytes = width * 4
-    for (let row = 0; row < height; row++) {
-        const srow = height - 1 - row
-        const start = srow * width * 4
-        const reStart = row * width * 4
-        for (let i = 0; i < rowBytes; i++) {
-            picData[reStart + i] = data[start + i]
-        }
-    }
-
-    const success = jsb.saveImageData(picData, width, height, filePath)
-    if (success) {
-        cc.log("[createScreenShotNode] saveImageData success:" + filePath)
-    } else {
-        cc.log("[createScreenShotNode] saveImageData failed!")
-    }
-
-    element.removeComponent(cc.Camera)
-}
-
 export function getNotchHeight(): number {
     const frameSize = cc.view.getFrameSize()
     if (frameSize.equals(cc.size(2436, 1125)) || frameSize.equals(cc.size(2688, 1248)) || frameSize.equals(cc.size(1792, 828))) {
@@ -1458,223 +1895,10 @@ export function getNotchHeight(): number {
     if (frameSize.equals(cc.size(812, 375))) {
         return 30
     }
-    return PluginManager.getNotchHeight()
+    if (cc.sys.isNative) {
+        return PluginManager.getNotchHeight()
+    }
     return WxWrapper.getNotchHeight()
-}
-
-export function updateNodeWidget(node: cc.Node) {
-    const widget = node.getComponent(cc.Widget)
-    if (widget) {
-        widget.updateAlignment()
-    }
-
-    for (const child of node.children) {
-        updateNodeWidget(child)
-    }
-}
-
-export function payOrderNative(boxItem, callback: Function = null) {
-    // 实名认证 才能支付
-    if (DataManager.CommonData["roleCfg"].isBinding != 1) {
-        if (DataManager.Instance.onlineParam.idvalidPay == 1) {
-            showAutonymPop({ noClose: true, content: "亲爱的用户，根据青少年防沉迷系统的要求，请认证后再充值" })
-            return
-        } else if (DataManager.Instance.onlineParam.idvalidPay == 2) {
-            showAutonymPop({ noClose: false, content: "亲爱的用户，根据青少年防沉迷系统的要求，请认证后再充值" })
-            return
-        }
-    }
-
-    // 禁止支付
-    const no_pay_tips = DataManager.getOnlineParam("no_pay_tips")
-    if (no_pay_tips) {
-        iMessageBox(no_pay_tips)
-        return
-    }
-
-    if (boxItem.disBatchId != null) {
-        pluginPay("IAPAlipayH5", boxItem, callback)
-        return
-    }
-
-    // 唯一支付
-    let onlyPayType
-    if (DataManager.Instance.onlineParam.only_pay_type) {
-        onlyPayType = DataManager.Instance.onlineParam.only_pay_type
-    }
-
-    const payTypeList: string[] = []
-    if (boxItem && boxItem.pmList) {
-        for (const pm of boxItem.pmList) {
-            const payType = PluginManager.getPayTypeByMid(pm.mid)
-            if (payType) {
-                if (onlyPayType) {
-                    if (payType == onlyPayType) {
-                        pluginPay(payType, boxItem, callback)
-                        return
-                    }
-                    continue
-                }
-                payTypeList.push(payType)
-            }
-        }
-    }
-    if (payTypeList.length == 0) {
-        iMessageBox('您购买的商品不存在')
-        return
-    }
-
-    SceneManager.Instance.popScene("moduleLobby", "PayBox", { boxItem: boxItem, callback: callback })
-}
-
-export function pluginPay(payType: string, boxItem: any, callback: Function) {
-    cc.log("[pluginPay]", payType)
-    if (payType.substr(-2) == "H5") {
-        h5Pay(payType, boxItem, callback)
-        return
-    }
-    const info = {
-        boxId: boxItem.boxid + "",
-        goodsLogo: boxItem.icon,
-        goodsName: boxItem.boxname,
-        desc: boxItem.desc,
-        serialno: boxItem.serino,
-        saleMoney: boxItem.price + "",
-        isSmsQuickPay: "0",
-        havePhone: boxItem.havePhone + "",
-    }
-    if (boxItem.pmList) {
-        for (const pm of boxItem.pmList) {
-            info['mid_' + pm.mid] = pm.serialno
-        }
-    }
-    DataManager.GlobalData.IapCallBack = callback
-    PluginManager.pay(payType, info)
-}
-
-export function h5Pay(payType: string, boxItem: any, callback: Function) {
-    cc.log("[h5Pay]", payType)
-    if (payType == "IAPAlipayH5") {
-        let url = DataManager.getURL("ALIPAY_PAY_H5")
-        let params = {
-            pid: DataManager.UserData.guid,
-            boxid: boxItem.boxid,
-            client: "wap",
-        }
-        if (boxItem.disBatchId != null) {
-            params["disBatchId"] = boxItem.disBatchId
-        }
-        var paramArr = []
-        for (var key in params) {
-            paramArr.push(key + '=' + encodeURIComponent(params[key]))
-        }
-        cc.sys.openURL(url + "?" + paramArr.join("&"))
-
-        callback()
-    } else if (payType == "IAPWeiXinH5") {
-        let url = DataManager.getURL("WEIXIN_PAY_H5")
-        let params = {
-            pn: DataManager.Instance.packetName,
-            pid: DataManager.UserData.guid,
-            ticket: DataManager.UserData.ticket,
-            boxid: boxItem.boxid,
-            version: PluginManager.getPluginVersion(),
-            imei: PluginManager.getDeviceIMEI(),
-            appid: "wxed94b10ddec0cefd",
-        }
-        http.open({
-            url: url,
-            query: params,
-            method: "POST",
-            callback: function (res) {
-                if (res) {
-                    if (res.ret == 0) {
-                        if (res.mweb_url) {
-                            cc.sys.openURL(DataManager.Instance.envConfigs.payURL + "mallJsp/MidUrl.jsp?Url=" + encodeURIComponent(res.mweb_url))
-                        }
-                    } else {
-                        iMessageBox(res.msg || "支付失败")
-                    }
-                }
-            }
-        })
-    }
-}
-
-export function pluginPayResult(data: string) {
-    cc.log('[pluginPayResult]', data)
-    const info: { PayResultCode: number, msg: string, payInfo: any } = JSON.parse(data)
-    if (info.msg.length > 0) {
-        iMessageBox(info.msg)
-    }
-    if (info.PayResultCode == 0) {
-        sendReloadUserData()
-        if (DataManager.GlobalData.IapCallBack) {
-            pluginCallBack(DataManager.GlobalData.IapCallBack)
-        }
-        DataManager.GlobalData.IapCallBack = null
-    }
-    if (info.msg.length > 0) {
-        DataManager.GlobalData.IapCallBack = null
-    }
-}
-
-export function pluginAdsResult(info: { AdsResultCode: number, msg: string }) {
-    cc.log('[pluginAdsResult]', info)
-    if (!DataManager.GlobalData.AdsCallBack) {
-        return
-    }
-    if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_SUCCEES) {
-        SceneManager.Instance.closeScene("iMessageBox")
-        if (DataManager.GlobalData.AdsCallBack) {
-            pluginCallBack(DataManager.GlobalData.AdsCallBack)
-        }
-        DataManager.GlobalData.AdsCallBack = null
-    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_FAIL) {
-        SceneManager.Instance.closeScene("iMessageBox")
-        MsgBox({
-            title: "提示",
-            content: "完整观看视频才可以领取奖励哦",
-            confirmClose: true,
-            maskCanClose: false,
-            buttonNum: 1,
-            showBanner: true,
-        })
-        DataManager.GlobalData.AdsCallBack = null
-    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_FAIL) {
-        SceneManager.Instance.closeScene("iMessageBox")
-        iMessageBox("视频广告加载失败 请再点击一次")
-        DataManager.GlobalData.AdsCallBack = null
-    } else if (info.AdsResultCode == EAdsResult.RESULT_CODE_REWARTVIDEO_LOAD_SUCCESS) {
-        SceneManager.Instance.closeScene("iMessageBox")
-    }
-}
-
-export function pluginCallBack(callback: Function, delayTime = 0.5) {
-    cc.Canvas.instance.node.runAction(cc.sequence([
-        cc.delayTime(delayTime),
-        cc.callFunc(callback)
-    ]))
-}
-
-export function kickout(changeLogin = true) {
-    if (DataManager.CommonData["gameServer"]) {
-        NetManager.Instance.close(DataManager.CommonData["runGame"])
-        delete DataManager.CommonData["runGame"]
-        delete DataManager.CommonData["gameServer"]
-    }
-    NetManager.Instance.close("lobby", true, true)
-
-    cc.audioEngine.stopAll()
-
-    playADBanner(false, AdsConfig.banner.All)
-
-    if (changeLogin) {
-        cc.sys.localStorage.removeItem('last_login_type')
-        PluginManager.logout()
-    }
-
-    cc.game.restart()
 }
 
 export function delayCallback(time: number, callback: Function) {
@@ -1866,36 +2090,60 @@ export function quickStartGame() {
     }
 }
 
-export function setNodeSpriteQRCode(node: cc.Node, url:string) {
-    NodeExtends.setNodeSpriteNet({ url: "https://www.izhangxin.com/get/dimension?codeurl=" + encodeURIComponent(url), node: node, fixSize: true })
-}
-
-export function setNodeSpriteQRCodeShareMoney(node: cc.Node) {
-    let url = "https://www.wan78.net/zhicheng/qmddz-ad-share-money/"
-    if (DataManager.Instance.onlineParam.shareMoneyUrl) {
-        url = DataManager.Instance.onlineParam.shareMoneyUrl
-    }
-    if (url.indexOf("?") == -1) {
-        url = url + "?"
-    }
-
-    const params = {
-        originUid: DataManager.UserData.guid,
-        shareMoneyId: DataManager.CommonData.shareMoneyData.shareMoney[0].sm_id,
-    }
-    const arr = []
-    for (const key in params) {
-        arr.push(key + "=" + encodeURIComponent(params[key]))
-    }
-
-    url += arr.join("&")
-    setNodeSpriteQRCode(node, url)
-}
-
 export function getIPLocation() {
-    http.open("https://restapi.amap.com/v3/ip?key=0113a13c88697dcea6a445584d535837", {}, (res:IIPLocation) => { 
-        if (res.status == "1") {
+    http.open("https://restapi.amap.com/v3/ip?key=0113a13c88697dcea6a445584d535837", {}, (res: IIPLocation) => {
+        if (res && res.status == "1") {
             DataManager.CommonData.IPLocation = res
+            SceneManager.Instance.sendMessageToScene("updateIPLocation")
         }
-     })
+    })
+}
+
+const specialAward = ["北京市", "上海市", "广州市", "深圳市", "重庆市","成都市"]
+export function checkSpecialAward() {
+    if (DataManager.CommonData.IPLocation != null) {
+        if (DataManager.Instance.onlineParam.specialAward === 1) {
+            return false
+        } else if (DataManager.Instance.onlineParam.specialAward === 0) {
+            return true
+        }
+
+        const area = DataManager.Instance.onlineParam.specialAward || specialAward
+        return area.indexOf(DataManager.CommonData.IPLocation.city) == -1
+    }
+    return false
+}
+
+const adBannerConfig = {}
+export function parseAdBannerConfig() {
+    if (DataManager.Instance.onlineParam.adBannerConfig) {
+        const regtime = DataManager.CommonData["regtime"]
+        const unitids = DataManager.Instance.onlineParam.adBannerConfig.unitids || {}
+        for (const k in unitids) {
+            adBannerConfig[k] = {}
+            const rt = regtime >= unitids[k].sp ? "tv" : "fv"
+            adBannerConfig[k].unitid = unitids[k][rt] || null
+        }
+
+        const preload = DataManager.Instance.onlineParam.adBannerConfig.preload || []
+        for (const v of preload) {
+            WxWrapper.initBanner(getAdBannerUnitid(v))
+        }
+    }
+}
+
+export function getAdBannerUnitid(index: number) {
+    return adBannerConfig[index] ? adBannerConfig[index].unitid : null
+}
+
+export function getBaiYuanServer() {
+    if (DataManager.CommonData["ServerDatas"] && DataManager.CommonData["ServerDatas"][389]) {
+        for (const server of DataManager.CommonData["ServerDatas"][389]) {
+            if (server.ddz_game_type == 3) {
+                return server
+            }
+        }
+    }
+
+    return null
 }

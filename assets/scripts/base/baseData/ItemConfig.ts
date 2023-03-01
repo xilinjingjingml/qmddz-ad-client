@@ -28,14 +28,26 @@ export enum ITEM {
      * 斗地主优先看底牌卡
      */
     LOOK_LORDCARD = 375,
+
     /**
      * 高级碎片
      */
     CHIP_ADVANCE = 376,
+
     /**
      *传奇碎片
      */
     CHIP_LEGEND = 377,
+
+    /**
+     *提现道具
+     */
+    TO_CASH = 382,
+
+    /**
+     *免扣符
+     */
+    FREE_LOSE = 383,
 }
 
 export const ITEM_NAME = {
@@ -63,12 +75,24 @@ export const ITEM_NAME = {
      * 斗地主优先看底牌卡
      */
     [ITEM.LOOK_LORDCARD] : "看底牌卡",
+
     /**
      * 高级碎片
      */
     [ITEM.CHIP_ADVANCE] : "高级碎片",
+
     /**
      *传奇碎片
      */
     [ITEM.CHIP_LEGEND] : "传奇碎片",
+
+    /**
+     *提现道具
+     */
+    [ITEM.TO_CASH] : "红包",
+
+    /**
+     *免扣符
+     */
+    [ITEM.FREE_LOSE] : "免扣符",
 }

@@ -28,10 +28,10 @@
     "_level": 1,
     "_components": [
       {
-        "__id__": 77
+        "__id__": 8
       },
       {
-        "__id__": 8
+        "__id__": 77
       }
     ],
     "_prefab": {
@@ -1708,7 +1708,7 @@
     "asset": {
       "__uuid__": "00e11bc0-8ba1-42f9-8a63-c87acf52a323"
     },
-    "fileId": "66uuJ7ynVEM5etkPQ5d8eE",
+    "fileId": "48oPaIvWxDJ4lYMBbhnUIx",
     "sync": false
   },
   {
@@ -2583,8 +2583,8 @@
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
-    "_originalWidth": 0,
-    "_originalHeight": 0,
+    "_originalWidth": 1280,
+    "_originalHeight": 720,
     "_id": ""
   },
   {

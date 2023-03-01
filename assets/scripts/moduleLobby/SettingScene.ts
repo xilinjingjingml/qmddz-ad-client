@@ -4,6 +4,7 @@ import {copyToClipBoard} from "../base/BaseFuncTs";
 import TabControl from "../base/extensions/Extpands/TabControl";
 import WxWrapper from "../base/WxWrapper";
 import PluginManager from "../base/PluginManager";
+import SceneManager from "../base/baseScene/SceneManager";
 
 const {ccclass, property} = cc._decorator;
 
@@ -43,9 +44,11 @@ export default class SettingScene extends BaseScene {
 
         this.node.on("soundchange", (msg) => { 
             DataManager.SoundVolume = msg.param
+            cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         })
         this.node.on("effectchange", (msg) => { 
             DataManager.EffectVolume = msg.param
+            cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         })
         this.node.on("copyphone", () => { copyToClipBoard("4009552201") })
     }
@@ -68,6 +71,9 @@ export default class SettingScene extends BaseScene {
             cc.log = console.log.bind(console)
             DataManager.save("ENABLE_DEBUG", 1)
             WxWrapper.setEnableDebug(true)
+
+            this.closeSelf()
+            SceneManager.Instance.popScene("moduleLobby", "GiftKeyPop")
         }
     }
 }

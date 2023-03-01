@@ -6,13 +6,14 @@ import SceneManager from "../base/baseScene/SceneManager"
 import { loadTomorrowConfig, loadTomorrowStatus, receiveAdAward } from "./LobbyFunc"
 import WxWrapper from "../base/WxWrapper"
 import { http } from "../base/utils/http"
+import { NodeExtends } from "../base/extends/NodeExtends"
 
 const { ccclass } = cc._decorator
 
 @ccclass
 export default class TomorrowPop extends BaseScene {
 
-    data: any
+    data: IItemInfo[]
 
     status: any
 
@@ -76,6 +77,17 @@ export default class TomorrowPop extends BaseScene {
             if (icon) {
                 icon.active = true
             }
+
+            if (this.data[i].itemIndex == 382) {
+                cc.find("name", gift).getComponent(cc.Label).string = `最高得${[5, 10, 15][i]}元`
+                const icon2 = cc.find(`icon${this.data[i].itemIndex}_${this.data[i].itemNum}`, gift)
+                if (icon2) {
+                    if (icon) {
+                        icon.active = false
+                    }
+                    icon2.active = true
+                }
+            }
         }
 
         if (status.tomorrowAward.length > 0 && canGetAward) {
@@ -86,7 +98,7 @@ export default class TomorrowPop extends BaseScene {
         canOrder && this.initOrderView(status.tomorrowAward)
     }
 
-    initOrderView(ordered) {
+    initOrderView(ordered: IItemInfo[]) {
         const gifts = cc.find("nodePop/nodeGift", this.node).children
 
         const st = {}
@@ -94,12 +106,16 @@ export default class TomorrowPop extends BaseScene {
             st[ordered[i].itemIndex] = 1
         }
 
+        const check = (data: IItemInfo) => {
+            return ordered.some(order => order.itemIndex == data.itemIndex && (data.itemIndex != 382 || order.itemNum == data.itemNum))
+        }
+
         for (let i = 0; i < gifts.length; i++) {
             let choose = cc.find("choose", gifts[i])
             let choose2 = cc.find("choose2", gifts[i])
             choose.active = choose2.active = false
 
-            if (st[this.data[i].itemIndex] == 1) {
+            if (check(this.data[i])) {
                 cc.find("sign", gifts[i]).active = true
             } else {
                 if (ordered.length == 0) {
@@ -121,10 +137,12 @@ export default class TomorrowPop extends BaseScene {
     }
 
     orderTomorrowAward(item) {
-        let url = DataManager.getURL("CHOOSE_TOMORROW_GIFT")
+        let url = DataManager.getURL("CHOOSE_TOMORROW_GIFT") + "&gameId={gameId}&itemNum={itemNum}"
         let param = {
             uid: DataManager.UserData.guid,
             ticket: DataManager.UserData.ticket,
+            gameId: 1,
+            itemNum: item.itemNum,
             itemIndex: item.itemIndex
         }
 
@@ -139,7 +157,9 @@ export default class TomorrowPop extends BaseScene {
         })
     }
 
-    onPressOrder(event, id) {
+    onPressOrder(event: cc.Event.EventTouch, id) {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        NodeExtends.cdButton(event)
         if (DataManager.Instance.getOnlineParamSwitch("subscribeABTest")) {
             WxWrapper.requestSubscribeMessage("8csqgxRx8lIZqO_6Y-_MSHoA5V-gstVtWbRHY9Wivtg", (success) => {
                 this.orderTomorrowAward(this.data[id])
@@ -149,9 +169,16 @@ export default class TomorrowPop extends BaseScene {
         }
     }
 
-    onPressOrderAD(event, id) {
+    onPressOrderAD(event: cc.Event.EventTouch, id) {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        NodeExtends.cdButton(event)
         receiveAdAward(AdsConfig.taskAdsMap.TomorrowChoose, () => {
             this.orderTomorrowAward(this.data[id])
         })
+    }
+
+    onPressClose() {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+        this.closeSelf()
     }
 }

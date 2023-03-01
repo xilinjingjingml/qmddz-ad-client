@@ -151,7 +151,7 @@ export default class GameRedPacketAwardLayer extends BaseComponent {
 
     playAniFinger() {
         this.canButton = true
-        if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLaye_finger", 1) &&
+        if (DataManager.Instance.getOnlineParamSwitch("GameRedPacketAwardLaye_finger", 0) &&
             DataManager.CommonData["roleCfg"]["roundSum"] < 10 &&
             DataManager.load("GameRedPacketAwardLayer_Finger") == null) {
             DataManager.save("GameRedPacketAwardLayer_Finger", true)

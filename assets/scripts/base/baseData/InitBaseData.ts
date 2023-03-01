@@ -1,7 +1,7 @@
 import DataManager from "./DataManager";
 import md5 = require("../extensions/md5.min")
 import SceneManager from "../baseScene/SceneManager"
-import { ParseSearch, MsgBox, czcEvent, getNowTimeUnix, loadModule } from "../BaseFuncTs"
+import { ParseSearch, MsgBox, czcEvent, getNowTimeUnix, loadModule, parseAdBannerConfig } from "../BaseFuncTs"
 import GameManager from "../GameManager"
 import WxWrapper from "../WxWrapper"
 import { ObjectExtends } from "../extends/ObjectExtends";
@@ -100,16 +100,6 @@ export default class InitBaseData {
             if (shopcfg && shopcfg["sl"])
                 DataManager.Instance.ClubBoxs = shopcfg["sl"]
 
-            // 版本更新
-            DataManager.Instance.versionupdate = msg["versionupdate"]
-            // 分享
-            let sharedData = JSON.parse(msg.sharedData)
-            if (sharedData.ret == 0) {
-                sharedData = sharedData.sharedData[0]
-                sharedData.sdContent = ObjectExtends.values(JSON.parse(sharedData.sdContent))
-                DataManager.Instance.sharedData = sharedData
-            }
-
             DataManager.CommonData["privateConfig"] = []
 
             for (let key in msg) {
@@ -130,6 +120,15 @@ export default class InitBaseData {
             }
             if (DataManager.Instance.onlineParam.noAD) {
                 DataManager.GlobalData.noAD = true
+            }
+            // 版本更新
+            DataManager.Instance.versionupdate = msg["versionupdate"]
+            // 分享
+            let sharedData = JSON.parse(msg.sharedData)
+            if (sharedData.ret == 0) {
+                sharedData = sharedData.sharedData[0]
+                sharedData.sdContent = ObjectExtends.values(JSON.parse(sharedData.sdContent))
+                DataManager.Instance.sharedData = sharedData
             }
             DataManager.Instance.matchList = Array.isArray(msg.matchInfo) ? msg.matchInfo : []
             DataManager.Instance.matchList.forEach(v => {
@@ -186,6 +185,7 @@ export default class InitBaseData {
             DataManager.CommonData["stayDay"] = res.stayDay
 
             DataManager.Instance.userTag = DataManager.CommonData["morrow"] <= 1 ? DataManager.CommonData["morrow"] + "天新用户" : "老用户"
+            parseAdBannerConfig()
 
             let time = getNowTimeUnix()
             DataManager.CommonData["flyBack"] = (time >= 1574006400 && time < 1575302400) && res.flyBack == "1"

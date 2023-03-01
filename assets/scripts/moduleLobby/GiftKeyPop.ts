@@ -69,6 +69,7 @@ export default class GiftKeyPop extends BaseScene {
         DataManager.save("LAST_PLUGIN_ENV", env)
         if (changeLogin) {
             PluginManager.logout()
+            DataManager.save("change_login", true)
             cc.sys.localStorage.removeItem('last_login_type')
             cc.sys.localStorage.removeItem('logined')
         }

@@ -69,6 +69,22 @@ interface IIPLocation {
     rectangle: string
 }
 
+interface IServerData {
+    newbieMode: number
+    level: number
+    minMoney: number
+    maxmoney: number
+    maxmoney: number
+    lc_room_mode: number
+    lc_room_mode: number
+    ddz_game_type: number
+}
+
+interface IItemInfo {
+    itemNum: number
+    itemIndex: number
+}
+
 interface ICommonData {
     AchieveList?: Iproto_ATAchieveData[]
     activityRewards?: Iproto_lc_get_activity_rewards_list_ack
@@ -113,13 +129,13 @@ interface ICommonData {
     reliefStatus?: any
     roleCfg?: any
     runGame?: any
-    ServerDatas?: any
+    ServerDatas?: IServerData[][]
     shareUrl?: any
     showMatchScene?: any
     TaskList?: proto_ATAchieveData[]
     todayPlyNum?: any
-    TomorrowData?: any
-    TomorrowStatus?: any
+    TomorrowData?: { autoId: number, desc: string, descImg: string, gameId: number, gameName: number, itemConfig: IItemInfo[] }[]
+    TomorrowStatus?: { msg: string, ret: number, ratioTotal: number, list: { signDay: number, signTime: number }[], tomorrowAward: IItemInfo[] }
     UserAddress?: any
     VipAwardConfig?: any
     VipData?: any
@@ -127,7 +143,24 @@ interface ICommonData {
     stayDay?: number
     shareMoneyData?: { shareMoney: string, shareMoneyLog: string } & IShareMoney
     IPLocation?: IIPLocation
+    AdConfig?: Record<string, IAdConfig>
+    showAdsData?: { adsType: EAdsType, adIndex: string, adsIds: string[] }
+    lastGame?: { gameId: number, gameServerId: number }
     [key: string]: any
+}
+
+interface IAdConfig {
+    total: number
+    count: number
+    method: number
+    canFree: boolean
+    unitid: { id: string, weight: number, adId: string }[]
+}
+
+interface IAdUnitId {
+    id: string
+    weight: number
+    adId: string
 }
 
 interface IMatchInfo {
@@ -234,4 +267,10 @@ interface IUserInfo {
     age: number
     account: string
     desc: string
+}
+
+interface IOnlineParam {
+    abtest?: { threshold: number, value: boolean }
+    random?: { threshold: number, value: boolean }
+    guid?: { threshold: number, value: boolean }
 }

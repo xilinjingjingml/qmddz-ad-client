@@ -1,5 +1,6 @@
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
+import { ITEM } from "../base/baseData/ItemConfig"
 import { getNameByItemId } from "../base/BaseFuncTs"
 import BaseScene from "../base/baseScene/BaseScene"
 import { checkAdCanReceive, getAdLeftTimes, receiveAdAward } from "./LobbyFunc"
@@ -28,11 +29,12 @@ export default class TreasureHuntPop extends BaseScene {
     }
 
     initAwards() {
-        const awards = [
-            { index: 365, num: "60~600" },
-            { index: 0, num: "2万~20万" },
-            { index: 2, num: "1~5" },
-            { index: 372, num: "2~20" }
+        const awards = DataManager.Instance.getOnlineParamGray("TreasureHunt_awards") || [
+            { index: ITEM.REDPACKET_TICKET, num: "60~600" },
+            { index: ITEM.GOLD_COIN, num: "2万~20万" },
+            { index: ITEM.CARD_RECORD, num: "1~5" },
+            { index: ITEM.LOOK_LORDCARD, num: "1~5" },
+            { index: ITEM.SUPER_JIABEI, num: "1~5" }
         ] //在线参数
 
         const content = cc.find("nodePop/nodeAwards/view/content", this.node)

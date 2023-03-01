@@ -1,7 +1,7 @@
 import BaseComponent from "../base/BaseComponent"
 import { AdsConfig } from "../base/baseData/AdsConfig"
 import DataManager from "../base/baseData/DataManager"
-import { checkFirstBox, czcEvent, enterGame, getGameServers, getLowMoneyRoom, getShopBox, getUserRole, iMessageBox, playADInter, showDouble11ActivePop, showNoticePop, showTrumpet, TimeFormat, unenoughGold } from "../base/BaseFuncTs"
+import { checkFirstBox, czcEvent, enterGame, getGameServers, getLowMoneyRoom, getShopBox, getUserRole, iMessageBox, checkSpecialAward, showDouble11ActivePop, showNoticePop, showTrumpet, TimeFormat, unenoughGold, getBaiYuanServer } from "../base/BaseFuncTs"
 import NetManager from "../base/baseNet/NetManager"
 import WebSocketWrapper from "../base/baseNet/WebSocketWrapper"
 import SceneManager from "../base/baseScene/SceneManager"
@@ -9,7 +9,7 @@ import GameManager from "../base/GameManager"
 import PopupQueue from "../base/utils/PopupQueue"
 import WxWrapper from "../base/WxWrapper"
 import { getChangCiName, getGameConfig, isSmallGame } from "../gameConfig"
-import { checkAdCanReceive, getAdLeftTimes, getExchangeConfig, getMailInfo, getNextAdMethod, getServerList, getVipConfig, loadAdConfig, loadShareMoney, loadTomorrowConfig, loadTomorrowStatus, receiveAdAward } from "./LobbyFunc"
+import { checkAdCanReceive, getAdLeftTimes, getExchangeConfig, getMailInfo, getNextAdMethod, getServerList, getVipConfig, loadAdConfig, loadTomorrowConfig, loadTomorrowStatus, receiveAdAward, trans2format } from "./LobbyFunc"
 import opcodeConfig from "./proto/opcode"
 import proto = require("../moduleLobby/proto/lobbyproto")
 import { CombinedConfig } from "./combined/CombinedConfig"
@@ -25,21 +25,15 @@ export default class LobbyScene extends BaseComponent {
 
     isLogin: boolean = false
     willStartGame: boolean = false
-    isGuideToCash: boolean = false
     intoDouble11Active: boolean = false
     taskData: any = {}
     popupQuene: PopupQueue // 顺序弹窗
     countPopup: number
     countAllConfig: number
-    countAllConfig2: number = 0
     skipPopUp:boolean = false
 
     @property({ type: cc.AudioClip })
     backgroundMusic: cc.AudioClip = null
-
-    onLoad() {
-        cc.director.once(cc.Director.EVENT_AFTER_DRAW, this.onAfterDraw, this)
-    }
 
     onFixLongScreen() {
         this["nodeTop"].scale = 1.15
@@ -48,11 +42,7 @@ export default class LobbyScene extends BaseComponent {
     onOpenScene() {
         czcEvent("大厅", "登录9", "进入大厅 " + DataManager.Instance.userTag)
         this.socketName = "lobby"
-
         this.willStartGame = DataManager.CommonData["morrow"] == 0 && DataManager.Instance.getOnlineParamSwitch("jump2game")
-        if (DataManager.Instance.getOnlineParamSwitch("GuideToCashABTest")) {
-            this.isGuideToCash = true
-        }
 
         this.audio_play()
 
@@ -62,9 +52,7 @@ export default class LobbyScene extends BaseComponent {
         this.updateBadge()
 
         this.setSideBtnActive("tomorrow", false)
-        this.setSideBtnActive("inviteFriend", false)
-        this.setSideBtnActive("newbieGift", false)
-        this.setSideBtnActive("shareMoney", false)
+        cc.find("nodePlayer/dayCard", this.node).active = false
 
         if (!DataManager.CommonData.roleCfg || !DataManager.CommonData.roleCfg.weekCardABTest) {
             cc.find("nodePlayer/monthCard", this.node).active = false
@@ -79,13 +67,13 @@ export default class LobbyScene extends BaseComponent {
         this.initRole()
         this.initGame()
         this.initFastGame()
+        this.updateHuaFeiNumber()
 
         WxWrapper.checkUserScope("userInfo", (canUse) => {
             if (this.isValid && !canUse) {
                 cc.find("nodePlayer/nodeFace/badge", this.node).active = true
             }
         })
-        cc.find("nodePlayer/nodeFace/badge", this.node).active = !(DataManager.CommonData["bindPhone"] && DataManager.CommonData["bindPhone"].hasBindMoble == 1)
 
         if (WxWrapper.checkAppQuery()) {
             this.willStartGame = false
@@ -111,31 +99,19 @@ export default class LobbyScene extends BaseComponent {
         if (null == NetManager.Instance.getSocketState("lobby")) {
             NetManager.Instance.login("lobby", DataManager.Instance.SocketAddress, proto, opcodeConfig, (socket) => this.sendVerifyTicketReq(socket))
         } else {
-            if (this.isGuideToCash || false == this.willStartGame || DataManager.load(DataManager.UserData.guid + "lastGameId") > 0) {
+            if (false == this.willStartGame || DataManager.load(DataManager.UserData.guid + "lastGameId") > 0) {
                 GameManager.hideFace()
             }
         }
     }
 
-    checkAllConfig2() {
-        this.countAllConfig2++
-        if (this.countAllConfig2 == 2) {
-            this.updateExchangeInfo()
-            if (DataManager.CommonData["first"] == 1 && this.isGuideToCash && this.getSideBtn("newbieGift").active) {
-                NetManager.Instance.send("lobby", { opcode: "proto_cl_get_newbie_reward_req" })
-            } else if (this.willStartGame && this.isLogin && DataManager.load(DataManager.UserData.guid + "lastGameId") == null) {
-                this.onPressFastStart()
-            }
-        }
-    }
-
     updateServerStatus() {
-        cc.log("updateServerStatus", DataManager.CommonData["first"], this.isGuideToCash, this.getSideBtn("newbieGift").active)
-        if (DataManager.CommonData["first"] == 1 && this.isGuideToCash && !DataManager.CommonData.isGuideToCash) {
-            DataManager.CommonData.isGuideToCash = true
-            this.checkAllConfig2()
-        } else if (this.willStartGame && this.isLogin && DataManager.load(DataManager.UserData.guid + "lastGameId") == null) {
-            this.onPressFastStart()
+        if (this.willStartGame && this.isLogin && DataManager.load(DataManager.UserData.guid + "lastGameId") == null) {
+            SceneManager.Instance.popScene("moduleLobby", "NewUserPop", {
+                doNext: () => {
+                    this.isValid && this.onPressFastStart()
+                }
+            })
         }
 
         this.initFastGame()
@@ -174,11 +150,6 @@ export default class LobbyScene extends BaseComponent {
             loadAdConfig(() => { this.isValid && this.checkAllConfig() })
         }
 
-        if (!DataManager.CommonData.shareMoneyData) {
-            this.countAllConfig++
-            loadShareMoney(() => { this.isValid && this.checkAllConfig() })
-        }
-
         if (!DataManager.CommonData.realRoleCfg) {
             this.countAllConfig++
             getUserRole(() => {
@@ -189,22 +160,7 @@ export default class LobbyScene extends BaseComponent {
             })
         }
 
-        if (!DataManager.CommonData.AdConfig) {
-            this.countAllConfig++
-            loadAdConfig(() => { this.isValid && this.checkAllConfig() })
-        }
-
-        if (!DataManager.CommonData.ExchangeInfo) {
-            this.countAllConfig++
-            getExchangeConfig(() => {
-                if (this.isValid) {
-                    this.checkAllConfig2()
-                    this.checkAllConfig()
-                }
-            })
-        } else {
-            getExchangeConfig()
-        }
+        getExchangeConfig()
 
         this.checkAllConfig()
     }
@@ -213,20 +169,6 @@ export default class LobbyScene extends BaseComponent {
         this.countAllConfig--
         if (this.countAllConfig == 0) {
             this.showPopups()
-        }
-    }
-
-    updateExchangeInfo() {
-        if (this.isGuideToCash) {
-            const configs = DataManager.Instance.onlineParam.GuideToCashConfigs || [{ gain: { id: -6, num: 3 } }, { gain: { id: -4, num: 1 } }]
-            const find = DataManager.CommonData.ExchangeInfo.some(info => {
-                const gainItem = info.gainItemList[0]
-                if (gainItem && info.exchangeCount == 0) {
-                    return configs.some(config => config.gain && config.gain.id == gainItem.gainItem && config.gain.num == gainItem.gainNum)
-                }
-                return false
-            })
-            this.setSideBtnActive("newbieGift", find)
         }
     }
 
@@ -241,11 +183,17 @@ export default class LobbyScene extends BaseComponent {
 
         getMailInfo()
 
+        this.updateHuaFeiNumber()
+
         this.updateVipInfo()
 
         cc.find("nodeLeft/lottery/badge", this.node).getComponent("Badge").updateView(DataManager.UserData.getItemNum(366))        
     }
-    
+
+    updateHuaFeiNumber() {
+        cc.find("nodeMain/nodeGame/hfsEntrance/nodeHuafei/labelNum", this.node).getComponent(cc.Label).string = "已获得:" + trans2format(DataManager.UserData.getItemNum(382) / 100) + "话费券"
+    }
+
     updateTitle() {
          // 合成游戏头衔
          if (DataManager.Instance.onlineParam.combinedTitle != 0) {
@@ -304,7 +252,13 @@ export default class LobbyScene extends BaseComponent {
 
         let servers = getGameServers(gameId)
 
-        if (gameId == -1) {
+        if(gameId == 3893) {
+            const server = getBaiYuanServer()
+            if (server) {
+                enterGame(server)
+            }
+        }
+        else if (gameId == -1) {
             SceneManager.Instance.popScene("moduleLobby", "MiniGameScene")
         }
         else if (gameId == -2) {
@@ -340,7 +294,7 @@ export default class LobbyScene extends BaseComponent {
             plyNickname: DataManager.Instance._userData.nickname,
             plyTicket: DataManager.Instance._userData.ticket,
             gameId: DataManager.Instance.gameId,
-            version: 1498492800,
+            version: 2000000001,
             extParam: "",
             sex: DataManager.Instance._userData.sex,
             packetName: DataManager.Instance.packetName
@@ -350,22 +304,27 @@ export default class LobbyScene extends BaseComponent {
     }
 
     onPressFastStart() {
-        let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
-        czcEvent("大厅", "快速开始", gameId + " " + DataManager.Instance.userTag)
-        if (null == gameId)
-            gameId = DataManager.Instance.getGameList()[0]
+        let lastGameId = DataManager.load(DataManager.UserData.guid + "lastGameId") || 3893
+        czcEvent("大厅", "快速开始", lastGameId + " " + DataManager.Instance.userTag)
 
-        if (gameId === 389)
-            gameId = 3892
+        if (lastGameId == 3893) {
+            const server = getBaiYuanServer()
+            if (server) {
+                enterGame(server)
+            }
+        } else {
+            if (lastGameId === 389) {
+                lastGameId = 3892
+            }
 
-        let servers = getLowMoneyRoom(gameId)
-        if (servers && servers.length > 0) {
-            let i = Math.floor(Math.random() * 100 % servers.length)
-            enterGame(servers[i])
-        }
-        else if (DataManager.UserData.money < DataManager.Instance.getReliefLine()) {
-            // 没服务器就是初级场
-            unenoughGold(0, DataManager.Instance.getReliefLine())
+            let servers = getLowMoneyRoom(lastGameId)
+            if (servers && servers.length > 0) {
+                let i = Math.floor(Math.random() * 100 % servers.length)
+                enterGame(servers[i])
+            } else if (DataManager.UserData.money < DataManager.Instance.getReliefLine()) {
+                // 没服务器就是初级场
+                unenoughGold(0, DataManager.Instance.getReliefLine())
+            }
         }
     }
 
@@ -378,12 +337,15 @@ export default class LobbyScene extends BaseComponent {
             return
         }
 
-        const award = AdsConfig.getAwardById(adIndex)
-        if (award && getNextAdMethod(adIndex) != 0) {
-            SceneManager.Instance.popScene("moduleLobby", "AdAwardPop", award)
-        } else {
-            receiveAdAward(adIndex)
-        }
+        // 大厅免费福卡直接领取
+        receiveAdAward(adIndex)
+
+        // const award = AdsConfig.getAwardById(adIndex)
+        // if (award && getNextAdMethod(adIndex) != 0) {
+        //     SceneManager.Instance.popScene("moduleLobby", "AdAwardPop", award)
+        // } else {
+        //     receiveAdAward(adIndex)
+        // }
     }
 
     getSideBtn(btnName) {
@@ -457,26 +419,14 @@ export default class LobbyScene extends BaseComponent {
 
     initGame() {
         if (DataManager.CommonData["morrow"] == 0) {
-            const finger = cc.find("nodeMain/nodeGame/bxpEntrance/fingerAni", this.node)
-            finger && (finger.active = true)
+            cc.find("nodeMain/nodeGame/hfsEntrance/fingerAni", this.node).active = true
         }
 
-        const node = cc.find("nodeMain/nodeGame", this.node)
-        const games = node ? node.children : []
-        for (const game of games) {
-            const ani = game.getChildByName("ani")
-            const spine = ani ? ani.getComponent(sp.Skeleton) : null
-            if (spine) {
-                if (game.name == "qdzEntrance") {
-                    spine.setAnimation(0, "animation", true)
-                } else {
-                    spine.setAnimation(0, "daiji", false)
-                    spine.setCompleteListener(() => {
-                        spine.isValid && spine.setAnimation(0, Math.random() * 100 > 30 ? "daiji" : "suiji", false)
-                    })
-                }
-            }
-        }
+        const spine = cc.find("nodeMain/nodeGame/bxpEntrance/ani", this.node).getComponent(sp.Skeleton)
+        spine.setAnimation(0, "daiji", false)
+        spine.setCompleteListener(() => {
+            spine.isValid && spine.setAnimation(0, Math.random() * 100 > 30 ? "daiji" : "suiji", false)
+        })
     }
 
     initRole() {
@@ -491,21 +441,26 @@ export default class LobbyScene extends BaseComponent {
     }
 
     initFastGame() {
-        let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId") || 3892
-        let name = {}
-        let nameFormat = ""
-        let qr = cc.find("nodeBottom/btnFast/fastLabel", this.node).getComponent(cc.Label)
-        let servers = getLowMoneyRoom(gameId)
-        if (servers && servers.length) {
-            // 处理斗地主三种类型
-            if (gameId >= 3890)
-                gameId = Math.floor(gameId / 10)
+        let fastGameName = ""
+        let lastGameId = DataManager.load(DataManager.UserData.guid + "lastGameId") || 3893
+        const label = cc.find("nodeBottom/btnFast/fastLabel", this.node).getComponent(cc.Label)
 
-            name = getChangCiName(gameId, servers[0].ddz_game_type, servers[0].level)
+        if (lastGameId == 3893) {
+            if (getBaiYuanServer()) {
+                fastGameName = "话费争夺赛"
+            }
+        } else {
+            const servers = getLowMoneyRoom(lastGameId)
+            if (servers && servers.length) {
+                // 处理斗地主三种类型
+                if (lastGameId >= 3890)
+                    lastGameId = Math.floor(lastGameId / 10)
 
-            nameFormat = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+                const name = getChangCiName(lastGameId, servers[0].ddz_game_type, servers[0].level)
+                fastGameName = name["gameName"] + "·" + name["typeName"] + name["levelName"]
+            }
         }
-        qr.string = nameFormat
+        label.string = fastGameName
     }
 
     initTip() {
@@ -531,11 +486,6 @@ export default class LobbyScene extends BaseComponent {
         for (let i = 0, len = targets.length; i < len; i++) {
             targets[i] && flash(targets[i])
         }
-    }
-
-    onAfterDraw() {
-        if (!this.isValid) { return }
-        GameManager.hideFace()
     }
 
     updateTaskList(event: { message: { taskList: Iproto_ATAchieveData[] } }) {
@@ -579,7 +529,7 @@ export default class LobbyScene extends BaseComponent {
             delete DataManager.CommonData["showMatchScene"]
         } else if (DataManager.CommonData["leaveGame"]) {
             if (DataManager.Instance.getOnlineParamSwitch("back2showadABTest")) {
-                playADInter()
+                WxWrapper.showInterstitialAdvert()
             }
 
             let gameId = DataManager.load(DataManager.UserData.guid + "lastGameId")
@@ -616,12 +566,6 @@ export default class LobbyScene extends BaseComponent {
                     if (checkonlineParam("lobbyPopups_leaveGameFirst")) {
                         break
                     }
-
-                    // 新手第一次离开游戏引导到兑换去
-                    if (DataManager.Instance.getOnlineParamSwitch("LeaveGameFirstToExchange", 1)) {
-                        this.popupQuene.add(this.checkShowPopup_GuideExchangePop1.bind(this))
-                        break
-                    }
                     this.popupQuene.add(this.checkShowPopup_TomorrowPop.bind(this))
                     this.popupQuene.add(this.checkShowPopup_DrawVip.bind(this))
                     this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
@@ -635,9 +579,6 @@ export default class LobbyScene extends BaseComponent {
                     this.popupQuene.add(this.checkShowPopup_TreasureHuntPop.bind(this))
                 }
             } else {
-                if (DataManager.Instance.getOnlineParamSwitch("ShareMoneyABTest") && DataManager.CommonData["first"] == 0 && DataManager.CommonData.shareMoneyData && DataManager.CommonData.shareMoneyData.shareMoney == "") {
-                    this.popupQuene.add(this.checkShowPopup_ShareMoneyGuidePop.bind(this))
-                } 
                 if (DataManager.CommonData["morrow"] <= 7) {
                     if (checkonlineParam("lobbyPopups_loginNew")) {
                         break
@@ -758,68 +699,11 @@ export default class LobbyScene extends BaseComponent {
         return true
     }
 
-    // 新人引导
-    checkShowPopup_GuideNewbieGiftPop(rewards) {
-        SceneManager.Instance.popScene<String>("moduleLobby", "GuideNewbieGiftPop", { rewards: rewards, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
-        return true
-    }
-
-    // 新人引导1
-    checkShowPopup_GuideBubblePop1() {
-        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
-            noSing: true,
-            name: "引导点击立即提现",
-            tips: "点击任意区域继续",
-            bubble1: {
-                title: "点击立即提现",
-                node: this.getSideBtn("newbieGift"),
-                offect: cc.v2(110, 135),
-            },
-            closeCallback: this.popupQuene.showPopup.bind(this.popupQuene)
-        })
-        return true
-    }
-
-    checkShowPopup_GuideToCashPop() {
-        SceneManager.Instance.popScene<String>("moduleLobby", "ToCashPop", { isGuideToCash: this.isGuideToCash, closeCallback: this.popupQuene.showPopup.bind(this.popupQuene) })
-        return true
-    }
-
-    // 新人引导5
-    checkShowPopup_GuideBubblePop5() {
-        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
-            noSing: true,
-            name: "引导快速开始",
-            tips: "点击任意区域快速开始",
-            bubble3: {
-                title: "进行游戏可快速\n获得福卡",
-                node: cc.find("nodeMain/nodeGame", this.node),
-                offect: cc.v2(-460, -25),
-            },
-            closeCallback: this.onPressFastStart.bind(this)
-        })
-        return true
-    }
-
-    proto_lc_get_newbie_reward_ack(event: { packet: proto.proto_lc_get_newbie_reward_ack }) {
-        const message = event.packet
-        if (message.ack == 0) {
-            this.popupQuene = new PopupQueue()
-            this.popupQuene.add(this.checkShowPopup_GuideNewbieGiftPop.bind(this, JSON.parse(message.rewards)))
-            this.popupQuene.add(this.checkShowPopup_GuideBubblePop1.bind(this))
-            this.popupQuene.add(this.checkShowPopup_GuideToCashPop.bind(this))
-            this.popupQuene.add(this.checkShowPopup_GuideBubblePop5.bind(this))
-            this.popupQuene.showPopup()
-        } else if (this.willStartGame) {
-            this.onPressFastStart()
-        }
-    }
-
     /**
      * 引导用户
      */
     checkShowPopUp_NoticePop() {
-        if (DataManager.CommonData.roleCfg && DataManager.CommonData.roleCfg.importUserABTest) {
+        if (DataManager.CommonData.roleCfg && DataManager.CommonData.roleCfg.importUserABTest && checkSpecialAward()) {
             if (DataManager.Instance.onlineParam.noticeImage) {
                 showNoticePop(DataManager.Instance.onlineParam.noticeImage, this.popupQuene.showPopup.bind(this.popupQuene))
                 return true
@@ -828,45 +712,15 @@ export default class LobbyScene extends BaseComponent {
     }
 
     updateOnceBox() {
-        cc.find("nodePlayer/dayCard", this.node).active = !!checkFirstBox(1)
-    }
-
-    // 兑换引导
-    checkShowPopup_GuideExchangePop1() {
-        SceneManager.Instance.popScene<String>("moduleLobby", "GuideBubblePop", {
-            noSing: true,
-            name: "引导点击兑换",
-            tips: "点击任意区域继续",
-            bubble3: {
-                title: "去兑换0.3元",
-                node: cc.find("nodeTop/nodeCurrency/item365", this.node),
-                nodeRectOffect: cc.rect(-30, -10, 20, 20),
-                offect: cc.v2(110, 135),
-            },
-            closeCallback: () => {
-                SceneManager.Instance.popScene("moduleLobby", "ExchangeScene", { isGuideExchange: true })
-            }
-        })
-        return true
-    }
-
-    updateShareMoney() {
-        const shareMoney = DataManager.CommonData.shareMoneyData.shareMoney
-        this.setSideBtnActive("shareMoney", shareMoney == "" || Math.floor(new Date().getTime() / 1000) < shareMoney[0].sm_time)
-    }
-
-    // 分享赚钱引导
-    checkShowPopup_ShareMoneyGuidePop() {
-        SceneManager.Instance.popScene("moduleLobby", "ShareMoneyGuidePop")
-        return true
-    }
-
-    onPressShareMoney() {
-        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
-        if (DataManager.CommonData.shareMoneyData.shareMoney == "") {
-            SceneManager.Instance.popScene("moduleLobby", "ShareMoneyGuidePop")
-        } else {
-            SceneManager.Instance.popScene("moduleLobby", "ShareMoneyPop")
+        if (!checkFirstBox(1)) {
+            return
         }
+
+        const round = DataManager.Instance.onlineParam.LobbyScene_DayCard_round || 1000
+        if (DataManager.CommonData["roleCfg"]["roundSum"] || DataManager.CommonData["roleCfg"]["roundSum"] < round) {
+            return
+        }
+
+        cc.find("nodePlayer/dayCard", this.node).active = true
     }
 }

@@ -1,6 +1,5 @@
 import DataManager from "../../base/baseData/DataManager";
-import { payOrder, checkFirstBox, oncePayBox, czcEvent } from "../../base/BaseFuncTs";
-import { sendReloadUserData, exchangeAward, getExchangeConfig } from "../LobbyFunc";
+import { czcEvent } from "../../base/BaseFuncTs";
 import SceneManager from "../../base/baseScene/SceneManager";
 import BaseControl from "../../base/extensions/Extpands/BaseControl";
 import { NodeExtends } from "../../base/extends/NodeExtends";

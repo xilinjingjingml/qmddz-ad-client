@@ -25,7 +25,7 @@ export default class SceneManager extends cc.Component {
     }
 
     onInit () {
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyEvent, this)
+
     }
 
     loadScene(moduleName, name, callback:(scene) => void = null, errCallBack:(err) => void = null, dir = "/prefab/") {
@@ -183,6 +183,10 @@ export default class SceneManager extends cc.Component {
                 return
             }
 
+            if (!self._singPopQueue[typeof prefab === "string" ? prefab : scene.name]){
+                return
+            }
+
             scene.setAnchorPoint(0.5, 0.5)
             scene.setPosition(position)
         
@@ -244,7 +248,7 @@ export default class SceneManager extends cc.Component {
 
         if (prefab instanceof cc.Prefab){
             if (initParam && initParam["noSing"] == true) {
-                this._singPopQueue[prefab.name]            
+                this._singPopQueue[prefab.name] = 1
             }
             else {
                 if (this._singPopQueue[prefab.name])
@@ -263,7 +267,7 @@ export default class SceneManager extends cc.Component {
         }
         else {
             if (initParam && initParam["noSing"] == true) {
-                this._singPopQueue[prefab.toString()]            
+                this._singPopQueue[prefab.toString()] = 1
             }
             else {
                 if (this._singPopQueue[prefab.toString()])
@@ -307,6 +311,9 @@ export default class SceneManager extends cc.Component {
         // }
 
         if (null == baseScene){
+            if (typeof scene == "string" && this._singPopQueue[scene]) {
+                delete this._singPopQueue[scene]
+            }
             callback && callback(-2);
             return
         }
@@ -365,36 +372,5 @@ export default class SceneManager extends cc.Component {
         }
 
         this._popScenes = []
-    }
-
-    onKeyEvent(evnet: cc.Event.EventKeyboard) {
-        if (evnet.keyCode == 6 || evnet.keyCode == 27) { // 返回键
-            for (let i = this._popScenes.length - 1; i >= 0; i--) {
-                const pop = this._popScenes[i]
-                if (pop && pop.curScene) {
-                    if (typeof pop['onPressBack'] == 'function') {
-                        cc.log(pop.curScene.sceneName, 'onPressBack')
-                        pop['onPressBack']()
-                        return
-                    }
-                    if (['TrumpetCom', 'KeyboardPop', 'SideRankPop'].indexOf(pop.curScene.sceneName as string) > -1) {
-                        continue
-                    }
-                    cc.log(pop.curScene.sceneName)
-                    pop['closeSelf']()
-                    return
-                }
-            }
-            for (let i = this._scenes.length - 1; i >= 0; i--) {
-                const scene = this._scenes[i]
-                if (scene && scene.curScene) {
-                    if (typeof scene['onPressBack'] == 'function') {
-                        cc.log(scene.curScene.sceneName, 'onPressBack')
-                        scene['onPressBack']()
-                        return
-                    }
-                }
-            }
-        }
     }
 }

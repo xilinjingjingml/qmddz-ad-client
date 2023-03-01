@@ -2,12 +2,12 @@
 import ItemData from "../baseData/ItemData";
 import SceneManager from "../baseScene/SceneManager";
 import NetManager from "./NetManager";
-import { iMessageBox, showAwardResultPop, enterGame, showShopPop, getLowMoneyRoom, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, gobackToMain, getNowTimeUnix, enterPrivateGame, gotoMatchSvr, getLeadTime, setServerTime, getUserRole, getShopBox, playADBanner } from "../BaseFuncTs";
-import { sendReloadUserData, getReliefState, getServerList, getMonthCardStatus, getTaskList, openShareMoney } from "../../moduleLobby/LobbyFunc";
-import { kickout, pluginCallBack } from "../BaseFuncTs";
-import * as bproto from "../../moduleLobby/proto/lobbyproto";
-import { EPlatformEvent } from "../PluginManager";
+import { iMessageBox, showAwardResultPop, enterGame, MsgBox, showTrumpet, czcEvent, getServerByGameIdAndServerId, enterPrivateGame, gotoMatchSvr, getLeadTime, setServerTime, getUserRole, getShopBox, showCashOutNotice } from "../BaseFuncTs";
+import { sendReloadUserData, getReliefState, getServerList, getMonthCardStatus, getTaskList } from "../../moduleLobby/LobbyFunc";
 import { AdsConfig } from "../baseData/AdsConfig";
+import { EPlatformEvent } from "../PluginManager";
+import { kickout, pluginCallBack, playADBanner } from "../BaseFuncTs";
+import { openShareMoney } from "../../moduleLobby/LobbyFunc";
 
 export default class NotfiyMessage {
 
@@ -227,7 +227,7 @@ export default class NotfiyMessage {
             items.forEach(element => this.serverExtParam(element))
         })
         
-        if (null == DataManager.CommonData["isOnGameExit"] && DataManager.CommonData["closeGameErr"] == 1){
+        if (null == DataManager.CommonData["isOnGameExit"] && DataManager.CommonData["closeGameErr"] == 1 && DataManager.CommonData["gameServer"] == null){
             DataManager.CommonData["closeGameErr"] = 0
             let gameId = DataManager.CommonData["plyStatus"].gameId
             let serverId = DataManager.CommonData["plyStatus"].gameServerId
@@ -352,11 +352,14 @@ export default class NotfiyMessage {
         msg.message = msg.msg
         msg.plyGuid = msg.gameId
         showTrumpet(msg)
+        showCashOutNotice(msg.message)
     }
 
     proto_bc_login_ack(message) {
         message = message.packet
         if (message.ret == -2){
+            DataManager.CommonData.lastGame = { gameId: message.plyStatus.gameId, gameServerId: message.plyStatus.gameServerId }
+            return
             // let initParam = {
             //     title: "提示",
             //     content: "您尚有未完成的游戏\n\r是否继续？",
@@ -678,7 +681,7 @@ export default class NotfiyMessage {
     }
 
     proto_lc_match_begin_not(event) {
-        const message: bproto.Iproto_lc_match_begin_not = event.packet
+        const message: Iproto_lc_match_begin_not = event.packet
         if (DataManager.CommonData["gameServer"] && DataManager.CommonData["gameServer"].lc_room_mode == 2) {
             cc.log("比赛中不弹出")
             return

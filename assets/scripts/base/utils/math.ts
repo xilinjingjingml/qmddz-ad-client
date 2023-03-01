@@ -20,6 +20,17 @@ export namespace math {
         return Math.floor(Math.random() * (max - min) + min)
     }
 
+    export function randomRange(value: number, range?: number) {
+        if (typeof range == "undefined") {
+            range = value
+        }
+        return value + random(0, range)
+    }
+
+    export function randomPos(pos: cc.Vec2, size: cc.Size) {
+        return cc.v2(randomRange(pos.x, size.width), randomRange(pos.y, size.height))
+    }
+
     /**
      * 精准的加
      */
@@ -60,5 +71,31 @@ export namespace math {
 
     function toLongNumber(n: number) {
         return Number(n.toString().replace(".", ""))
+    }
+
+    /**
+     * 转为短描述
+     */
+    export function toShort(n: number, maxLength: number = 4): string {
+        let unit = Math.pow(10, 8)
+        if (n >= unit) {
+            return toShort(n / unit, maxLength) + "亿"
+        }
+
+        unit = Math.pow(10, 4)
+        if (n >= unit) {
+            return toShort(n / unit, maxLength) + "万"
+        }
+
+        if (n % 1 === 0) {
+            return n + ""
+        }
+
+        const integer = Math.floor(n).toString()
+        if (integer.length >= maxLength) {
+            return integer
+        }
+
+        return n.toString().substr(0, maxLength + 1)
     }
 }

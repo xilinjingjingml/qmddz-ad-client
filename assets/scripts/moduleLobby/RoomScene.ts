@@ -1,8 +1,10 @@
 ﻿import BaseScene from "../base/baseScene/BaseScene";
 import DataManager from "../base/baseData/DataManager";
 import { getChangCiName } from "../gameConfig";
-import { numberFormat, czcEvent, getNewBieServer, checkServerMoneyLimit, enterGame, getLowMoneyRoom, unenoughGold, getGameServers } from "../base/BaseFuncTs";
-import { getServerList } from "./LobbyFunc";
+import { numberFormat, czcEvent, getNewBieServer, checkServerMoneyLimit, enterGame, getLowMoneyRoom, unenoughGold, getGameServers, iMessageBox } from "../base/BaseFuncTs";
+import { getAdLeftTimes, getExchangeConfig, getNextAdMethod, getServerList, receiveAdAward } from "./LobbyFunc";
+import SceneManager from "../base/baseScene/SceneManager";
+import { AdsConfig } from '../base/baseData/AdsConfig';
 
 const {ccclass, property} = cc._decorator;
 
@@ -21,6 +23,11 @@ export default class RoomScene extends BaseScene {
             this._gameId = Math.floor(this._gameId / 10)            
         }
         
+        if (DataManager.CommonData["ExchangeInfo"]) {
+            this.updateExchangeInfo()
+        } else {
+            getExchangeConfig()
+        }
 
         this.onInitRoom()
         cc.find("nodeContent/typePage/btnType" + this._gameType, this.node).getComponent(cc.Toggle).isChecked = true
@@ -215,5 +222,34 @@ export default class RoomScene extends BaseScene {
     onPressClose() {
 		cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
         this.closeSelf()
+    }
+
+    onPressItemAd(sender: cc.Event.EventTouch, data: string) {
+        cc.audioEngine.playEffect(DataManager.Instance.menuEffect, false)
+
+        let award: { adindex: number }
+        const itemId = Number(data)
+        for (const a of AdsConfig.getAwards()) {
+            if (a.index == itemId) {
+                award = a
+            }
+        }
+        if (award == null) {
+            iMessageBox("暂不支持播放该广告，详情请联系客服！")
+            return
+        }
+
+        if (getAdLeftTimes(award.adindex) <= 0) {
+            iMessageBox("您今日的奖励次数已用完，请明天再来！")
+            return
+        }
+
+        SceneManager.Instance.popScene("moduleLobby", "AdAwardPop", award)
+    }
+
+    updateExchangeInfo() {
+        const exchangeTypes: number[] = DataManager.Instance.getOnlineParamGray("ExchangeScene_exchangeTypes", [-3, -4, -6])
+        const name = DataManager.CommonData["ExchangeInfo"].some(item => item.exchangeItemList[0].exchangeNum == 365 && exchangeTypes.indexOf(item.gainItemList[0].gainItem) != -1 && DataManager.UserData.getItemNum(item.exchangeItemList[0].exchangeItem) >= item.exchangeItemList[0].exchangeNum) ? "ketixain" : "bunengti"
+        cc.find("nodeContent/nodeButtons/btnExchange/spine_tixian", this.node).getComponent(sp.Skeleton).setAnimation(0, name, true)
     }
 }

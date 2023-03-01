@@ -28,14 +28,14 @@
     "_level": 1,
     "_components": [
       {
-        "__id__": 52
+        "__id__": 53
       },
       {
-        "__id__": 53
+        "__id__": 54
       }
     ],
     "_prefab": {
-      "__id__": 54
+      "__id__": 55
     },
     "_opacity": 255,
     "_color": {
@@ -326,9 +326,13 @@
     ],
     "_active": true,
     "_level": 3,
-    "_components": [],
+    "_components": [
+      {
+        "__id__": 51
+      }
+    ],
     "_prefab": {
-      "__id__": 51
+      "__id__": 52
     },
     "_opacity": 255,
     "_color": {
@@ -1240,6 +1244,7 @@
     "_enabled": true,
     "disableTrigger": false,
     "target": [],
+    "bEffect": true,
     "continuousClick": false,
     "_touchStart": false,
     "_touchCd": 0,
@@ -1779,6 +1784,16 @@
     "sync": false
   },
   {
+    "__type__": "0c2f8s93TdF17HJj+euD1ZM",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 8
+    },
+    "_enabled": true,
+    "_id": ""
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -1824,16 +1839,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "_eventListener": [],
-    "sceneName": null,
-    "curScene": null,
-    "lastScene": null,
-    "isPop": false,
     "isProtrait": false,
-    "socketName": "",
-    "initParam": {},
-    "_tabRegister": [],
-    "_skipBinding": false,
     "node_scrollview": {
       "__id__": 36
     },

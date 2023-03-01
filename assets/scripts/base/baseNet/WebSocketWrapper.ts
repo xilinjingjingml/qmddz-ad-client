@@ -57,7 +57,7 @@ export default class WebSocketWrapper extends cc.Component {
 
         const url = "wss://" + this.url
         // czcEvent("网络", this.linkName + "连接请求", url + " " + DataManager.Instance.userTag)
-        cc.log("[WebSocketWrapper.connect]", this.linkName, new Date().getTime(), url)
+        cc.log("[WW.connect]", this.linkName, url)
         this.websocket = cc.sys.isNative ? new WebSocket(url, undefined, "thirdparty/wss.pem") : new WebSocket(url)
         this.websocket.binaryType = "arraybuffer";
         this.websocket.onopen = this.onOpen.bind(this)
@@ -67,7 +67,7 @@ export default class WebSocketWrapper extends cc.Component {
     }
 
     onTimeout() {
-        cc.error("[WebSocketWrapper.onTimeout]", this.linkName, new Date().getTime())
+        cc.error("[WW.onTimeout]", this.linkName)
         // czcEvent("网络", this.linkName + "连接超时", this.url + " " + DataManager.Instance.userTag)
         this.close()
         this.connectFail()
@@ -75,7 +75,7 @@ export default class WebSocketWrapper extends cc.Component {
 
     onOpen() {
         // czcEvent("网络", this.linkName + "连接成功", this.url + " " + DataManager.Instance.userTag)
-        cc.log("[WebSocketWrapper.onOpen]", this.linkName, new Date().getTime())
+        cc.log("[WW.onOpen]", this.linkName)
         this.isOpen = true
         this.send({ opcode: "proto_cl_use_protocol_proto_req" })
         this.startPing()
@@ -89,8 +89,8 @@ export default class WebSocketWrapper extends cc.Component {
         }
 
         this.pingConut = 0
-        this.pingTime = new Date().getTime()
-        cc.log("[WebSocketWrapper.onMessage]", this.linkName, this.pingTime, message)
+        this.pingTime = Date.now()
+        cc.log("[WW.onMessage]", this.linkName, cc.sys.isNative ? message.opcode : message)
         if (message.opcode == "proto_pong") {
             this.reconnectCount = 0
             if (null != this.connectCallback) {
@@ -108,16 +108,16 @@ export default class WebSocketWrapper extends cc.Component {
     onError(event: Event) {
         const strEvent = functions.IsJSON(event) ? JSON.stringify(event) : event
         czcEvent("网络", this.linkName + "连接失败", this.url + " err " + strEvent + " " + DataManager.Instance.userTag)
-        cc.error("[WebSocketWrapper.onError]", this.linkName, new Date().getTime(), strEvent)
+        cc.error("[WW.onError]", this.linkName, strEvent)
         this.pingTime = 0
-        if (!this.isOpen) {
+        if (!this.isOpen && this.reconnectCount == 0) {
             this.connectFail()
         }
     }
 
     onClose(event: CloseEvent) {
         const strEvent = functions.IsJSON(event) ? JSON.stringify(event) : event
-        cc.log("[WebSocketWrapper.onClose]", this.linkName, new Date().getTime(), strEvent)
+        cc.log("[WW.onClose]", this.linkName, strEvent)
         this.isOpen = false
         this.stopPing()
         if (this.isClose) {
@@ -167,19 +167,19 @@ export default class WebSocketWrapper extends cc.Component {
 
     reconnect() {
         // czcEvent("网络", this.linkName + "尝试重连", this.url + " " + DataManager.Instance.userTag)
-        cc.log("[WebSocketWrapper.reconnect]", this.linkName, new Date().getTime())
+        cc.log("[WW.reconnect]", this.linkName)
         this.reconnectCount = 0
         this.connect()
     }
 
     connectFail() {
-        cc.log("[WebSocketWrapper.connectFail]", this.linkName, new Date().getTime())
+        cc.log("[WW.connectFail]", this.linkName)
         this.stopPing()
         NetManager.Instance.SocketFailed(this)
     }
 
     tryReconnect() {
-        cc.log("[WebSocketWrapper.tryReconnect]", this.linkName, new Date().getTime(), this.reconnectCount)
+        cc.log("[WW.tryReconnect]", this.linkName, this.reconnectCount)
         if (this.reconnectCount < 3) {
             this.reconnectCount++
             this.connect()
@@ -202,19 +202,19 @@ export default class WebSocketWrapper extends cc.Component {
                 // 方便断点调试
                 return
             }
-            difference = new Date().getTime() - this.pingTime
+            difference = Date.now() - this.pingTime
             if (difference < 5000) {
                 return
             }
         }
 
-        cc.log("[WebSocketWrapper.onPing]", this.linkName, this.pingConut, difference, this.pingTime)
+        cc.log("[WW.onPing]", this.linkName, this.pingConut, difference)
         this.pingConut > 3 ? this.tryReconnect() : this.sendPing()
     }
 
     sendPing() {
         this.pingConut++
-        this.send({ opcode: "proto_ping", now: new Date().getTime() })
+        this.send({ opcode: "proto_ping", now: Date.now() })
     }
 
     stopPing() {

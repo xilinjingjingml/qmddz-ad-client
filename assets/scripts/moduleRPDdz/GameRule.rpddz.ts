@@ -429,6 +429,9 @@ namespace GameRule {
 	export function tipsAuto(cards: ICard[]) {
 		m_cards = cards
 		m_tipCards = []
+		if (cards.length == 0) {
+			return
+		}
 
 		countCardsPoint()
 

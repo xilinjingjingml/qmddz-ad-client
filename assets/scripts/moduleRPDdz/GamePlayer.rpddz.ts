@@ -10,6 +10,7 @@ import { ITEM } from "../base/baseData/ItemConfig";
 import { UserExtends } from "../base/extends/UserExtends";
 import { NodeExtends } from "../base/extends/NodeExtends";
 import { math } from "../base/utils/math";
+import { randomArea } from "../moduleLobby/LobbyFunc";
 
 const {ccclass, property} = cc._decorator;
 
@@ -74,11 +75,18 @@ export default class GamePlayer extends GamePlayerStateController {
 	bet_label: cc.Node;
 	nodeAuto: cc.Node;
 	sptAuto: cc.Node;
+	isFakeMoney: boolean;
+	nHBNum: number = 0;
 	
 	
 
     onLoad() {
 		cc.log("GamePlayer onload");
+		if (GameLogic.Instance().isBaiYuanMode()) {
+			this.$("nodeHB").active = true
+			this.$("nodeRedPacket").active = false
+			this.$("nodeMoney").active = false
+		}
         if (GameLogic.Instance().isRedPacketTable() == false) {
             this.nodeRedPacket.active = false
 		}
@@ -94,6 +102,17 @@ export default class GamePlayer extends GamePlayerStateController {
 
 	onPressAvatar() {
 		if (this.isMe()) {
+			if (GameLogic.Instance().isBaiYuanMode()) {
+				AudioManager.playButtonSound()
+				GameLogic.Instance().showGameSoundPanel({
+					avatarFrame: this.$("sptAvatar", cc.Sprite).spriteFrame,
+					repacketValue: this.$("labelRedPacket", cc.Label).string,
+					nickname: this.getPlyData().nickname,
+					moneyValue: this.$("labelMoney", cc.Label).string,
+					hbValue: this.$("label_hb", cc.Label).string,
+					location: this.$("label_location", cc.Label).string,
+				})
+			}
 			return
 		}
 		if (GameLogic.Instance().emojiConfigs.length == 0) {
@@ -112,6 +131,8 @@ export default class GamePlayer extends GamePlayerStateController {
 			repacketValue: this.labelRedPacket.getComponent(cc.Label).string,
 			nickname: this.getPlyData().nickname,
 			moneyValue: this.labelMoney.getComponent(cc.Label).string,
+			hbValue: this.$("label_hb", cc.Label).string,
+			location: this.$("label_location", cc.Label).string,
 			toChairId: this.getPlyData().chairId,
 			toPid: this.getPlyData().plyGuid,
             callback: (index) => {
@@ -181,8 +202,11 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.nodeAuto.setPosition(this["nodeTuoGuanPos" + this.chairid].getPosition());
 		this.sptPutOver.active = false
 
-
-    }
+		this.$("nodeHBChange").setPosition(this.$("nodeHBChangePos" + this.chairid).getPosition())
+		this.$("nodeHBChange").anchorX = this.chairid == 1 ? 1 : 0
+		this.$("nodeHeadInfo").setPosition(this.$("nodeHeadInfoPos" + this.chairid).getPosition())
+		this.$("nodeZanMan").setPosition(this.$("nodeZanManPos" + this.chairid).getPosition())
+	}
 
 	setUserData(data) {
 		this.userData = data
@@ -192,6 +216,12 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.spine_head = isnan ? this.spine_nan : this.spine_nv
 		this.playHeadSpineAnimation("daiji1")
 		this.playHeadSpineAnimation("ythn", true, 30)
+		if (GameLogic.Instance().isBaiYuanMode()) {
+			if (this.chairid != 0) {
+				this.setLocation(randomArea(this.userData.plyGuid) + "市")
+				this.refreshTiXian()
+			}
+		}
         
 		this.show()
 
@@ -325,7 +355,11 @@ export default class GamePlayer extends GamePlayerStateController {
         
 		this.initHeadIcon(true)
 		
-        this.node.active = false
+		this.nHBNum = 0
+		this.node.active = false
+		this.$("nodeLocation").active = false
+		this.$("nodeTiXian").active = false
+		this.$("nodeZanMan").active = false
 	}
 	
     clearPlayer() {
@@ -336,16 +370,16 @@ export default class GamePlayer extends GamePlayerStateController {
 		
 		// this.clearGameData()
 
-		if (!this.isMe()) {
-			this.removePlayer()
-		}
+		// if (!this.isMe()) {
+		// 	this.removePlayer()
+		// }
 	}
 	
 	clearGameData() {
 		this.dealCardFlag = true
 		this.isShowCard = false
 
-		this.hideRole()
+		// this.hideRole()
 
         this.hideRemainCard()
         
@@ -359,9 +393,9 @@ export default class GamePlayer extends GamePlayerStateController {
 			return
 		}
 
-		if (!this.isMe()) {
-			this.removePlayer()
-		}
+		// if (!this.isMe()) {
+		// 	this.removePlayer()
+		// }
 	}
 
 	clearHandcard() {
@@ -407,6 +441,9 @@ export default class GamePlayer extends GamePlayerStateController {
 		this.node_spine_head.active = true
 		this.node_spine_role.active = false
 		this.isLord = false
+		this.isFakeMoney = false
+		this.$("nodeHBChange").stopAllActions()
+		this.$("nodeHBChange").opacity = 0
 	}
 
 	
@@ -530,6 +567,7 @@ export default class GamePlayer extends GamePlayerStateController {
 	showRole(isLord: boolean, vecCards: ICard[]) {
 		this.isLord = isLord
 		this.spine_dizhu.active = isLord
+		this.isFakeMoney = false
 		this.spine_nongmin.active = !isLord
 		this.spine_role = isLord ? this.spine_dizhu : this.spine_nongmin
 		this.playRoleSpineAnimation("daiji", true)
@@ -656,8 +694,15 @@ export default class GamePlayer extends GamePlayerStateController {
     hideRemainCard() {
 		this.nodeRemainCard.active = false        
 	}
+
+	setFakeMoney(fake: boolean) {
+		this.isFakeMoney = fake
+	}
 	
 	setItemView(index_, value_) {
+		if (this.isFakeMoney) {
+			return
+		}
 		if (this.isMe()) {
 			GameLogic.Instance().userProperties[index_] = value_
 		}
@@ -665,6 +710,8 @@ export default class GamePlayer extends GamePlayerStateController {
 			this.setMoneyNum(value_)
 		}else if(index_ == ITEM.REDPACKET_TICKET) {
 			this.setRedPacketNum(value_)
+		}else if(index_ == ITEM.TO_CASH) {
+			this.setHBNum(value_)
 		}
 	}
 
@@ -684,7 +731,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (this.stopRefreshRedPacket) {
 			return
 		}
-        this.labelRedPacket.getComponent(cc.Label).string = GameLogic.Instance().GetMoneyShortString(num)
+        this.labelRedPacket.getComponent(cc.Label).string = math.toShort(num)
 	}
 	
     refreshRedPacketNum(num = 0) {
@@ -696,7 +743,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		if (this.isMe()) {
 			DataManager.UserData.money = num
 		}
-        this.labelMoney.getComponent(cc.Label).string = GameLogic.Instance().GetMoneyShortString(num)
+        this.labelMoney.getComponent(cc.Label).string = math.toShort(num)
 	}
 
 	setScoreNum(num = 0) {
@@ -732,7 +779,7 @@ export default class GamePlayer extends GamePlayerStateController {
 			NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
 		}else{
 			UserExtends.getUserInfos([this.userData.plyGuid], infos => {
-				if (this.node.isValid && this.userData && infos.length > 0) {
+				if (this.node && this.node.isValid && this.userData && infos.length > 0) {
 					this.userData.headimage = infos[0].face
 					NodeExtends.setNodeSpriteNet({ node: this.sptAvatar, url: this.userData.headimage, fixSize: true })
 				}
@@ -781,6 +828,9 @@ export default class GamePlayer extends GamePlayerStateController {
 			AudioManager.playSound("audio_rocket");
 		} else if (id == EANI.ANI_ZHADAN) {
 			GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", this.chairid, () => {
+				if (GameLogic.Instance().gamescene == null || !GameLogic.Instance().gamescene.isValid) {
+					return
+				}
 				GameLogic.Instance().gamescene.play_game_spine_ani("zhadan", -1)
 			})
 			AudioManager.playSound("audio_bomb");
@@ -1036,7 +1086,10 @@ export default class GamePlayer extends GamePlayerStateController {
 				tipfile = 'gs_tip_chaojijiabei'
 			}
 			soundname = 'audio_superdouble'
-		}else {
+		} else if (nOp == 28) {
+			soundname = 'audio_call_lord'
+			tipfile = 'gs_tip_score_4'
+		} else {
 			cc.log('GamePlayer untreated common', nOp)
 		}
 
@@ -1177,6 +1230,7 @@ export default class GamePlayer extends GamePlayerStateController {
 		skeleton.setAnimation(0, name, loop)
 		skeleton.setCompleteListener(() => {
 			if (!loop) {
+				skeleton.setCompleteListener(null)
 				callback && callback()
 			}
 		})
@@ -1189,5 +1243,84 @@ export default class GamePlayer extends GamePlayerStateController {
 			cc.find("nodeInfo/nodeBet/betx2", this.node).active = beishu !== 4 
 			cc.find("nodeInfo/nodeBet/betx4", this.node).active = beishu === 4
 		}
+	}
+
+	setHBNum(num: number) {
+		const n = DataManager.Instance.onlineParam.GmmePlayer_tixian_num || 20000
+		if (this.nHBNum > 0 && this.nHBNum < n && num >= n) {
+			this.$("nodeZanMan").active = true
+			const skeleton = this.$("nodeZanMan", sp.Skeleton)
+			skeleton.setAnimation(0, 'kaishi', false)
+			skeleton.setCompleteListener(() => {
+				let count = 0
+				skeleton.setAnimation(0, 'xunhuan', true)
+				skeleton.setCompleteListener(() => {
+					count++
+					if (count == 2) {
+						skeleton.setCompleteListener(null)
+						this.$("nodeZanMan").active = false
+					}
+				})
+			})
+		}
+		this.nHBNum = num
+		this.$("label_hb", cc.Label).string = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
+	}
+
+	setHBChange(num: number) {
+		const value = GameLogic.Instance().turnBaiYuan(num).toFixed(2)
+		this.$("labelHBChangeWIn", cc.Label).string = "+" + value
+		this.$("labelHBChangeLose", cc.Label).string = "" + value
+
+		this.$("labelHBChangeWIn").active = num > 0
+		this.$("labelHBChangeLose").active = num < 0
+
+		this.$("nodeHBChange").stopAllActions()
+		this.$("nodeHBChange").opacity = 0
+		this.$("nodeHBChange").runAction(cc.sequence([
+			cc.fadeIn(0.5),
+			cc.fadeIn(2),
+			cc.fadeOut(0.5)
+		]))
+	}
+
+	setLocation(str: string) {
+		this.$("nodeLocation").active = true
+		this.$("label_location", cc.Label).string = str
+	}
+
+	setTiXian(str: string) {
+		this.$("nodeTiXian").active = true
+		this.$("label_tixain", cc.Label).string = str
+	}
+
+	refreshTiXian() {
+		const configs = DataManager.Instance.onlineParam.GmmePlayer_tixian_config || [
+			{ weight: 15, value: 0 },
+			{ weight: 5, value: 200 },
+			{ weight: 1, value: 400 },
+			{ weight: 1, value: 600 },
+			{ weight: 1, value: 800 },
+		]
+		let sum = 0
+		configs.forEach(cfg => sum += cfg.weight)
+		let rand = this.userData.plyGuid % sum
+		for (let i = 0; i < configs.length; i++) {
+			rand -= configs[i].weight
+			if (rand < 0) {
+				if (configs[i].value > 0) {
+					this.setTiXian("已提" + configs[i].value)
+				}
+				return
+			}
+		}
+	}
+
+	onCloseScene() {
+		this.$("spine_nan", sp.Skeleton).setCompleteListener(null)
+		this.$("spine_nv", sp.Skeleton).setCompleteListener(null)
+		this.$("spine_dizhu", sp.Skeleton).setCompleteListener(null)
+		this.$("spine_nongmin", sp.Skeleton).setCompleteListener(null)
+		this.$("nodeZanMan", sp.Skeleton).setCompleteListener(null)
 	}
 }
